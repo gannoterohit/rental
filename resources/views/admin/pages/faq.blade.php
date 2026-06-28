@@ -1,0 +1,137 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="flex h-screen overflow-hidden">
+    @include('admin.partials.sidebar')
+    
+    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div class="container-fluid px-4 py-6">
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">{{ $pageTitle }}</h1>
+
+            <div class="bg-white rounded-lg shadow-md p-6 overflow-y-auto max-h-[calc(100vh-150px)]">
+                <form action="{{ $route }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div id="faq-container" class="space-y-4">
+                        @php
+                            $faqs = json_decode($setting->value ?? '[]', true);
+                            if (!is_array($faqs)) $faqs = [];
+                        @endphp
+
+                        @forelse($faqs as $index => $faq)
+                            <div class="faq-item border border-slate-200 rounded-lg p-4 bg-slate-50 relative">
+                                <button type="button" class="absolute top-2 right-2 text-red-500 hover:text-red-700 remove-faq">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Question</label>
+                                    <input type="text" name="faqs[{{ $index }}][question]" value="{{ $faq['question'] ?? '' }}" 
+                                           class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Answer</label>
+                                    <textarea name="faqs[{{ $index }}][answer]" rows="2" 
+                                              class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ $faq['answer'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="faq-item border border-slate-200 rounded-lg p-4 bg-slate-50 relative">
+                                <button type="button" class="absolute top-2 right-2 text-red-500 hover:text-red-700 remove-faq">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Question</label>
+                                    <input type="text" name="faqs[0][question]" class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Answer</label>
+                                    <textarea name="faqs[0][answer]" rows="2" class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                </div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="mt-4 flex justify-between">
+                        <button type="button" id="add-faq-btn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md shadow-sm">
+                            <i class="fas fa-plus mr-2"></i>Add New Question
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm">
+                            Save FAQ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('faq-container');
+        const addBtn = document.getElementById('add-faq-btn');
+        let faqCount = {{ count($faqs) > 0 ? count($faqs) : 1 }};
+        
+        // Store editor instances to destroy them properly if needed (though for simple admin usage, might not be strict)
+        const editors = {};
+
+        // Helper to init editor
+        function initEditor(element) {
+            ClassicEditor
+                .create(element, {
+                    toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
+                })
+                .then(editor => {
+                    editors[element.name] = editor;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+
+        // Init existing editors
+        document.querySelectorAll('textarea[name^="faqs"]').forEach(textarea => {
+            initEditor(textarea);
+        });
+
+        addBtn.addEventListener('click', function() {
+            const template = `
+                <div class="faq-item border border-slate-200 rounded-lg p-4 bg-slate-50 relative animate-fade-in-down mt-4">
+                    <button type="button" class="absolute top-2 right-2 text-red-500 hover:text-red-700 remove-faq">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Question</label>
+                        <input type="text" name="faqs[${faqCount}][question]" class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Answer</label>
+                        <textarea name="faqs[${faqCount}][answer]" rows="2" class="w-full border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+            `;
+            // Insert HTML
+            container.insertAdjacentHTML('beforeend', template);
+            
+            // Find the new textarea and init editor
+            const newTextarea = container.lastElementChild.querySelector('textarea');
+            initEditor(newTextarea);
+
+            faqCount++;
+        });
+
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-faq')) {
+                const item = e.target.closest('.faq-item');
+                // Check if last one
+                if (document.querySelectorAll('.faq-item').length > 1) {
+                    item.remove();
+                } else {
+                    alert('You must have at least one FAQ item.');
+                }
+            }
+        });
+    });
+</script>
+@endsection

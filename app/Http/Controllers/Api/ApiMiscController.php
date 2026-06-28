@@ -1,0 +1,212 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Resources\BlogResource;
+use App\Models\Blog;
+use App\Models\CityAlert;
+use App\Models\Setting;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+
+class ApiMiscController extends BaseApiController
+{
+    /**
+     * Get all blogs
+     */
+    public function blogs(Request $request)
+    {
+        $query = Blog::where('is_published', true)->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('content', 'like', "%$search%");
+            });
+        }
+
+        $blogs = $query->paginate($request->get('limit', 10));
+        return BlogResource::collection($blogs)->additional(['status' => 'success']);
+    }
+
+    /**
+     * Get single blog by slug
+     */
+    public function blogShow($slug)
+    {
+        $blog = Blog::where('slug', $slug)
+                    ->where('is_published', true)
+                    ->first();
+
+        if (!$blog) {
+            return $this->sendError('Blog post not found', [], 404);
+        }
+
+        return $this->sendSuccess(new BlogResource($blog));
+    }
+
+    /**
+     * Get static page content
+     */
+    public function page($slug)
+    {
+        $content = Setting::get($slug . '_content', 'Content for ' . $slug);
+        
+        return $this->sendSuccess([
+            'title' => ucwords(str_replace('-', ' ', $slug)),
+            'content' => $content
+        ]);
+    }
+
+    /**
+     * Subscribe to city alerts
+     */
+    public function addCityAlert(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'city' => 'required|string|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation failed', $validator->errors(), 422);
+        }
+
+        $alert = CityAlert::create([
+            'user_id' => Auth::id(),
+            'city' => $request->city
+        ]);
+
+        return $this->sendSuccess($alert, 'Subscribed to alerts for ' . $request->city);
+    }
+
+    /**
+     * Get user's city alerts
+     */
+    public function getCityAlerts()
+    {
+        $alerts = CityAlert::where('user_id', Auth::id())->get();
+        return $this->sendSuccess($alerts);
+    }
+
+    /**
+     * Subscribe to newsletter
+     */
+    public function subscribeNewsletter(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation failed', $validator->errors(), 422);
+        }
+
+        \App\Models\Subscriber::updateOrCreate(['email' => $request->email]);
+
+        return $this->sendSuccess([], 'Successfully subscribed to newsletter');
+    }
+
+    /**
+     * Submit Contact Us form
+     */
+    public function contactSubmit(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'    => 'required|string|max:255',
+            'email'   => 'required|email|max:255',
+            'phone'   => 'nullable|string|max:20',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation failed', $validator->errors(), 422);
+        }
+
+        // Save to database for Admin Panel visibility
+        $contactMessage = \App\Models\ContactMessage::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'subject' => 'Mobile App Inquiry' . ($request->phone ? " ({$request->phone})" : ""),
+            'message' => $request->message,
+            'ip_address' => $request->ip(),
+        ]);
+
+        $adminEmail = Setting::get('contact_email', Setting::get('business_email', null));
+
+        if ($adminEmail) {
+            try {
+                Mail::raw(
+                    "New Contact Form Submission (Mobile App)\n\n" .
+                    "Name: {$request->name}\n" .
+                    "Email: {$request->email}\n" .
+                    "Phone: {$request->phone}\n\n" .
+                    "Message:\n{$request->message}",
+                    function ($mail) use ($adminEmail, $request) {
+                        $mail->to($adminEmail)
+                             ->subject('New Mobile App Enquiry from ' . $request->name);
+                    }
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Contact form mail failed: ' . $e->getMessage());
+                // We still return success because it's saved in the DB
+            }
+        }
+
+        return $this->sendSuccess([], 'Your message has been sent successfully. We will get back to you soon.');
+    }
+
+    /**
+     * Validate referral code (for mobile deep links)
+     */
+    public function validateReferral(string $code)
+    {
+        $referrer = User::where('referral_code', $code)->where('is_blocked', false)->first();
+
+        if (!$referrer) {
+            return $this->sendError('Invalid or expired referral code.', [], 404);
+        }
+
+        $joinReward = (int) Setting::get('join_reward', 5);
+
+        return $this->sendSuccess([
+            'code' => $code,
+            'referrer_name' => $referrer->name,
+            'join_reward' => $joinReward,
+            'message' => "Register with this code to receive {$joinReward} bonus points!",
+        ], 'Referral code is valid');
+    }
+
+    /**
+     * Get FAQ content
+     */
+    public function faq()
+    {
+        $json = Setting::get('faq_content', '[]');
+        $faqs = json_decode($json, true);
+        if (!is_array($faqs)) {
+            $faqs = [];
+        }
+        return $this->sendSuccess([
+            'title' => 'Frequently Asked Questions',
+            'faqs'  => $faqs
+        ]);
+    }
+
+    /**
+     * Remove city alert
+     */
+    public function removeCityAlert($id)
+    {
+        $alert = CityAlert::where('user_id', Auth::id())->find($id);
+        if ($alert) {
+            $alert->delete();
+            return $this->sendSuccess([], 'Alert removed');
+        }
+        return $this->sendError('Alert not found');
+    }
+}
