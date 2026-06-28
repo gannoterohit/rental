@@ -344,8 +344,8 @@
                                 Unlock to see house number, street name, and get precise navigation to this property.
                             </p>
                             
-                            <button onclick="unlockContact({{ $room->id }})"
-                                    class="bg-white text-indigo-900 font-black py-4 px-10 rounded-2xl hover:bg-slate-50 hover:shadow-[0_20px_50px_rgba(79,70,229,0.4)] active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto uppercase text-sm tracking-widest shadow-xl ring-2 ring-white/50">
+<button onclick="unlockContact({{ $room->id }})"
+                                class="bg-indigo-600 text-white font-black py-4 px-10 rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto uppercase text-sm tracking-widest shadow-xl ring-2 ring-indigo-400/50">
                                 <i class="fas fa-unlock-alt"></i> Unlock Full Address
                             </button>
                         </div>
@@ -421,7 +421,7 @@
                     
                     {{-- COMPACT CONTACT CARD --}}
                     <div id="unlock-card-mobile" class="bg-white rounded-xl shadow-2xl overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-600 to-purple-700 p-4 text-white">
+                        <div class="p-4 text-white" style="background-color: var(--primary);">
                             <h2 class="font-bold flex items-center gap-2">
                                 <i class="fas fa-user-circle text-lg"></i>
                                 {{ $room->listing_type === 'broker' ? 'Contact Verified Broker' : 'Contact Direct Owner' }}
@@ -483,7 +483,8 @@
                                      
                                     <p class="text-sm text-gray-600 mb-3">Unlock for <span class="font-bold text-blue-600">₹{{ \App\Models\Setting::get('unlock_fee', 49) }}</span></p>
                                     <button onclick="unlockContact({{ $room->id }})"
-                                            class="w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg transition text-sm">
+                                            class="w-full text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg hover:opacity-90 transition text-sm"
+                                            style="background-color: var(--primary);">
                                         <i class="fas fa-unlock mr-2"></i>Unlock Contact
                                     </button>
                                     <a href="{{ route('plans') }}" class="block mt-2 text-center text-xs text-purple-600 hover:underline">
@@ -491,7 +492,8 @@
                                     </a>
                                 @else
                                     <a href="{{ route('login') }}"
-                                       class="block w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white text-center font-bold py-2.5 px-4 rounded-lg hover:shadow-lg transition text-sm">
+                                       class="block w-full text-white text-center font-bold py-2.5 px-4 rounded-lg hover:shadow-lg hover:opacity-90 transition text-sm"
+                                       style="background-color: var(--primary);">
                                         <i class="fas fa-sign-in-alt mr-2"></i>Login to Unlock
                                     </a>
                                 @endauth

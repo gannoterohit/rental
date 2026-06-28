@@ -98,8 +98,8 @@
                                       class="w-full bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl py-3 px-4 font-bold text-slate-700"></textarea>
                         </div>
 
-                        <button type="submit" 
-                                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-1">
+<button type="submit" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-lg transition-all">
                             Send Message Now
                         </button>
                     </form>

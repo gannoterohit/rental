@@ -1,18 +1,25 @@
 <!-- Mobile App Menu Drawer -->
 <div id="mobile-app-menu" class="fixed top-0 left-0 bottom-0 w-[85%] max-w-[350px] bg-white z-[2000] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden h-full flex flex-col">
     <!-- Drawer Header with App Branding -->
-    <div class="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white relative flex flex-col items-center text-center">
+    <div class="p-6 text-white relative flex flex-col items-center text-center" style="background-color: var(--primary);">
         <button id="close-mobile-menu" 
                 class="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                 aria-label="Close navigation menu">
             <i class="fas fa-times text-white" aria-hidden="true"></i>
         </button>
         
-        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-            <i class="fas fa-home text-3xl text-white"></i>
-        </div>
+        @php $menuLogo = \App\Models\Setting::get('website_logo'); @endphp
+        @if($menuLogo)
+            <a href="{{ route('home') }}" class="mb-3">
+                <img src="{{ asset('storage/' . $menuLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-14 w-auto rounded-xl shadow-lg">
+            </a>
+        @else
+            <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+                <i class="fas fa-home text-3xl text-white"></i>
+            </div>
+        @endif
         <h3 class="font-bold text-lg mb-0.5">{{ \App\Models\Setting::get('website_name', 'RoomRental') }}</h3>
-        <p class="text-xs text-indigo-100 uppercase font-black tracking-widest">Find Your Perfect Stay</p>
+        <p class="text-xs text-white/70 uppercase font-black tracking-widest">Find Your Perfect Stay</p>
     </div>
     
     <!-- Drawer Body with Navigation -->
@@ -122,7 +129,7 @@
             </form>
         @else
             <div class="grid grid-cols-2 gap-3 p-2">
-                <a href="{{ route('login') }}" class="bg-indigo-600 text-white font-bold py-3 rounded-xl text-center text-sm shadow-lg shadow-indigo-100 app-btn">Login</a>
+                <a href="{{ route('login') }}" class="text-white font-bold py-3 rounded-xl text-center text-sm shadow-lg app-btn" style="background-color: var(--primary);">Login</a>
                 <a href="{{ route('register') }}" class="bg-gray-100 text-gray-700 font-bold py-3 rounded-xl text-center text-sm app-btn">Sign Up</a>
             </div>
         @endauth

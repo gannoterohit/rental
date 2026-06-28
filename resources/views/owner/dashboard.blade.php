@@ -290,6 +290,8 @@
 @push('scripts')
 <script>
 const razorpayKey = '{{ \App\Models\Setting::get("razorpay_key", "") }}';
+const OWNER_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
+const OWNER_SECONDARY_COLOR = '{{ \App\Models\Setting::get("secondary_color", "#10B981") }}';
 
 async function markBooked(roomId) {
     const result = await Swal.fire({
@@ -297,7 +299,7 @@ async function markBooked(roomId) {
         text: "This room will be hidden from users.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#7c3aed',
+        confirmButtonColor: OWNER_PRIMARY_COLOR,
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, mark it!'
     });
@@ -336,7 +338,7 @@ async function markAvailable(roomId) {
         text: "Making this room available will charge listing fee (if applicable).",
         icon: 'info',
         showCancelButton: true,
-        confirmButtonColor: '#10b981',
+        confirmButtonColor: OWNER_SECONDARY_COLOR,
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, Continue'
     });
@@ -458,7 +460,7 @@ async function initiatePayment(paymentId, amount, type, referenceId) {
                 email: '{{ Auth::user()->email }}'
             },
             theme: {
-                color: '#4f46e5'
+                color: OWNER_PRIMARY_COLOR
             }
         };
         new Razorpay(options).open();

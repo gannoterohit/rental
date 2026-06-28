@@ -337,6 +337,18 @@
 </div>
 
 {{-- CHARTS --}}
+@php
+$primaryChartColor = \App\Models\Setting::get('primary_color', '#4F46E5');
+$secondaryChartColor = \App\Models\Setting::get('secondary_color', '#10B981');
+$primaryRgb = implode(',', sscanf(ltrim($primaryChartColor, '#'), '%02x%02x%02x'));
+$secondaryRgb = implode(',', sscanf(ltrim($secondaryChartColor, '#'), '%02x%02x%02x'));
+@endphp
+<script>
+const PRIMARY_CHART_COLOR = '{{ $primaryChartColor }}';
+const SECONDARY_CHART_COLOR = '{{ $secondaryChartColor }}';
+const PRIMARY_CHART_RGB = '{{ $primaryRgb }}';
+const SECONDARY_CHART_RGB = '{{ $secondaryRgb }}';
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Monthly Revenue Chart
@@ -346,8 +358,8 @@ new Chart(document.getElementById('revenueChart'), {
         labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         datasets: [{
             data: @json($revenueData),
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99,102,241,0.15)',
+            borderColor: PRIMARY_CHART_COLOR,
+            backgroundColor: 'rgba(' + PRIMARY_CHART_RGB + ',0.15)',
             fill: true,
             tension: 0.4
         }]
@@ -390,7 +402,7 @@ new Chart(document.getElementById('revenueBreakdownChart'), {
         labels: ['Listing Fees', 'Featured Fees', 'Unlock Fees', 'Bookings', 'Subscriptions'],
         datasets: [{
             data: [{{ $listingEarnings }}, {{ $featuredEarnings }}, {{ $unlockEarnings }}, {{ $bookingEarnings }}, {{ $subscriptionEarnings }}],
-            backgroundColor: ['#6366f1', '#f59e0b', '#a855f7', '#10b981', '#f43f5e'],
+            backgroundColor: [PRIMARY_CHART_COLOR, '#f59e0b', '#a855f7', SECONDARY_CHART_COLOR, '#f43f5e'],
             borderWidth: 0
         }]
     },

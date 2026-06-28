@@ -20,6 +20,11 @@ class BusinessSettingsController extends Controller
     public function update(Request $request)
     {
         $data = $request->except(['_token', '_method']);
+        
+        // Remove helper text inputs (suffix _text) to avoid duplicate settings
+        $data = array_filter($data, function($key) {
+            return !str_ends_with($key, '_text');
+        }, ARRAY_FILTER_USE_KEY);
 
         foreach ($data as $key => $value) {
             $setting = Setting::where('key', $key)->first();
@@ -29,11 +34,20 @@ class BusinessSettingsController extends Controller
                 // Delete old file if exists
                 if ($setting && $setting->value) {
                     Storage::disk('public')->delete($setting->value);
+                    // Also remove from public/storage folder
+                    @unlink(public_path('storage/' . $setting->value));
                 }
                 
                 // Store new file
                 $path = $request->file($key)->store('settings', 'public');
                 $value = $path;
+
+                // XAMPP Windows fix: Copy file to public/storage (symlink may not work)
+                $destDir = public_path('storage/' . dirname($path));
+                if (!is_dir($destDir)) {
+                    mkdir($destDir, 0755, true);
+                }
+                copy(storage_path('app/public/' . $path), public_path('storage/' . $path));
             }
             
             if ($setting) {

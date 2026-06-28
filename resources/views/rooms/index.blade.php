@@ -23,7 +23,7 @@
         }
     }
     .hero-mobile {
-        background: linear-gradient(to bottom right, #1e1b4b, #312e81, #581c87);
+        background: linear-gradient(to bottom right, var(--primary), var(--secondary), var(--primary));
         min-height: 300px;
         display: flex;
         align-items: center;
@@ -311,8 +311,8 @@
             </div>
             @auth
                 @if(Auth::user()->role === 'owner')
-                    <a href="{{ route('rooms.create') }}"
-                       class="inline-flex items-center justify-center bg-gradient-to-r from-indigo-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-2.5 px-5 md:px-6 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
+<a href="{{ route('rooms.create') }}"
+                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 md:px-6 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
                         <i class="fas fa-plus-circle mr-2"></i>List Your Room
                     </a>
                 @endif
@@ -340,8 +340,8 @@
                     </div>
                     <h3 class="text-2xl md:text-3xl font-black text-slate-900 mb-2 md:mb-3">No Rooms Found</h3>
                     <p class="text-slate-600 mb-6 md:mb-8 text-sm md:text-base">Try adjusting your search criteria or browse all available rooms</p>
-                    <a href="{{ route('rooms.index') }}" 
-                       class="inline-flex items-center justify-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-2.5 px-6 md:px-8 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
+<a href="{{ route('rooms.index') }}" 
+                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 md:px-8 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
                         <i class="fas fa-search mr-2"></i>Browse All Rooms
                     </a>
                     
@@ -349,9 +349,9 @@
                         <div class="mt-8 p-6 bg-white rounded-xl shadow-sm border border-indigo-100">
                             <h4 class="text-lg font-bold text-slate-900 mb-2">Want to be notified?</h4>
                             <p class="text-slate-600 text-sm mb-4">We'll email you as soon as a new room is listed in <strong>{{ request('city') }}</strong>.</p>
-                            <button onclick="subscribeToAlerts('{{ request('city') }}')" 
-                                    id="notify-btn"
-                                    class="inline-flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-6 rounded-lg transition-all duration-300 border border-indigo-200 text-sm">
+<button onclick="subscribeToAlerts('{{ request('city') }}')" 
+                                id="notify-btn"
+                                class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md text-sm">
                                 <i class="fas fa-bell mr-2"></i>Notify Me for {{ request('city') }}
                             </button>
                         </div>
@@ -492,7 +492,7 @@
             text: "This room will be hidden from users.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#7c3aed',
+            confirmButtonColor: ROOM_PRIMARY_COLOR,
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, mark it!'
         });
@@ -537,7 +537,7 @@
             text: "Making this room available will charge listing fee.",
             icon: 'info',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: ROOM_SECONDARY_COLOR,
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, Continue'
         });
@@ -687,7 +687,7 @@
                     email: '{{ Auth::user()->email ?? "" }}'
                 },
                 theme: {
-                    color: '#4f46e5'
+                    color: ROOM_PRIMARY_COLOR
                 },
                 method: {
                     upi: true,
@@ -752,6 +752,8 @@
 
     <!-- Auto-City Detection -->
     <script>
+    const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
+    const ROOM_SECONDARY_COLOR = '{{ \App\Models\Setting::get("secondary_color", "#10B981") }}';
         async function detectLocation(force = false) {
             if (!navigator.geolocation) return;
 

@@ -89,7 +89,7 @@
 
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Banner Color</label>
-                            <input type="color" name="banner_color" value="{{ old('banner_color', '#4F46E5') }}" required
+                            <input type="color" name="banner_color" value="{{ old('banner_color', \App\Models\Setting::get('primary_color', '#4F46E5')) }}" required
                                    class="w-full h-12 border border-gray-300 rounded-lg cursor-pointer">
                             @error('banner_color')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>

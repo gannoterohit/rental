@@ -174,7 +174,7 @@
     .blog-content-body h3 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 2.5rem; margin-bottom: 1.25rem; }
     .blog-content-body ul { list-style-type: none; padding-left: 0; margin-bottom: 1.75rem; }
     .blog-content-body li { position: relative; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-    .blog-content-body li::before { content: '→'; position: absolute; left: 0; color: #4f46e5; font-weight: bold; }
+    .blog-content-body li::before { content: '→'; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
     .blog-content-body img { border-radius: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.08); margin: 3rem 0; }
 </style>
 

@@ -368,6 +368,7 @@
 
 @push('scripts')
 <script>
+const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
 const razorpayKey = '{{ \App\Models\Setting::get("razorpay_key", "") }}';
 const googleMapsKey = '{{ trim(\App\Models\Setting::get("google_maps_api_key", "")) }}';
 
@@ -419,7 +420,7 @@ function updateLocation(lat, lng, address) {
             icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 scale: 10,
-                fillColor: "#4F46E5",
+                fillColor: ROOM_PRIMARY_COLOR,
                 fillOpacity: 1,
                 strokeWeight: 2,
                 strokeColor: "#FFFFFF",

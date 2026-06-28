@@ -36,7 +36,7 @@
         <div id="topOfferStrip" class="relative z-[60]">
             @foreach($offers as $offer)
                 <div class="py-1.5 md:py-2.5 text-center text-white text-[10px] md:text-sm font-semibold relative overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md" 
-                     style="background: {{ $offer->banner_color }};">
+                     style="background: var(--primary);">
                     <div class="container mx-auto px-4 flex items-center justify-center gap-1.5 md:gap-3 flex-wrap">
                         @if($offer->link_url)<a href="{{ $offer->link_url }}" class="flex items-center gap-1.5 md:gap-2 hover:opacity-90 transition group">@endif
                         
@@ -74,7 +74,7 @@
                                 <img src="{{ $offer->image_url }}" alt="{{ $offer->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover/banner:scale-105">
                                 <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/40 to-transparent"></div>
                             @else
-                                <div class="absolute inset-0" style="background: linear-gradient(135deg, {{ $offer->banner_color }}, #ec4899);"></div>
+                                <div class="absolute inset-0" style="background: linear-gradient(135deg, {{ $offer->banner_color }}, var(--secondary));"></div>
                                 <!-- Decorative Circles -->
                                 <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-white/10 blur-3xl"></div>
                                 <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-black/10 blur-2xl"></div>
@@ -134,7 +134,7 @@
                         @if($offer->link_url)<a href="{{ url($offer->link_url) }}" class="block">@endif
                         
                         <div class="relative p-5 min-h-[140px] flex items-center overflow-hidden" 
-                             style="background: linear-gradient(135deg, {{ $offer->banner_color }}, #8b5cf6);">
+                             style="background: linear-gradient(135deg, {{ $offer->banner_color }}, var(--secondary));">
                             
                             <!-- Decorative Elements -->
                             <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
@@ -282,7 +282,7 @@
                             @endif
                         </div>
                     @else
-                        <div class="h-28 md:h-32 relative overflow-hidden flex items-center justify-center" style="background: linear-gradient(135deg, {{ $popupOffer->banner_color }}, #a855f7);">
+                        <div class="h-28 md:h-32 relative overflow-hidden flex items-center justify-center" style="background: linear-gradient(135deg, {{ $popupOffer->banner_color }}, var(--secondary));">
                             <div class="text-white text-5xl opacity-20 transform -rotate-12"><i class="fas fa-gift"></i></div>
                             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;"></div>
                         </div>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="{{ \App\Models\Setting::get('primary_color', '#4F46E5') }}">
     <meta name="description" content="Find the best rooms for rent in Bhopal, Bangalore, and Indore. Easy booking, verified listings, and great amenities.">
     <meta name="robots" content="index, follow">
     <meta name="format-detection" content="telephone=no">
@@ -16,14 +16,14 @@
     <meta name="keywords" content="@yield('keywords', \App\Models\Setting::get('seo_meta_keywords', 'room rental, apartment, house, property'))">
     <meta name="author" content="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#6366f1">
+    <meta name="theme-color" content="{{ \App\Models\Setting::get('primary_color', '#4F46E5') }}">
     
     
     <!-- Favicon -->
     @php
         $favicon = \App\Models\Setting::get('website_favicon');
     @endphp
-    @if($favicon && file_exists(public_path('storage/' . $favicon)))
+    @if($favicon)
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $favicon) }}">
         <link rel="shortcut icon" href="{{ asset('storage/' . $favicon) }}">
     @else
@@ -97,11 +97,13 @@
     
     <style>
         :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338CA;
+            --primary: {{ \App\Models\Setting::get('primary_color', '#4F46E5') }};
+            --primary-dark: {{ \App\Models\Setting::get('primary_color', '#4F46E5') }};
             --accent: #F59E0B;
-            --secondary: #10B981;
+            --secondary: {{ \App\Models\Setting::get('secondary_color', '#10B981') }};
             --danger: #EF4444;
+            --primary-rgb: {{ implode(',', sscanf(ltrim(\App\Models\Setting::get('primary_color', '#4F46E5'), '#'), '%02x%02x%02x')) }};
+            --secondary-rgb: {{ implode(',', sscanf(ltrim(\App\Models\Setting::get('secondary_color', '#10B981'), '#'), '%02x%02x%02x')) }};
             --gray-light: #F8FAFC;
             --bg-premium: #F8FAFC;
             --text-main: #1E293B;
@@ -160,9 +162,9 @@
     
     <!-- Critical Inline CSS (Prevents FOUC when Tailwind is deferred) - Mobile Optimized -->
     <style>
-        :root { --primary: #4f46e5; --secondary: #ec4899; }
+        :root { --primary: {{ \App\Models\Setting::get('primary_color', '#4F46E5') }}; --secondary: {{ \App\Models\Setting::get('secondary_color', '#10B981') }}; }
         @media (max-width: 1023px) {
-            .hero-mobile { background: #4f46e5; min-height: 300px; display: flex; align-items: center; justify-content: center; }
+            .hero-mobile { background: var(--primary); min-height: 300px; display: flex; align-items: center; justify-content: center; }
             img[loading="lazy"] { content-visibility: auto; }
         }
         @media (min-width: 1024px) {
@@ -238,7 +240,7 @@
         }
         
         .bottom-nav-item.active {
-            color: #10b981;
+            color: var(--secondary);
         }
         
         .bottom-nav-item.active i {
@@ -293,23 +295,269 @@
         }
         
         .mobile-app-view .app-btn-primary {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
         }
+    </style>
+
+    <style>
+        .dynamic-theme-override .bg-indigo-600 { background-color: var(--primary) !important; }
+        .dynamic-theme-override .bg-indigo-500 { background-color: var(--primary) !important; }
+        .dynamic-theme-override .bg-indigo-700 { background-color: rgba(var(--primary-rgb), 0.9) !important; }
+        .dynamic-theme-override .bg-indigo-400 { background-color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .bg-indigo-100 { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .bg-indigo-50 { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .bg-indigo-300 { background-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .bg-violet-100 { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .bg-violet-600 { background-color: var(--primary) !important; }
+        .dynamic-theme-override .bg-purple-100 { background-color: rgba(var(--secondary-rgb), 0.15) !important; }
+        
+        .dynamic-theme-override .text-indigo-600 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-500 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-700 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-300 { color: rgba(var(--primary-rgb), 0.6) !important; }
+        .dynamic-theme-override .text-indigo-200 { color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        
+        .dynamic-theme-override .border-indigo-600 { border-color: var(--primary) !important; }
+        .dynamic-theme-override .border-indigo-500 { border-color: var(--primary) !important; }
+        .dynamic-theme-override .border-indigo-400 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .border-indigo-100 { border-color: rgba(var(--primary-rgb), 0.2) !important; }
+        .dynamic-theme-override .border-indigo-200 { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+        
+        .dynamic-theme-override .hover\:bg-indigo-600:hover { background-color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-700:hover { background-color: rgba(var(--primary-rgb), 0.9) !important; }
+        .dynamic-theme-override .hover\:text-indigo-600:hover { color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:border-indigo-400:hover { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .hover\:border-indigo-600:hover { border-color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-50:hover { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-100:hover { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        
+        .dynamic-theme-override .focus\:ring-indigo-500:focus { --tw-ring-color: var(--primary) !important; }
+        .dynamic-theme-override .focus\:ring-indigo-400:focus { --tw-ring-color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .ring-indigo-500 { --tw-ring-color: var(--primary) !important; }
+        
+        .dynamic-theme-override .from-indigo-50 { --tw-gradient-from: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .from-indigo-100 { --tw-gradient-from: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .from-indigo-500 { --tw-gradient-from: var(--primary) !important; }
+        .dynamic-theme-override .from-indigo-600 { --tw-gradient-from: var(--primary) !important; }
+        .dynamic-theme-override .from-indigo-700 { --tw-gradient-from: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .to-indigo-900 { --tw-gradient-to: rgba(var(--primary-rgb), 0.9) !important; }
+        .dynamic-theme-override .from-indigo-950 { --tw-gradient-from: rgba(var(--primary-rgb), 0.95) !important; }
+        .dynamic-theme-override .to-purple-950 { --tw-gradient-to: rgba(var(--secondary-rgb), 0.95) !important; }
+        
+        .dynamic-theme-override .hover\:from-indigo-700:hover { --tw-gradient-from: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .hover\:to-indigo-900:hover { --tw-gradient-to: rgba(var(--primary-rgb), 0.9) !important; }
+        
+        .dynamic-theme-override .to-indigo-500 { --tw-gradient-to: var(--primary) !important; }
+        .dynamic-theme-override .to-indigo-600 { --tw-gradient-to: var(--primary) !important; }
+        .dynamic-theme-override .to-indigo-100 { --tw-gradient-to: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .to-indigo-800 { --tw-gradient-to: rgba(var(--primary-rgb), 0.85) !important; }
+        
+        .dynamic-theme-override .ring-indigo-200 { --tw-ring-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .ring-indigo-500\/20 { --tw-ring-color: rgba(var(--primary-rgb), 0.2) !important; }
+        
+        .dynamic-theme-override .group-focus-within\:text-indigo-600 { color: var(--primary) !important; }
+        .dynamic-theme-override .shadow-indigo-100 { --tw-shadow-color: rgba(var(--primary-rgb), 0.15); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-indigo-100\/50 { --tw-shadow: 0 4px 6px -1px rgba(var(--primary-rgb), 0.1) !important; }
+        .dynamic-theme-override .shadow-indigo-500 { --tw-shadow-color: rgba(var(--primary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-indigo-500\/5 { --tw-shadow-color: rgba(var(--primary-rgb), 0.05); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-indigo-500\/10 { --tw-shadow-color: rgba(var(--primary-rgb), 0.1); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-indigo-500\/20 { --tw-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.2) !important; }
+        .dynamic-theme-override .shadow-indigo-600 { --tw-shadow-color: rgba(var(--primary-rgb), 0.3); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-indigo-600\/20 { --tw-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.2) !important; }
+        
+        .dynamic-theme-override .text-indigo-200 { color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .text-indigo-300 { color: rgba(var(--primary-rgb), 0.6) !important; }
+        .dynamic-theme-override .text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .text-indigo-500 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-600 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-700 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-indigo-800 { color: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .text-indigo-900 { color: rgba(var(--primary-rgb), 0.8) !important; }
+        .dynamic-theme-override .text-primary { color: var(--primary) !important; }
+        
+        .dynamic-theme-override .bg-indigo-50 { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .bg-indigo-100 { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .bg-indigo-200 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .bg-indigo-300 { background-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .bg-indigo-400 { background-color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .bg-indigo-500 { background-color: var(--primary) !important; }
+        .dynamic-theme-override .bg-indigo-600 { background-color: var(--primary) !important; }
+        .dynamic-theme-override .bg-indigo-700 { background-color: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .bg-indigo-800 { background-color: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .bg-indigo-900 { background-color: rgba(var(--primary-rgb), 0.9) !important; }
+        
+        .dynamic-theme-override .border-indigo-50 { border-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .border-indigo-100 { border-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .border-indigo-200 { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .border-indigo-300 { border-color: rgba(var(--primary-rgb), 0.4) !important; }
+        .dynamic-theme-override .border-indigo-400 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .border-indigo-500 { border-color: var(--primary) !important; }
+        .dynamic-theme-override .border-indigo-600 { border-color: var(--primary) !important; }
+        .dynamic-theme-override .border-indigo-700 { border-color: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .border-indigo-800 { border-color: rgba(var(--primary-rgb), 0.85) !important; }
+        
+        .dynamic-theme-override .hover\:bg-indigo-50:hover { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-100:hover { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-600:hover { background-color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:bg-indigo-700:hover { background-color: rgba(var(--primary-rgb), 0.85) !important; }
+        .dynamic-theme-override .hover\:border-indigo-100:hover { border-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .hover\:border-indigo-200:hover { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .hover\:border-indigo-300:hover { border-color: rgba(var(--primary-rgb), 0.4) !important; }
+        .dynamic-theme-override .hover\:border-indigo-400:hover { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .hover\:border-indigo-500:hover { border-color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:border-indigo-600:hover { border-color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:text-indigo-600:hover { color: var(--primary) !important; }
+        .dynamic-theme-override .hover\:text-indigo-700:hover { color: var(--primary) !important; }
+        
+        .dynamic-theme-override .focus\:ring-indigo-500:focus { --tw-ring-color: var(--primary) !important; }
+        .dynamic-theme-override .focus\:ring-indigo-500\/10:focus { --tw-ring-color: rgba(var(--primary-rgb), 0.1) !important; }
+        .dynamic-theme-override .focus\:ring-indigo-500\/20:focus { --tw-ring-color: rgba(var(--primary-rgb), 0.2) !important; }
+        .dynamic-theme-override .focus\:ring-indigo-500\/50:focus { --tw-ring-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .focus\:border-indigo-500:focus { border-color: var(--primary) !important; }
+        .dynamic-theme-override .focus\:border-indigo-700:focus { border-color: rgba(var(--primary-rgb), 0.85) !important; }
+        
+        .dynamic-theme-override .peer-checked\:border-indigo-500\/50 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .peer-checked\:border-indigo-600 { border-color: var(--primary) !important; }
+        .dynamic-theme-override .peer-checked\:border-indigo-600\/30 { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .peer-checked\:bg-indigo-50 { background-color: rgba(var(--primary-rgb), 0.08) !important; }
+        .dynamic-theme-override .peer-checked\:bg-indigo-600\/20 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .peer-checked\:text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        
+        .dynamic-theme-override .group-hover\:text-indigo-600 { color: var(--primary) !important; }
+        .dynamic-theme-override .group-hover\:bg-indigo-100 { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .group-hover\:bg-white { background-color: #fff !important; }
+        .dynamic-theme-override .group-hover\:text-indigo-300 { color: rgba(var(--primary-rgb), 0.6) !important; }
+        .dynamic-theme-override .group-hover\:text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .group-hover\:text-indigo-500 { color: var(--primary) !important; }
+        .dynamic-theme-override .group-hover\:text-indigo-700 { color: var(--primary) !important; }
+        .dynamic-theme-override .group-active\:scale-95 { --tw-scale-x: .95; --tw-scale-y: .95; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        
+        .dynamic-theme-override .bg-purple-50 { background-color: rgba(var(--secondary-rgb), 0.08) !important; }
+        .dynamic-theme-override .bg-purple-100 { background-color: rgba(var(--secondary-rgb), 0.15) !important; }
+        .dynamic-theme-override .bg-purple-600 { background-color: var(--secondary) !important; }
+        .dynamic-theme-override .bg-purple-700 { background-color: rgba(var(--secondary-rgb), 0.85) !important; }
+        .dynamic-theme-override .text-purple-100 { color: rgba(var(--secondary-rgb), 0.4) !important; }
+        .dynamic-theme-override .text-purple-300 { color: rgba(var(--secondary-rgb), 0.6) !important; }
+        .dynamic-theme-override .text-purple-400 { color: rgba(var(--secondary-rgb), 0.7) !important; }
+        .dynamic-theme-override .text-purple-500 { color: var(--secondary) !important; }
+        .dynamic-theme-override .text-purple-600 { color: var(--secondary) !important; }
+        .dynamic-theme-override .text-purple-700 { color: var(--secondary) !important; }
+        .dynamic-theme-override .border-purple-400 { border-color: rgba(var(--secondary-rgb), 0.5) !important; }
+        .dynamic-theme-override .border-purple-500 { border-color: var(--secondary) !important; }
+        .dynamic-theme-override .from-purple-500 { --tw-gradient-from: var(--secondary) !important; }
+        .dynamic-theme-override .from-purple-600 { --tw-gradient-from: var(--secondary) !important; }
+        .dynamic-theme-override .from-purple-700 { --tw-gradient-from: rgba(var(--secondary-rgb), 0.85) !important; }
+        .dynamic-theme-override .to-purple-500 { --tw-gradient-to: var(--secondary) !important; }
+        .dynamic-theme-override .to-purple-600 { --tw-gradient-to: var(--secondary) !important; }
+        .dynamic-theme-override .to-purple-700 { --tw-gradient-to: rgba(var(--secondary-rgb), 0.85) !important; }
+        .dynamic-theme-override .to-purple-100 { --tw-gradient-to: rgba(var(--secondary-rgb), 0.15) !important; }
+        
+        .dynamic-theme-override .shadow-purple-500 { --tw-shadow-color: rgba(var(--secondary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-purple-500\/10 { --tw-shadow-color: rgba(var(--secondary-rgb), 0.1); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-purple-500\/30 { --tw-shadow-color: rgba(var(--secondary-rgb), 0.3); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-purple-600 { --tw-shadow-color: rgba(var(--secondary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .shadow-purple-600\/20 { --tw-shadow-color: rgba(var(--secondary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        
+        .dynamic-theme-override .hover\:bg-purple-100:hover { background-color: rgba(var(--secondary-rgb), 0.15) !important; }
+        .dynamic-theme-override .hover\:bg-purple-700:hover { background-color: rgba(var(--secondary-rgb), 0.85) !important; }
+        .dynamic-theme-override .hover\:border-purple-400:hover { border-color: rgba(var(--secondary-rgb), 0.5) !important; }
+        .dynamic-theme-override .hover\:border-purple-500:hover { border-color: var(--secondary) !important; }
+        
+        .dynamic-theme-override .ring-pink-500\/50 { --tw-ring-color: rgba(236,72,153,0.5) !important; }
+        .dynamic-theme-override .focus\:border-pink-500:focus { border-color: #ec4899 !important; }
+        .dynamic-theme-override .focus\:border-purple-500:focus { border-color: var(--secondary) !important; }
+        
+        .dynamic-theme-override .focus-within\:ring-2:focus-within { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000) !important; }
+        .dynamic-theme-override .from-violet-100 { --tw-gradient-from: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .hover\:border-violet-400:hover { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .text-violet-500 { color: var(--primary) !important; }
+        .dynamic-theme-override .text-violet-600 { color: var(--primary) !important; }
+        
+        .dynamic-theme-override .hover\:shadow-indigo-500\/10:hover { --tw-shadow-color: rgba(var(--primary-rgb), 0.1); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .hover\:shadow-indigo-500\/5:hover { --tw-shadow-color: rgba(var(--primary-rgb), 0.05); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .hover\:shadow-indigo-200:hover { --tw-shadow-color: rgba(var(--primary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .hover\:shadow-purple-500\/10:hover { --tw-shadow-color: rgba(var(--secondary-rgb), 0.1); --tw-shadow: var(--tw-shadow-colored) !important; }
+        .dynamic-theme-override .ring-purple-500\/50 { --tw-ring-color: rgba(var(--secondary-rgb), 0.5) !important; }
+        
+        .dynamic-theme-override .hover\:ring-2:hover { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000) !important; }
+        .dynamic-theme-override .peer-checked\:bg-purple-600\/30 { background-color: rgba(var(--secondary-rgb), 0.3) !important; }
+        .dynamic-theme-override .peer-checked\:ring-indigo-500\/50 { --tw-ring-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .peer-checked\:ring-purple-500\/50 { --tw-ring-color: rgba(var(--secondary-rgb), 0.5) !important; }
+        .dynamic-theme-override .peer-checked\:text-purple-400 { color: var(--primary) !important; }
+        .dynamic-theme-override .peer-checked\:text-white { color: #fff !important; }
+        .dynamic-theme-override .peer:checked ~ .peer-checked\:border-indigo-500\/50 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .dynamic-theme-override .peer:checked ~ .peer-checked\:border-purple-500\/50 { border-color: rgba(var(--secondary-rgb), 0.5) !important; }
+        .dynamic-theme-override .peer:checked ~ .peer-checked\:text-indigo-400 { color: var(--primary) !important; }
+        
+        .dynamic-theme-override .group:hover .group-hover\:text-indigo-700 { color: var(--primary) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:bg-indigo-100 { background-color: rgba(var(--primary-rgb), 0.15) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:text-indigo-300 { color: rgba(var(--primary-rgb), 0.6) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:text-indigo-500 { color: var(--primary) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:text-indigo-600 { color: var(--primary) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:border-indigo-500 { border-color: var(--primary) !important; }
+        
+        .dynamic-theme-override .group\/btn:hover .group-hover\/btn\:translate-x-1 { --tw-translate-x: .25rem; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        .dynamic-theme-override .group\/banner:hover .group-hover\/banner\:scale-105 { --tw-scale-x: 1.05; --tw-scale-y: 1.05; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:scale-105 { --tw-scale-x: 1.05; --tw-scale-y: 1.05; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        .dynamic-theme-override .group.bg-white:hover { background-color: #fff !important; }
+        .dynamic-theme-override .group:hover .group-hover\:rotate-6 { --tw-rotate: 6deg; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        .dynamic-theme-override .group:hover .group-hover\:rotate-12 { --tw-rotate: 12deg; transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+        
+        .dynamic-theme-override .dark\:text-indigo-400 { color: rgba(var(--primary-rgb), 0.7) !important; }
+        .dynamic-theme-override .text-indigo-100 { color: rgba(var(--primary-rgb), 0.4) !important; }
+        .dynamic-theme-override .bg-indigo-600\/30 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+        .dynamic-theme-override .bg-indigo-600\/80 { background-color: rgba(var(--primary-rgb), 0.8) !important; }
+        
+        .dynamic-theme-override .shadow-indigo-100\/50 { --tw-shadow: 0 4px 6px -1px rgba(var(--primary-rgb), 0.1) !important; }
+        .dynamic-theme-override .shadow-indigo-600\/20 { --tw-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.2) !important; }
+        .dynamic-theme-override .hover\:border-indigo-400:hover { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        
+        .dynamic-theme-override .from-purple-500 { --tw-gradient-from: var(--secondary) !important; }
+        .dynamic-theme-override .to-pink-500 { --tw-gradient-to: #ec4899 !important; }
+        .dynamic-theme-override .to-pink-600 { --tw-gradient-to: #db2777 !important; }
+        .dynamic-theme-override .to-pink-700 { --tw-gradient-to: #be185d !important; }
+        .dynamic-theme-override .to-rose-600 { --tw-gradient-to: #e11d48 !important; }
+        .dynamic-theme-override .border-indigo-100 { border-color: rgba(var(--primary-rgb), 0.15) !important; }
+        
+        .dynamic-theme-override .hover\:shadow-indigo-200:hover { --tw-shadow-color: rgba(var(--primary-rgb), 0.2); --tw-shadow: var(--tw-shadow-colored) !important; }
+        
+        .dynamic-theme-override .shadow-lg { --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .hover\:shadow-lg:hover { --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .shadow-xl { --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1); --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px rgb(0 0 0 / .1); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .hover\:shadow-xl:hover { --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1); --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .shadow-2xl { --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / .25); --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .shadow-md { --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px rgb(0 0 0 / .1); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .shadow-sm { --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .group:hover .shadow-md { --tw-shadow: 0 4px 6px -1px rgba(var(--primary-rgb), 0.08), 0 2px 4px -2px rgba(var(--primary-rgb), 0.05) !important; --tw-shadow-colored: 0 4px 6px -1px rgba(var(--primary-rgb), 0.08), 0 2px 4px -2px rgba(var(--primary-rgb), 0.05) !important; box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        .dynamic-theme-override .group:hover .shadow-xl { --tw-shadow: 0 20px 25px -5px rgba(var(--primary-rgb), 0.15), 0 8px 10px -6px rgba(var(--primary-rgb), 0.1) !important; --tw-shadow-colored: 0 20px 25px -5px rgba(var(--primary-rgb), 0.15), 0 8px 10px -6px rgba(var(--primary-rgb), 0.1) !important; box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important; }
+        
+        .dynamic-theme-override .hover\:shadow-\[0_20px_40px_rgba\(79\,70\,229\,0\.1\)\]:hover { --tw-shadow: 0 20px 40px rgba(var(--primary-rgb), 0.1) !important; }
+        .dynamic-theme-override .hover\:shadow-\[0_20px_50px_rgba\(79\,70\,229\,0\.4\)\]:hover { --tw-shadow: 0 20px 50px rgba(var(--primary-rgb), 0.4) !important; }
+        .dynamic-theme-override .shadow-\[0_20px_60px_-15px_rgba\(0\,0\,0\,0\.3\)\] { --tw-shadow: 0 20px 60px -15px rgb(0 0 0 / .3) !important; }
     </style>
     
 
     @stack('styles')
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view">
+<body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view dynamic-theme-override">
     @include('partials.offer-banner', ['placement' => 'top_nav'])
     
     <!-- Mobile App Header - Enhanced App Style -->
     <div class="mobile-app-header lg:hidden">
         <div class="header-left">
-                    <div class="app-icon">
-                        <i class="fas fa-home text-white text-xl"></i>
-                    </div>
+                    @php $mobileLogo = \App\Models\Setting::get('website_logo'); @endphp
+                    @if($mobileLogo)
+                        <a href="{{ route('home') }}">
+                            <img src="{{ asset('storage/' . $mobileLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-9 w-auto rounded-lg">
+                        </a>
+                    @else
+                        <div class="app-icon">
+                            <i class="fas fa-home text-white text-xl"></i>
+                        </div>
+                    @endif
                 <div class="header-content">
                 <h1 class="text-lg font-bold text-gray-900 leading-none">{{ \App\Models\Setting::get('website_name', 'RoomRental') }}</h1>
                 <p class="text-[10px] text-gray-600 font-medium">Find your stay</p>
@@ -332,23 +580,21 @@
     <nav class="hidden md:block bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center py-2">
-                <a href="{{ route('home') }}" class="flex items-center">
+<a href="{{ route('home') }}" class="flex items-center">
                     @php
                         $logo = \App\Models\Setting::get('website_logo');
+                        $favicon = \App\Models\Setting::get('website_favicon');
                     @endphp
-                    @if($logo && file_exists(public_path('storage/' . $logo)))
+                    @if($logo)
                         <img src="{{ asset('storage/' . $logo) }}"
                              alt="Logo"
                              class="h-9 w-auto rounded-lg"
-                             width="36" height="36">
-                    @else
-                        <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-lg p-2">
-                            <i class="fas fa-home text-base"></i>
-                        </div>
+                             width="36" height="36"
+                             onerror="this.style.display='none'">
                     @endif
-                    <!-- <span class="ml-2 text-xl font-bold bg-gradient-to-r from-slate-900 to-emerald-500 bg-clip-text text-transparent">
-                        {{ \App\Models\Setting::get('website_name', 'RoomRental') }}
-                        </span> -->
+                    <div class="bg-slate-900 text-white rounded-lg p-2 {{ $logo ? 'ml-2' : '' }}">
+                        <i class="fas fa-home text-base"></i>
+                    </div>
                 </a>
                 
                 <div class="flex items-center gap-3">
@@ -360,15 +606,15 @@
 
                     @auth
                         @if(Auth::user()->role === 'owner')
-                            <a href="{{ route('rooms.create') }}"
-                               class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
+<a href="{{ route('rooms.create') }}"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
                                 <i class="fas fa-plus mr-1 text-xs"></i>List Room
                             </a>
                         @endif
                         
                         @if(Auth::user()->role === 'admin')
                             <a href="{{ route('admin.dashboard') }}"
-                               class="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
+                               class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
                                 <i class="fas fa-tachometer-alt mr-1 text-xs"></i>Admin
                             </a>
                         @endif
@@ -378,7 +624,7 @@
                                 @if(Auth::user()->avatar)
                                     <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
                                 @else
-                                    <div class="bg-gradient-to-r from-slate-900 to-emerald-500 text-white rounded-full p-1">
+                                    <div class="bg-slate-900 text-white rounded-full p-1">
                                         <i class="fas fa-user text-xs"></i>
                                     </div>
                                 @endif
@@ -413,7 +659,8 @@
                             Login
                         </a>
                         <a href="{{ route('register') }}"
-                           class="bg-gradient-to-r from-slate-900 to-emerald-500 hover:from-slate-800 hover:to-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
+                           style="background-color: var(--primary);"
+                           class="text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:opacity-90">
                             Sign Up
                         </a>
                     @endauth
@@ -459,9 +706,9 @@
     <!-- Premium Dark Footer -->
     <footer class="relative bg-[#0f172a] text-slate-300 mt-12 hidden lg:block overflow-hidden">
         {{-- Ambient Background Glows --}}
-        <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+        <div class="absolute top-0 left-0 w-full h-px" style="background: linear-gradient(to right, transparent, rgba(var(--primary-rgb), 0.5), transparent);"></div>
         <div class="absolute -top-40 -right-40 w-96 h-96 bg-slate-900/20 rounded-full blur-[100px] pointer-events-none"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-[100px] pointer-events-none" style="background-color: rgba(var(--primary-rgb), 0.12);"></div>
 
         <div class="container mx-auto px-6 relative z-10">
             {{-- Pre-footer CTA --}}
@@ -472,7 +719,6 @@
                 </div>
                 <div class="flex flex-wrap gap-3 justify-center">
                     <a href="{{ route('register') }}" class="group relative px-6 py-3 bg-white text-indigo-950 font-bold rounded-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-r from-indigo-100 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <span class="relative flex items-center gap-2">
                             Get Started
                             <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
@@ -487,15 +733,20 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 py-10">
                 <!-- Brand Info (Col span 4) -->
                 <div class="lg:col-span-4 space-y-4">
-                    <a href="{{ route('home') }}" class="flex items-center gap-3 group" aria-label="RoomRental Home">
-                        <div class="w-12 h-12 bg-gradient-to-br from-slate-900 to-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
-                            <i class="fas fa-home text-xl" aria-hidden="true"></i>
-                        </div>
+<a href="{{ route('home') }}" class="flex items-center gap-3 group" aria-label="RoomRental Home">
+                        @php $footerLogo = \App\Models\Setting::get('website_logo'); @endphp
+                        @if($footerLogo)
+                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-12 w-auto rounded-xl group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
+                        @else
+                            <div class="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <i class="fas fa-home text-xl" aria-hidden="true"></i>
+                            </div>
+                        @endif
                         <div>
                             <span class="text-xl font-black text-white tracking-tight block">
                                 {{ \App\Models\Setting::get('website_name', 'RoomRental') }}
                             </span>
-                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Premium Living</span>
+                            <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(var(--primary-rgb), 0.7);">Premium Living</span>
                         </div>
                     </a>
                     <p class="text-slate-300 text-sm leading-relaxed font-medium max-w-sm">
@@ -520,7 +771,7 @@
 
                 <!-- Navigation (Col span 2) -->
                 <div class="lg:col-span-2">
-                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 border-indigo-500 pl-3">Discover</h4>
+                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--primary);">Discover</h4>
                     <ul class="space-y-2 text-sm font-medium">
                         <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Browse Listings</a></li>
                         <li><a href="{{ route('blogs.index') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Latest Blogs</a></li>
@@ -531,7 +782,7 @@
 
                 <!-- Support (Col span 2) -->
                 <div class="lg:col-span-2">
-                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 border-purple-500 pl-3">Support</h4>
+                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--secondary);">Support</h4>
                     <ul class="space-y-2 text-sm font-medium">
                         <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Help & FAQ</a></li>
                         <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Privacy Policy</a></li>
@@ -549,7 +800,6 @@
                         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="space-y-3">
                             @csrf
                             <div class="relative group">
-                                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                                 <div class="relative flex bg-[#0f172a] border border-white/10 rounded-xl overflow-hidden focus-within:border-emerald-500/50 transition-colors">
                                     <input type="email" name="email" required placeholder="Enter your email"
                                            class="w-full bg-transparent text-white px-4 py-3 text-sm focus:outline-none placeholder-slate-400" aria-label="Email Address">

@@ -320,6 +320,7 @@
 
 @push('scripts')
 <script>
+const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
 const razorpayKey = '{{ \App\Models\Setting::get("razorpay_key", "") }}';
 const googleMapsKey = '{{ trim(\App\Models\Setting::get("google_maps_api_key", "")) }}';
 
@@ -652,7 +653,7 @@ async function initiatePayment(paymentId, amount, roomId) {
             }
         },
         prefill: { name: '{{ auth()->user()->name }}', email: '{{ auth()->user()->email }}' },
-        theme: { color: '#4f46e5' }
+        theme: { color: ROOM_PRIMARY_COLOR }
     };
     new Razorpay(options).open();
     } catch (error) {

@@ -58,6 +58,20 @@ class SettingsSeeder extends Seeder
                 'description' => 'Website display name'
             ],
             [
+                'key' => 'primary_color',
+                'value' => '#4F46E5',
+                'type' => 'text',
+                'group' => 'appearance',
+                'description' => 'Primary brand color (hex code)'
+            ],
+            [
+                'key' => 'secondary_color',
+                'value' => '#10B981',
+                'type' => 'text',
+                'group' => 'appearance',
+                'description' => 'Secondary brand color (hex code)'
+            ],
+            [
                 'key' => 'website_logo',
                 'value' => null,
                 'type' => 'image',

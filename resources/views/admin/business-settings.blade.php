@@ -319,6 +319,25 @@
                                 <p class="mt-1 text-xs text-gray-500">This will be displayed on the Contact Us page and footer</p>
                             </div>
                             
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Primary Color</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="color" name="primary_color" value="{{ \App\Models\Setting::get('primary_color', '#4F46E5') }}" class="h-12 w-16 rounded-lg cursor-pointer border border-gray-200 p-1">
+                                        <input type="text" name="primary_color_text" value="{{ \App\Models\Setting::get('primary_color', '#4F46E5') }}" class="block w-full px-4 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-mono" placeholder="#4F46E5" id="primary_color_text">
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Main brand color for headers, buttons, links</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Secondary Color</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="color" name="secondary_color" value="{{ \App\Models\Setting::get('secondary_color', '#10B981') }}" class="h-12 w-16 rounded-lg cursor-pointer border border-gray-200 p-1">
+                                        <input type="text" name="secondary_color_text" value="{{ \App\Models\Setting::get('secondary_color', '#10B981') }}" class="block w-full px-4 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-mono" placeholder="#10B981" id="secondary_color_text">
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Accent color for success states, highlights</p>
+                                </div>
+                            </div>
+                            
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-3">Social Media Links</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -615,6 +634,24 @@
 @endsection
 
 @push('scripts')
+<script>
+function syncColorInputs(colorId, textId) {
+    const colorInput = document.getElementById(colorId);
+    const textInput = document.getElementById(textId);
+    if (colorInput && textInput) {
+        colorInput.addEventListener('input', () => {
+            textInput.value = colorInput.value;
+        });
+        textInput.addEventListener('input', () => {
+            if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                colorInput.value = textInput.value;
+            }
+        });
+    }
+}
+syncColorInputs('primary_color', 'primary_color_text');
+syncColorInputs('secondary_color', 'secondary_color_text');
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 @endpush
 
