@@ -256,7 +256,47 @@
                         
                         <div class="space-y-8">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-3">Website Logo</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Website Logo (Navbar)</label>
+                                <div class="flex items-start gap-6">
+                                    <div class="h-24 w-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                         @if(\App\Models\Setting::get('navbar_logo'))
+                                            <img src="{{ asset('storage/' . \App\Models\Setting::get('navbar_logo')) }}" class="h-full w-full object-contain p-2">
+                                        @else
+                                            <i class="fas fa-image text-gray-300 text-3xl"></i>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                         <label class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg inline-flex items-center transition shadow-sm hover:border-indigo-300 hover:text-indigo-600">
+                                            <i class="fas fa-upload mr-2"></i> Upload Navbar Logo
+                                            <input type="file" name="navbar_logo" class="hidden">
+                                        </label>
+                                        <p class="mt-2 text-xs text-gray-500">Used in the header/navbar. Recommended: 40x40px.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Footer Logo</label>
+                                <div class="flex items-start gap-6">
+                                    <div class="h-24 w-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                         @if(\App\Models\Setting::get('footer_logo'))
+                                            <img src="{{ asset('storage/' . \App\Models\Setting::get('footer_logo')) }}" class="h-full w-full object-contain p-2">
+                                        @else
+                                            <i class="fas fa-image text-gray-300 text-3xl"></i>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                         <label class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg inline-flex items-center transition shadow-sm hover:border-indigo-300 hover:text-indigo-600">
+                                            <i class="fas fa-upload mr-2"></i> Upload Footer Logo
+                                            <input type="file" name="footer_logo" class="hidden">
+                                        </label>
+                                        <p class="mt-2 text-xs text-gray-500">Used in the footer. Recommended: 48x48px.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">Website Logo (General)</label>
                                 <div class="flex items-start gap-6">
                                     <div class="h-24 w-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden relative group">
                                          @if(\App\Models\Setting::get('website_logo'))

@@ -582,19 +582,19 @@
             <div class="flex justify-between items-center py-2">
 <a href="{{ route('home') }}" class="flex items-center">
                     @php
-                        $logo = \App\Models\Setting::get('website_logo');
-                        $favicon = \App\Models\Setting::get('website_favicon');
+                        $navbarLogo = \App\Models\Setting::get('navbar_logo');
                     @endphp
-                    @if($logo)
-                        <img src="{{ asset('storage/' . $logo) }}"
+                    @if($navbarLogo)
+                        <img src="{{ asset('storage/' . $navbarLogo) }}"
                              alt="Logo"
                              class="h-9 w-auto rounded-lg"
                              width="36" height="36"
                              onerror="this.style.display='none'">
+                    @else
+                        <div class="bg-slate-900 text-white rounded-lg p-2">
+                            <i class="fas fa-home text-base"></i>
+                        </div>
                     @endif
-                    <div class="bg-slate-900 text-white rounded-lg p-2 {{ $logo ? 'ml-2' : '' }}">
-                        <i class="fas fa-home text-base"></i>
-                    </div>
                 </a>
                 
                 <div class="flex items-center gap-3">
@@ -734,19 +734,18 @@
                 <!-- Brand Info (Col span 4) -->
                 <div class="lg:col-span-4 space-y-4">
 <a href="{{ route('home') }}" class="flex items-center gap-3 group" aria-label="RoomRental Home">
-                        @php $footerLogo = \App\Models\Setting::get('website_logo'); @endphp
+                        @php $footerLogo = \App\Models\Setting::get('footer_logo'); @endphp
                         @if($footerLogo)
-                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-12 w-auto rounded-xl group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
+                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-16 w-auto rounded-xl group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
                         @else
-                            <div class="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                <i class="fas fa-home text-xl" aria-hidden="true"></i>
+                            <div class="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <i class="fas fa-home text-2xl" aria-hidden="true"></i>
                             </div>
                         @endif
                         <div>
                             <span class="text-xl font-black text-white tracking-tight block">
                                 {{ \App\Models\Setting::get('website_name', 'RoomRental') }}
                             </span>
-                            <span class="text-xs font-bold uppercase tracking-widest" style="color: rgba(var(--primary-rgb), 0.7);">Premium Living</span>
                         </div>
                     </a>
                     <p class="text-slate-300 text-sm leading-relaxed font-medium max-w-sm">
