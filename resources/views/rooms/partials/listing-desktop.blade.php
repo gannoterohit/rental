@@ -1,5 +1,28 @@
+@push('styles')
+<style>
+    @media (min-width: 768px) {
+        .home-page-grid-5 {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+        .default-page-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (min-width: 1024px) {
+        .default-page-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+    @media (min-width: 1280px) {
+        .default-page-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+</style>
+@endpush
+
 <!-- Desktop Grid (Visible on Desktop/Tablet) -->
-<div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<div class="hidden md:grid grid-cols-1 gap-4 {{ ($homePage ?? false) ? 'home-page-grid-5' : 'default-page-grid' }}">
     @foreach($rooms as $room)
         <div class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all transition-colors duration-300 overflow-hidden border border-slate-100 hover:border-indigo-200 transform hover:-translate-y-1 flex flex-col h-full">
             <!-- Image Container (Clickable) - Reduced Height -->
@@ -134,9 +157,11 @@
     @endforeach
 </div>
 
-<!-- Pagination (Desktop) -->
-<div class="hidden md:flex justify-center mt-3 mb-8 custom-pagination">
-    <div class="inline-block">
-        {{ $rooms->withQueryString()->links() }}
+@unless($homePage ?? false)
+    <!-- Pagination (Desktop) -->
+    <div class="hidden md:flex justify-center mt-3 mb-8 custom-pagination">
+        <div class="inline-block">
+            {{ $rooms->withQueryString()->links() }}
+        </div>
     </div>
-</div>
+@endunless

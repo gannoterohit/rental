@@ -1,6 +1,7 @@
 @php
     $items = [];
-    foreach($rooms->take(10) as $idx => $r) {
+    $roomCollection = $rooms ?? ($featuredRooms ?? collect());
+    foreach($roomCollection->take(10) as $idx => $r) {
         $items[] = [
             '@type' => 'ListItem',
             'position' => $idx + 1,

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\BookingController;
@@ -17,7 +18,7 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [RoomController::class,'index'])->name('home');
+Route::get('/', [LandingPageController::class,'index'])->name('home');
 Route::get('/set-city', [RoomController::class, 'setCity'])->name('set-city');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
@@ -52,7 +53,8 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::post('/rooms/{room}/available', [RoomController::class, 'markAvailable'])->name('rooms.markAvailable');
 });
 
-// Public routes
+// Public room browsing
+Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
 Route::get('/rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
 
 Route::post('/unlock/{room}', [UnlockController::class, 'unlock'])->name('unlock.contact');
@@ -81,8 +83,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/otp-delete', [ProfileController::class, 'sendDeleteOtp'])->name('profile.send-delete-otp');
     
-    // Room routes - accessible to all authenticated users
-    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
     
     // Payment routes
     Route::post('/payment/razorpay/order', [RazorpayController::class,'createOrder'])->middleware('throttle:10,1')->name('razorpay.createOrder');

@@ -64,37 +64,25 @@
         @endforeach
     </div>
 
-    <!-- Section Title -->
-    <div class="px-4 pt-2 pb-2">
-        <h2 class="text-lg font-bold text-gray-800">All Listings</h2>
-    </div>
+        <!-- Section Title -->
+        <div class="px-4 pt-2 pb-2">
+            <h2 class="text-lg font-bold text-gray-800">All Listings</h2>
+        </div>
 
-    <!-- Mobile Offer Banner -->
-    <div class="px-4 mb-4">
-        @include('partials.offer-banner', ['placement' => 'mobile_feed'])
-    </div>
+        <!-- Mobile Offer Banner -->
+        <div class="px-4 mb-4">
+            @include('partials.offer-banner', ['placement' => 'mobile_feed'])
+        </div>
 
-    <!-- 2. Vertical List (Remaining Rooms) -->
-    <div id="mobile-room-list" class="px-3 pb-20">
-        @foreach($rooms->skip(5) as $room)
-            @include('partials.mobile-room-card', ['room' => $room])
-        @endforeach
-        
-        <!-- Fallback if only < 5 rooms exist, show them all in list too or handle empty state -->
-        @if($rooms->count() <= 5)
-             @foreach($rooms as $room)
-                <!-- Prevent duplicates if needed, but for now simple fallback -->
-                @if($loop->index < 5) 
-                    <!-- Already shown in slider, duplicate valid for small datasets or skip? -->
-                    <!-- Let's actually just show ALL in vertical list below slider for smooth UX if user prefers list -->
-                    @include('partials.mobile-room-card', ['room' => $room])
-                @endif
+        <!-- 2. Vertical List (Remaining Rooms) -->
+        <div id="mobile-room-list" class="px-3 pb-20">
+            @foreach($rooms->skip(5) as $room)
+                @include('partials.mobile-room-card', ['room' => $room])
             @endforeach
-        @endif
-    </div>
+        </div>
 
-    <!-- Infinite Scroll Loader -->
-    <div id="infinite-loader" class="px-3 pb-24 {{ $rooms->hasMorePages() ? '' : 'hidden' }}">
-        @include('rooms.partials.skeleton')
+        <!-- Infinite Scroll Loader -->
+        <div id="infinite-loader" class="px-3 pb-24 {{ $rooms->hasMorePages() ? '' : 'hidden' }}">
+            @include('rooms.partials.skeleton')
+        </div>
     </div>
-</div>

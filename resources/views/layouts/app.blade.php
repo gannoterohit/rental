@@ -579,16 +579,16 @@
     <!-- Compact Desktop Navigation -->
     <nav class="hidden md:block bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center py-2">
-<a href="{{ route('home') }}" class="flex items-center">
+            <div class="flex justify-between items-center min-h-[56px] py-1">
+<a href="{{ route('home') }}" class="flex items-center h-12 overflow-visible">
                     @php
                         $navbarLogo = \App\Models\Setting::get('navbar_logo');
                     @endphp
                     @if($navbarLogo)
                         <img src="{{ asset('storage/' . $navbarLogo) }}"
                              alt="Logo"
-                             class="h-9 w-auto rounded-lg"
-                             width="36" height="36"
+                             style="height: 66px; width: auto; max-height: 66px; display: block; transform: scale(1.0); transform-origin: left center;"
+                             class="rounded-lg object-contain"
                              onerror="this.style.display='none'">
                     @else
                         <div class="bg-slate-900 text-white rounded-lg p-2">
@@ -736,17 +736,12 @@
 <a href="{{ route('home') }}" class="flex items-center gap-3 group" aria-label="RoomRental Home">
                         @php $footerLogo = \App\Models\Setting::get('footer_logo'); @endphp
                         @if($footerLogo)
-                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-16 w-auto rounded-xl group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
+                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-24 w-auto rounded-xl object-contain group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
                         @else
-                            <div class="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                <i class="fas fa-home text-2xl" aria-hidden="true"></i>
+                            <div class="w-20 h-20 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <i class="fas fa-home text-3xl" aria-hidden="true"></i>
                             </div>
                         @endif
-                        <div>
-                            <span class="text-xl font-black text-white tracking-tight block">
-                                {{ \App\Models\Setting::get('website_name', 'RoomRental') }}
-                            </span>
-                        </div>
                     </a>
                     <p class="text-slate-300 text-sm leading-relaxed font-medium max-w-sm">
                         The ultimate destination for verified room rentals. We connect owners and tenants through a secure platform.

@@ -8,6 +8,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class RoomController extends Controller {
@@ -42,13 +43,51 @@ class RoomController extends Controller {
 
     if ($request->filled('city')) {
         $query->where('city', 'like', '%' . $request->city . '%');
-        // If they searched a NEW city, don't use old session coordinates for distance
-        if (!$request->lat) { $lat = $lng = null; }
-    } elseif ($lat && $lng && $locationVerified) {
+        session(['user_city' => $request->city]);
+        session()->forget('no_auto');
+
+        if ($request->has('lat') && $request->has('lng')) {
+            session(['user_lat' => $request->lat, 'user_lng' => $request->lng, 'location_verified' => true]);
+        } else {
+            // If they searched a new city manually, clear previous coordinates
+            $lat = $lng = null;
+            session()->forget(['user_lat', 'user_lng', 'location_verified']);
+        }
+    } elseif ($userCity) {
+        $query->where('city', 'like', '%' . $userCity . '%');
+    } else {
+        // Server-side IP-based city auto-detection fallback
+        // Runs only if no session city, no request city, and user hasn't opted out
+        if (!session('no_auto') && !$request->filled('city')) {
+            try {
+                $ip = $request->ip();
+                // Skip for localhost/private IPs
+                if (!in_array($ip, ['127.0.0.1', '::1']) && !str_starts_with($ip, '192.168.') && !str_starts_with($ip, '10.')) {
+                    $geoResponse = \Illuminate\Support\Facades\Http::timeout(3)->get("http://ip-api.com/json/{$ip}?fields=status,city,lat,lon");
+                    if ($geoResponse->successful()) {
+                        $geo = $geoResponse->json();
+                        if (($geo['status'] ?? '') === 'success' && !empty($geo['city'])) {
+                            $detectedCity = $geo['city'];
+                            session(['user_city' => $detectedCity, 'user_lat' => $geo['lat'], 'user_lng' => $geo['lon'], 'location_verified' => true]);
+                            $userCity = $detectedCity;
+                            $lat = $geo['lat'];
+                            $lng = $geo['lon'];
+                            $locationVerified = true;
+                            $query->where('city', 'like', '%' . $detectedCity . '%');
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Fail silently — don't break page if geo API is down
+            }
+        }
+    }
+
+    if ($lat && $lng && $locationVerified) {
         // SORT BY DISTANCE
         $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$lat, $lng, $lat])
               ->orderBy('distance', 'asc');
-    } 
+    }
     // No more hidden fallback to session('user_city') if not verified or requested
 
     // Rent range filter
@@ -74,7 +113,7 @@ class RoomController extends Controller {
     }
     
     // Sorting Priority: Distance (if active) > Featured > Recent
-    if ($lat && $lng && !$request->filled('city')) {
+    if ($lat && $lng && $locationVerified) {
         // Distance already set in $query->selectRaw above
         $query->orderBy('distance', 'asc');
     }
@@ -856,6 +895,7 @@ class RoomController extends Controller {
         $city = $request->get('city');
         if ($city) {
             session(['user_city' => $city]);
+            session()->forget('no_auto');
             if ($request->has('lat') && $request->has('lng')) {
                 session(['user_lat' => $request->lat, 'user_lng' => $request->lng]);
             }

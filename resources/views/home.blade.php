@@ -1,10 +1,11 @@
 @extends('layouts.app')
 
-@section('title', (request('city') ? 'Verified Rooms & PG in ' . request('city') : 'Browse Rooms & PG for Rent') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-@section('description', (request('city') ? 'Find the best verified rooms, apartments, and PG in ' . request('city') . '. Browse listings with photos, rents, and owner contacts.' : 'Browse verified room listings in your city. Find apartments, houses, and rooms for rent with verified owners.'))
-@section('keywords', (request('city') ? 'pg in ' . request('city') . ', room for rent in ' . request('city') . ', ' : '') . 'browse rooms, room listings, ' . \App\Models\Setting::get('seo_meta_keywords', 'apartment, house, property'))
-@section('og_title', (request('city') ? 'Rooms & PG in ' . request('city') : 'Browse Rooms') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-@section('og_description', (request('city') ? 'Check out available rooms and paying guests in ' . request('city') : 'Browse verified room listings in your city. Find apartments and rooms for rent.'))
+@php($homeCity = request('city') ?? session('user_city'))
+@section('title', ($homeCity ? 'Verified Rooms & PG in ' . $homeCity : 'Browse Rooms & PG for Rent') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
+@section('description', ($homeCity ? 'Find the best verified rooms, apartments, and PG in ' . $homeCity . '. Browse listings with photos, rents, and owner contacts.' : 'Browse verified room listings in your city. Find apartments, houses, and rooms for rent with verified owners.'))
+@section('keywords', ($homeCity ? 'pg in ' . $homeCity . ', room for rent in ' . $homeCity . ', ' : '') . 'browse rooms, room listings, ' . \App\Models\Setting::get('seo_meta_keywords', 'apartment, house, property'))
+@section('og_title', ($homeCity ? 'Rooms & PG in ' . $homeCity : 'Browse Rooms') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
+@section('og_description', ($homeCity ? 'Check out available rooms and paying guests in ' . $homeCity : 'Browse verified room listings in your city. Find apartments and rooms for rent.'))
 @section('og_url', route('rooms.index', request()->all()))
 @section('canonical', route('rooms.index'))
 
@@ -98,8 +99,8 @@
                         <span>100% Verified Listings — Zero Brokerage</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-black text-white mb-4 leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,0.9),0_0_40px_rgba(0,0,0,0.5)]">
-                        @if(request('city'))
-                            Rooms in <span class="text-indigo-300">{{ request('city') }}</span>
+                        @if($homeCity)
+                            Rooms in <span class="text-indigo-300">{{ $homeCity }}</span>
                         @else
                             Find Your Perfect<br><span class="text-indigo-300">Room to Call Home</span>
                         @endif
@@ -214,31 +215,30 @@
             <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
                 <span class="text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap mr-1">Quick Filters:</span>
 
-                @php
-                $chips = [
-                    ['label' => '🏠 Single Room',   'name' => 'room_type',        'value' => 'single_room'],
-                    ['label' => '👥 Shared Room',   'name' => 'room_type',        'value' => 'shared_room'],
-                    ['label' => '🏢 1 BHK',          'name' => 'room_type',        'value' => '1bhk'],
-                    ['label' => '🛋 Furnished',      'name' => 'furnishing_type',  'value' => 'furnished'],
-                    ['label' => '👩 Girls Only',     'name' => 'tenant_type',      'value' => 'girls'],
-                    ['label' => '👨 Boys Only',      'name' => 'tenant_type',      'value' => 'boys'],
-                    ['label' => '💸 Under ₹5000',    'name' => 'max_rent',         'value' => '5000'],
-                    ['label' => '💸 Under ₹10000',   'name' => 'max_rent',         'value' => '10000'],
-                    ['label' => '✅ No Brokerage',   'name' => 'listing_type',     'value' => 'owner'],
-                ];
-                @endphp
-
-                @foreach($chips as $chip)
-                    @php
+                <?php
+                    $chips = [
+                        ['label' => '🏠 Single Room',   'name' => 'room_type',        'value' => 'single_room'],
+                        ['label' => '👥 Shared Room',   'name' => 'room_type',        'value' => 'shared_room'],
+                        ['label' => '🏢 1 BHK',          'name' => 'room_type',        'value' => '1bhk'],
+                        ['label' => '🛋 Furnished',      'name' => 'furnishing_type',  'value' => 'furnished'],
+                        ['label' => '👩 Girls Only',     'name' => 'tenant_type',      'value' => 'girls'],
+                        ['label' => '👨 Boys Only',      'name' => 'tenant_type',      'value' => 'boys'],
+                        ['label' => '💸 Under ₹5000',    'name' => 'max_rent',         'value' => '5000'],
+                        ['label' => '💸 Under ₹10000',   'name' => 'max_rent',         'value' => '10000'],
+                        ['label' => '✅ No Brokerage',   'name' => 'listing_type',     'value' => 'owner'],
+                    ];
+                ?>
+                <?php foreach ($chips as $chip): ?>
+                    <?php
                         $isActive = request($chip['name']) === $chip['value'];
                         $params = array_merge(request()->except([$chip['name']]), $isActive ? [] : [$chip['name'] => $chip['value']]);
-                    @endphp
-                    <a href="{{ route('rooms.index', $params) }}"
+                    ?>
+                    <a href="<?php echo e(route('rooms.index', $params)); ?>"
                        class="flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border transition-all duration-200
-                              {{ $isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50' }}">
-                        {{ $chip['label'] }}
+                              <?php echo e($isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50'); ?>">
+                        <?php echo e($chip['label']); ?>
                     </a>
-                @endforeach
+                <?php endforeach; ?>
 
                 @if(request()->hasAny(['room_type','furnishing_type','tenant_type','max_rent','min_rent','listing_type','city']))
                     <a href="{{ route('rooms.index', ['clear' => 1]) }}"
@@ -323,8 +323,15 @@
     <div class="container mx-auto px-4">
         @if($rooms->count() > 0)
             
-            @include('rooms.partials.listing-mobile')
-            @include('rooms.partials.listing-desktop')
+            @include('rooms.partials.listing-mobile', ['homePage' => true])
+            @include('rooms.partials.listing-desktop', ['homePage' => true])
+
+            <div class="mt-6 flex justify-center">
+                <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all duration-300">
+                    View All Rooms
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
 
             <!-- 2nd Ad Slot: Bottom of List -->
             <div class="mt-8">
@@ -749,7 +756,6 @@
         }
     }
     </script>
-
 @endauth
 
     <!-- Auto-City Detection -->
