@@ -6,6 +6,7 @@ use App\Models\Room;
 use Illuminate\Cache\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache as FacadesCache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class LandingPageController extends Controller
@@ -87,18 +88,126 @@ class LandingPageController extends Controller
             ]);
         }
 
-        $popularCities = FacadesCache::remember('popular_cities_web', 86400, function () {
+        $popularCities = FacadesCache::remember('popular_cities_web_v2', 86400, function () {
             return Room::select('city', \DB::raw('count(*) as total'))
                 ->where('status', 'active')
                 ->where('listing_status', 'approved')
                 ->groupBy('city')
                 ->orderByDesc('total')
-                ->take(10)
-                ->get();
+                ->take(8)
+                ->get()
+                ->map(function ($cityRow) {
+                    // Fetch one real room photo from this city
+                    $room = Room::where('city', $cityRow->city)
+                        ->where('status', 'active')
+                        ->where('listing_status', 'approved')
+                        ->whereNotNull('photo')
+                        ->first();
+                    $cityRow->photo = $room ? $room->photo_url : null;
+                    return $cityRow;
+                });
         });
 
-       
+        // Room categories with dynamic counts from DB
+        $roomCategories = FacadesCache::remember('room_categories_web', 3600, function () {
+            $labelMap = [
+                'single_room' => ['label' => 'Single Room', 'icon' => 'fas fa-door-closed'],
+                'shared_room' => ['label' => 'Shared Room', 'icon' => 'fas fa-people-roof'],
+                'pg'          => ['label' => 'PG',          'icon' => 'fas fa-hotel'],
+                '1bhk'        => ['label' => '1 BHK',       'icon' => 'fas fa-building'],
+                '2bhk'        => ['label' => '2 BHK',       'icon' => 'fas fa-building-user'],
+                '3bhk'        => ['label' => '3 BHK',       'icon' => 'fas fa-city'],
+                'flat'        => ['label' => 'Flat',        'icon' => 'fas fa-home'],
+                'hostel'      => ['label' => 'Hostel',      'icon' => 'fas fa-bed'],
+                'studio'      => ['label' => 'Studio',      'icon' => 'fas fa-cubes'],
+                'villa'       => ['label' => 'Villa',       'icon' => 'fas fa-house-laptop'],
+            ];
 
-        return view('home', compact('rooms', 'popularCities'));
+            return Room::select('room_type', \DB::raw('count(*) as total'))
+                ->where('status', 'active')
+                ->where('listing_status', 'approved')
+                ->groupBy('room_type')
+                ->orderByDesc('total')
+                ->get()
+                ->map(function ($item) use ($labelMap) {
+                    $meta = $labelMap[$item->room_type] ?? [
+                        'label' => ucwords(str_replace('_', ' ', $item->room_type)),
+                        'icon'  => 'fas fa-home',
+                    ];
+                    $item->label = $meta['label'];
+                    $item->icon  = $meta['icon'];
+                    return $item;
+                });
+        });
+
+        $latestBlogs = \App\Models\Blog::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
+
+        // Hero room — cheapest featured/active room in current city
+        $heroRoom = Room::where('status', 'active')
+            ->where('listing_status', 'approved')
+            ->when($userCity, fn($q) => $q->where('city', 'like', '%' . $userCity . '%'))
+            ->orderByDesc('is_featured')
+            ->orderBy('rent', 'asc')
+            ->first();
+
+        // DB-based stats for hero section
+        $totalRooms  = Room::where('status', 'active')->where('listing_status', 'approved')->count();
+        $totalOwners = Room::where('status', 'active')->where('listing_status', 'approved')->distinct('user_id')->count('user_id');
+        $totalAreas  = Room::where('status', 'active')->where('listing_status', 'approved')
+            ->when($userCity, fn($q) => $q->where('city', 'like', '%' . $userCity . '%'))
+            ->distinct('city')->count('city');
+        // Popular city areas — dynamically extracted from address field of active city
+        $homeCity = $userCity ?: 'Bhopal';
+        $popularAreas = FacadesCache::remember('popular_areas_' . $homeCity . '_v2', 3600, function () use ($homeCity) {
+            return Room::where('status', 'active')
+                ->where('listing_status', 'approved')
+                ->where('city', 'like', '%' . $homeCity . '%')
+                ->get()
+                ->map(function ($room) {
+                    $address = $room->address;
+                    $area = null;
+                    
+                    if (stripos($address, 'Arera Colony') !== false) $area = 'Arera Colony';
+                    elseif (stripos($address, 'BHEL') !== false) $area = 'BHEL';
+                    elseif (stripos($address, 'MANIT') !== false) $area = 'MANIT';
+                    elseif (stripos($address, 'New Market') !== false) $area = 'New Market';
+                    elseif (stripos($address, 'Kolar Road') !== false) $area = 'Kolar Road';
+                    elseif (stripos($address, 'MP Nagar') !== false) $area = 'MP Nagar';
+                    elseif (stripos($address, 'Vijay Nagar') !== false) $area = 'Vijay Nagar';
+                    elseif (stripos($address, 'Palasia') !== false) $area = 'Palasia';
+                    elseif (stripos($address, 'Koramangala') !== false) $area = 'Koramangala';
+                    elseif (stripos($address, 'Whitefield') !== false) $area = 'Whitefield';
+                    elseif (stripos($address, 'HSR Layout') !== false) $area = 'HSR Layout';
+                    elseif (stripos($address, 'Jayanagar') !== false) $area = 'Jayanagar';
+                    
+                    if (!$area) {
+                        $parts = array_map('trim', explode(',', $address));
+                        if (count($parts) > 1) {
+                            $area = $parts[0];
+                        } else {
+                            $area = $address ?: 'Central Area';
+                        }
+                    }
+                    
+                    $room->parsed_area = $area;
+                    return $room;
+                })
+                ->groupBy('parsed_area')
+                ->map(function ($group, $key) {
+                    return (object)[
+                        'area_name' => $key,
+                        'total' => $group->count(),
+                        'min_rent' => $group->min('rent')
+                    ];
+                })
+                ->sortByDesc('total')
+                ->take(8)
+                ->values();
+        });
+
+        return view('home', compact(
+            'rooms', 'popularCities', 'roomCategories', 'latestBlogs',
+            'heroRoom', 'totalRooms', 'totalOwners', 'totalAreas', 'popularAreas'
+        ));
     }
 }

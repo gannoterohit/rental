@@ -577,91 +577,107 @@
     
     
     <!-- Compact Desktop Navigation -->
-    <nav class="hidden md:block bg-white shadow-sm sticky top-0 z-40">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center min-h-[56px] py-1">
-<a href="{{ route('home') }}" class="flex items-center h-12 overflow-visible">
+    <!-- Desktop Navigation (Redesigned) -->
+    <nav class="hidden md:block bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center h-16 py-2">
+                <!-- Logo -->
+                <a href="{{ route('home') }}" class="flex items-center gap-2 overflow-visible">
                     @php
                         $navbarLogo = \App\Models\Setting::get('navbar_logo');
                     @endphp
                     @if($navbarLogo)
                         <img src="{{ asset('storage/' . $navbarLogo) }}"
-                             alt="Logo"
-                             style="height: 66px; width: auto; max-height: 66px; display: block; transform: scale(1.0); transform-origin: left center;"
-                             class="rounded-lg object-contain"
-                             onerror="this.style.display='none'">
+                             alt="ApnaNest Logo"
+                             class="h-10 w-auto object-contain">
                     @else
-                        <div class="bg-slate-900 text-white rounded-lg p-2">
-                            <i class="fas fa-home text-base"></i>
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                <i class="fas fa-home text-lg"></i>
+                            </div>
+                            <span class="text-xl font-black text-slate-900 tracking-tight">Apna<span class="text-indigo-600">Nest</span></span>
                         </div>
                     @endif
                 </a>
                 
-                <div class="flex items-center gap-3">
+                <!-- Center Links -->
+                <div class="hidden lg:flex items-center gap-6">
+                    <a href="{{ route('home') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Home</a>
+                    <a href="{{ route('rooms.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Browse Rooms</a>
+                    <a href="{{ route('rooms.index', ['room_type' => 'shared_room']) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">PG</a>
+                    <a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Apartments</a>
+                    <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Owners</a>
+                    <a href="{{ route('plans') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Pricing</a>
+                    <a href="{{ route('blogs.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Blog</a>
+                </div>
+                
+                <!-- Right Side Actions -->
+                <div class="flex items-center gap-4">
+                    <!-- Wishlist Icon (Heart) -->
+                    <a href="{{ route('wishlist.index') }}" class="text-slate-600 hover:text-red-500 transition-colors p-2 relative" title="My Wishlist">
+                        <i class="far fa-heart text-lg"></i>
+                    </a>
                     
-                     <a href="{{ route('blogs.index') }}"
-                        class="text-gray-700 hover:text-emerald-600 font-medium transition-colors duration-200 px-3 py-1.5 text-sm hidden lg:block">
-                         Blog
-                     </a>
-
+                    <!-- Notification Icon (Bell) -->
+                    <a href="{{ route('pages.faq') }}" class="text-slate-600 hover:text-indigo-600 transition-colors p-2 relative" title="Notifications">
+                        <i class="far fa-bell text-lg"></i>
+                    </a>
+                    
                     @auth
-                        @if(Auth::user()->role === 'owner')
-<a href="{{ route('rooms.create') }}"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
-                                <i class="fas fa-plus mr-1 text-xs"></i>List Room
-                            </a>
-                        @endif
-                        
-                        @if(Auth::user()->role === 'admin')
-                            <a href="{{ route('admin.dashboard') }}"
-                               class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm">
-                                <i class="fas fa-tachometer-alt mr-1 text-xs"></i>Admin
-                            </a>
-                        @endif
-                        
+                        <!-- User Profile Dropdown -->
                         <div class="relative group">
-                            <button class="flex items-center gap-2 text-gray-700 hover:text-emerald-600 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">
+                            <button class="flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60">
                                 @if(Auth::user()->avatar)
                                     <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
                                 @else
-                                    <div class="bg-slate-900 text-white rounded-full p-1">
-                                        <i class="fas fa-user text-xs"></i>
+                                    <div class="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                     </div>
                                 @endif
-                                <span class="hidden lg:inline text-sm">{{ Str::limit(Auth::user()->name, 15) }}</span>
-                                <i class="fas fa-chevron-down text-xs"></i>
+                                <span class="hidden xl:inline text-xs font-semibold">{{ Str::limit(Auth::user()->name, 12) }}</span>
+                                <i class="fas fa-chevron-down text-[10px]"></i>
                             </button>
-                            <div class="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg py-1 hidden group-hover:block">
-                                <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 text-sm">
-                                    <i class="fas fa-user mr-2 text-primary text-xs"></i>Profile
+                            <div class="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl py-1 hidden group-hover:block border border-slate-100 z-50">
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
+                                    <i class="far fa-user text-slate-400 text-xs"></i>Profile
                                 </a>
-                                <a href="{{ route('dashboard') }}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 text-sm">
-                                    <i class="fas fa-tachometer-alt mr-2 text-primary text-xs"></i>Dashboard
+                                <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
+                                    <i class="fas fa-tachometer-alt text-slate-400 text-xs"></i>Dashboard
                                 </a>
-                                <a href="{{ route('wishlist.index') }}" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 text-sm">
-                                    <i class="fas fa-heart mr-2 text-red-500 text-xs"></i>My Wishlist
+                                <a href="{{ route('wishlist.index') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
+                                    <i class="far fa-heart text-red-500 text-xs"></i>My Wishlist
                                 </a>
-                                <a href="{{ route('referral.index') }}" class="block px-3 py-2 text-emerald-600 hover:bg-emerald-50 text-sm font-bold">
-                                    <i class="fas fa-gift mr-2 text-xs"></i>Refer & Earn
+                                <a href="{{ route('referral.index') }}" class="flex items-center gap-2 px-4 py-2 text-emerald-600 hover:bg-emerald-50 text-sm font-bold">
+                                    <i class="fas fa-gift text-xs"></i>Refer & Earn
                                 </a>
-                                <div class="border-t border-gray-200 my-1"></div>
+                                <div class="border-t border-slate-100 my-1"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="block">
                                     @csrf
-                                    <button type="submit" class="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 text-sm">
-                                        <i class="fas fa-sign-out-alt mr-2 text-xs"></i>Logout
+                                    <button type="submit" class="w-full text-left flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 text-sm font-medium">
+                                        <i class="fas fa-sign-out-alt text-xs"></i>Logout
                                     </button>
                                 </form>
                             </div>
                         </div>
+                        
+                        <!-- Post Property Button for Logged In -->
+                        <a href="{{ route('rooms.create') }}"
+                           class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-orange-500/10 flex items-center gap-1.5">
+                            <i class="fas fa-plus text-xs"></i> Post Property
+                        </a>
                     @else
+                        <!-- Guest Actions -->
                         <a href="{{ route('login') }}" 
-                           class="text-gray-700 hover:text-primary font-medium transition-colors duration-200 px-3 py-1.5 text-sm">
+                           class="text-slate-700 hover:text-indigo-600 font-bold transition-colors duration-200 text-sm px-2">
                             Login
                         </a>
                         <a href="{{ route('register') }}"
-                           style="background-color: var(--primary);"
-                           class="text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:opacity-90">
+                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/15">
                             Sign Up
+                        </a>
+                        <a href="{{ route('register') }}?role=owner"
+                           class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-orange-500/15">
+                            Post Property
                         </a>
                     @endauth
                 </div>
@@ -700,51 +716,52 @@
         @yield('content')
     </main>
 
-    <!-- Compact Footer -->
-    <!-- Premium Footer -->
-    <!-- Clean & Modern Desktop Footer -->
-    <!-- Premium Dark Footer -->
-    <footer class="relative bg-[#0f172a] text-slate-300 mt-12 hidden lg:block overflow-hidden">
-        {{-- Ambient Background Glows --}}
-        <div class="absolute top-0 left-0 w-full h-px" style="background: linear-gradient(to right, transparent, rgba(var(--primary-rgb), 0.5), transparent);"></div>
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-slate-900/20 rounded-full blur-[100px] pointer-events-none"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-[100px] pointer-events-none" style="background-color: rgba(var(--primary-rgb), 0.12);"></div>
-
-        <div class="container mx-auto px-6 relative z-10">
-            {{-- Pre-footer CTA --}}
-            <div class="py-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="max-w-2xl text-center md:text-left">
-                    <h3 class="text-2xl font-black text-white mb-2 tracking-tight">Ready to list your property?</h3>
-                    <p class="text-slate-400 font-medium">Join our verified network of owners and find premium tenants today.</p>
+    <!-- Stay Updated Banner Section -->
+    @if(!Route::is('home'))
+    <div class="hidden lg:block bg-indigo-50/70 border-t border-indigo-100 py-8">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                    <i class="far fa-envelope-open text-xl"></i>
                 </div>
-                <div class="flex flex-wrap gap-3 justify-center">
-                    <a href="{{ route('register') }}" class="group relative px-6 py-3 bg-white text-indigo-950 font-bold rounded-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 overflow-hidden">
-                        <span class="relative flex items-center gap-2">
-                            Get Started
-                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                        </span>
-                    </a>
-                    <a href="{{ route('pages.contact') }}" class="px-6 py-3 bg-white/5 text-white font-bold rounded-xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 backdrop-blur-sm">
-                        Contact Support
-                    </a>
+                <div>
+                    <h4 class="text-slate-900 font-bold text-lg leading-tight">Stay Updated</h4>
+                    <p class="text-slate-600 text-sm">Subscribe to get updates on new rooms and offers.</p>
                 </div>
             </div>
+            <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+                @csrf
+                <input type="email" name="email" required placeholder="Enter your email" 
+                       class="w-full bg-transparent text-slate-800 px-4 py-3 text-sm focus:outline-outline placeholder-slate-400 border-0 outline-none">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 font-bold text-sm transition-colors whitespace-nowrap">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 py-10">
-                <!-- Brand Info (Col span 4) -->
-                <div class="lg:col-span-4 space-y-4">
-<a href="{{ route('home') }}" class="flex items-center gap-3 group" aria-label="RoomRental Home">
+    <!-- Redesigned Footer Section -->
+    <footer class="relative bg-[#0b0f19] text-slate-400 py-12 hidden lg:block overflow-hidden border-t border-slate-900">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+                <!-- Brand Info (Col span 3) -->
+                <div class="lg:col-span-3 space-y-4">
+                    <a href="{{ route('home') }}" class="flex items-center gap-2 group" aria-label="RoomRental Home">
                         @php $footerLogo = \App\Models\Setting::get('footer_logo'); @endphp
                         @if($footerLogo)
-                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-24 w-auto rounded-xl object-contain group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'">
+                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-10 w-auto object-contain">
                         @else
-                            <div class="w-20 h-20 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                <i class="fas fa-home text-3xl" aria-hidden="true"></i>
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                                    <i class="fas fa-home text-lg"></i>
+                                </div>
+                                <span class="text-xl font-black text-white tracking-tight">Apna<span class="text-indigo-500">Nest</span></span>
                             </div>
                         @endif
                     </a>
-                    <p class="text-slate-300 text-sm leading-relaxed font-medium max-w-sm">
-                        The ultimate destination for verified room rentals. We connect owners and tenants through a secure platform.
+                    <p class="text-slate-400 text-xs leading-relaxed font-medium">
+                        India's most trusted platform for room rentals. Connect directly with verified owners. Find your stay with zero brokerage.
                     </p>
                     <div class="flex gap-3">
                         @php
@@ -756,78 +773,81 @@
                             ];
                         @endphp
                         @foreach($socialLinks as $icon => $url)
-                            <a href="{{ $url }}" aria-label="Visit us on {{ ucfirst(str_replace(['-f', '-in'], '', $icon)) }}" class="w-9 h-9 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all duration-300 border border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/30" {{ $url != '#' ? 'target="_blank"' : '' }}>
-                                <i class="fa-brands fa-{{ $icon }} text-sm" aria-hidden="true"></i>
+                            <a href="{{ $url }}" aria-label="Visit us on {{ ucfirst(str_replace(['-f', '-in'], '', $icon)) }}" class="w-8 h-8 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-white/5" {{ $url != '#' ? 'target="_blank"' : '' }}>
+                                <i class="fa-brands fa-{{ $icon }} text-xs" aria-hidden="true"></i>
                             </a>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Navigation (Col span 2) -->
+                <!-- Columns -->
+                <!-- Discover -->
                 <div class="lg:col-span-2">
-                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--primary);">Discover</h4>
-                    <ul class="space-y-2 text-sm font-medium">
-                        <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Browse Listings</a></li>
-                        <li><a href="{{ route('blogs.index') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Latest Blogs</a></li>
-                        <li><a href="{{ route('plans') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Membership Plans</a></li>
-                        <li><a href="{{ route('referral.index') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Refer & Earn</a></li>
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Discover</h4>
+                    <ul class="space-y-2.5 text-xs font-semibold">
+                        <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Browse Rooms</a></li>
+                        <li><a href="{{ route('rooms.index', ['room_type' => 'shared_room']) }}" class="text-slate-400 hover:text-white transition-all">PG</a></li>
+                        <li><a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="text-slate-400 hover:text-white transition-all">Apartments</a></li>
+                        <li><a href="{{ route('register') }}" class="text-slate-400 hover:text-white transition-all">Hostels</a></li>
+                        <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Villas</a></li>
                     </ul>
                 </div>
 
-                <!-- Support (Col span 2) -->
+                <!-- Company -->
                 <div class="lg:col-span-2">
-                    <h4 class="text-white font-black mb-4 text-sm uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--secondary);">Support</h4>
-                    <ul class="space-y-2 text-sm font-medium">
-                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Help & FAQ</a></li>
-                        <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Privacy Policy</a></li>
-                        <li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Terms of Service</a></li>
-                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block">Contact Us</a></li>
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Company</h4>
+                    <ul class="space-y-2.5 text-xs font-semibold">
+                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">About Us</a></li>
+                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>
+                        <li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white transition-all">Terms of Service</a></li>
+                        <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white transition-all">Privacy Policy</a></li>
+                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Contact Us</a></li>
                     </ul>
                 </div>
 
-                <!-- Newsletter (Col span 4) -->
-                <div class="lg:col-span-4">
-                    <div class="bg-white/5 rounded-2xl p-5 border border-white/5 backdrop-blur-sm">
-                        <h4 class="text-white font-black mb-1 text-base">Stay Updated</h4>
-                        <p class="text-slate-400 text-sm mb-4">Get the latest room additions and exclusive offers.</p>
-                        
-                        <form action="{{ route('newsletter.subscribe') }}" method="POST" class="space-y-3">
-                            @csrf
-                            <div class="relative group">
-                                <div class="relative flex bg-[#0f172a] border border-white/10 rounded-xl overflow-hidden focus-within:border-emerald-500/50 transition-colors">
-                                    <input type="email" name="email" required placeholder="Enter your email"
-                                           class="w-full bg-transparent text-white px-4 py-3 text-sm focus:outline-none placeholder-slate-400" aria-label="Email Address">
-                                    <button type="submit" aria-label="Subscribe to Newsletter" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 font-bold transition-colors">
-                                        <i class="fas fa-paper-plane" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                <!-- Support -->
+                <div class="lg:col-span-2">
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Support</h4>
+                    <ul class="space-y-2.5 text-xs font-semibold">
+                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Help Center</a></li>
+                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
+                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>
+                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Report an Issue</a></li>
+                        <li><a href="{{ route('sitemap') }}" class="text-slate-400 hover:text-white transition-all">Sitemap</a></li>
+                    </ul>
+                </div>
 
-                        <div class="pt-4 mt-4 border-t border-white/5 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-1">Owner Support</span>
-                                <a href="tel:{{ \App\Models\Setting::get('contact_phone', '+919340058914') }}" class="text-white font-black text-base hover:text-indigo-400 transition-colors">{{ \App\Models\Setting::get('contact_phone', '+91 9340058914') }}</a>
-                            </div>
-                            <div class="w-9 h-9 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 animate-pulse-slow">
-                                <i class="fas fa-headset" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Contact -->
+                <div class="lg:col-span-2">
+                    <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Contact</h4>
+                    <ul class="space-y-3 text-xs font-semibold">
+                        <li class="flex items-center gap-2 text-white">
+                            <i class="fas fa-phone-alt text-indigo-500"></i>
+                            <a href="tel:{{ \App\Models\Setting::get('contact_phone', '+911234567890') }}" class="hover:text-indigo-400 font-bold">{{ \App\Models\Setting::get('contact_phone', '+91 12345 67890') }}</a>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="far fa-envelope text-indigo-500"></i>
+                            <a href="mailto:{{ \App\Models\Setting::get('contact_email', 'support@apnanest.com') }}" class="hover:text-white transition-all">{{ \App\Models\Setting::get('contact_email', 'support@apnanest.com') }}</a>
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-500">
+                            <i class="far fa-clock text-indigo-500"></i>
+                            <span>Mon - Sun: 9AM - 8PM</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
             <!-- Footer Bottom -->
-            <div class="py-5 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-xs text-slate-400 font-bold">
-                    &copy; {{ date('Y') }} {{ \App\Models\Setting::get('website_name', 'RoomRental') }}. All rights reserved.
+            <div class="pt-6 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-xs text-slate-500 font-semibold">
+                    &copy; {{ date('Y') }} ApnaNest. All rights reserved.
                 </p>
                 <div class="flex items-center gap-4">
-                    <span class="flex items-center gap-2 text-xs font-bold text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                        <i class="fas fa-shield-alt text-emerald-400" aria-hidden="true"></i> Secure Payment
+                    <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                        <i class="fas fa-shield-alt text-emerald-500" aria-hidden="true"></i> Secure Payments
                     </span>
-                    <span class="flex items-center gap-2 text-xs font-bold text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                        <i class="fas fa-check-circle text-sky-400" aria-hidden="true"></i> Verified Listings
+                    <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                        <i class="fas fa-check-circle text-indigo-500" aria-hidden="true"></i> Verified Listings
                     </span>
                 </div>
             </div>

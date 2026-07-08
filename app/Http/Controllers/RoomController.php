@@ -101,26 +101,66 @@ class RoomController extends Controller {
 
     // Advanced Filters
     if ($request->filled('furnishing_type')) {
-        $query->where('furnishing_type', $request->furnishing_type);
+        $furnishing = $request->furnishing_type;
+        if (is_array($furnishing)) {
+            $query->whereIn('furnishing_type', $furnishing);
+        } else {
+            $query->where('furnishing_type', $furnishing);
+        }
     }
 
     if ($request->filled('tenant_type')) {
-        $query->where('tenant_type', $request->tenant_type);
+        $tenant = $request->tenant_type;
+        if (is_array($tenant)) {
+            $query->whereIn('tenant_type', $tenant);
+        } else {
+            $query->where('tenant_type', $tenant);
+        }
     }
 
     if ($request->filled('room_type')) {
-        $query->where('room_type', $request->room_type);
+        $roomType = $request->room_type;
+        if (is_array($roomType)) {
+            $query->whereIn('room_type', $roomType);
+        } else {
+            $query->where('room_type', $roomType);
+        }
+    }
+
+    if ($request->filled('amenities')) {
+        $amenities = $request->amenities;
+        if (is_array($amenities)) {
+            foreach ($amenities as $amenity) {
+                $query->whereJsonContains('amenities', $amenity);
+            }
+        } else {
+            $query->whereJsonContains('amenities', $amenities);
+        }
+    }
+
+    if ($request->filled('available_now') && $request->available_now == '1') {
+        $query->where('availability_from', '<=', now()->toDateString());
+    } elseif ($request->filled('availability_from')) {
+        $query->where('availability_from', '<=', $request->availability_from);
     }
     
-    // Sorting Priority: Distance (if active) > Featured > Recent
+    // Sorting logic
+    $sortBy = $request->get('sort_by', 'newest');
+    $query->orderBy('is_featured', 'desc');
+
     if ($lat && $lng && $locationVerified) {
-        // Distance already set in $query->selectRaw above
         $query->orderBy('distance', 'asc');
+    }
+
+    if ($sortBy === 'rent_asc') {
+        $query->orderBy('rent', 'asc');
+    } elseif ($sortBy === 'rent_desc') {
+        $query->orderBy('rent', 'desc');
+    } else {
+        $query->orderBy('created_at', 'desc');
     }
     
     $rooms = $query->with(['user:id,name,avatar'])
-                   ->orderBy('is_featured', 'desc')
-                   ->orderBy('created_at', 'desc')
                    ->paginate(20)
                    ->withQueryString();
 
@@ -166,7 +206,51 @@ class RoomController extends Controller {
         }
     }
     
-        return view('rooms.index', compact('rooms', 'popularCities'));
+    // Fetch room type counts dynamically from DB
+    $roomTypeCounts = Room::select('room_type', DB::raw('count(*) as total'))
+        ->where('status', 'active')
+        ->where('listing_status', 'approved')
+        ->groupBy('room_type')
+        ->pluck('total', 'room_type')
+        ->toArray();
+
+    // Top room types (only types that have listings, sorted by count)
+    $topRoomTypes = Room::select('room_type', DB::raw('count(*) as total'))
+        ->where('status', 'active')
+        ->where('listing_status', 'approved')
+        ->groupBy('room_type')
+        ->orderByDesc('total')
+        ->take(6)
+        ->pluck('total', 'room_type')
+        ->toArray();
+
+    // Dynamic rent bounds from actual DB data
+    $rentBounds = Room::where('status', 'active')
+        ->where('listing_status', 'approved')
+        ->selectRaw('MIN(rent) as min_rent, MAX(rent) as max_rent')
+        ->first();
+
+    // Tenant type counts (girls/boys/family/any)
+    $tenantTypeCounts = Room::select('tenant_type', DB::raw('count(*) as total'))
+        ->where('status', 'active')
+        ->where('listing_status', 'approved')
+        ->whereNotNull('tenant_type')
+        ->groupBy('tenant_type')
+        ->pluck('total', 'tenant_type')
+        ->toArray();
+
+    // Furnishing counts from DB
+    $furnishingCounts = Room::select('furnishing_type', DB::raw('count(*) as total'))
+        ->where('status', 'active')
+        ->where('listing_status', 'approved')
+        ->groupBy('furnishing_type')
+        ->pluck('total', 'furnishing_type')
+        ->toArray();
+
+    return view('rooms.index', compact(
+        'rooms', 'popularCities', 'roomTypeCounts',
+        'topRoomTypes', 'rentBounds', 'tenantTypeCounts', 'furnishingCounts'
+    ));
     }
     
 

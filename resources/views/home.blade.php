@@ -13,361 +13,746 @@
 @include('partials.listings-ld')
 <link rel="preload" href="{{ asset('assets/images/hero-bg-desktop.webp') }}" as="image" fetchpriority="high" media="(min-width: 768px)">
 <style>
-    /* Inline critical CSS for above-the-fold content */
+    /* ===== HERO ANIMATIONS ===== */
     @media (max-width: 1023px) {
-        .navbar, footer, .hero-mobile {
-            display: none !important;
-        }
-        body {
-            padding-bottom: 70px; /* Space for bottom nav */
-            background-color: #f8fafc;
-        }
+        .navbar, footer, .hero-mobile { display: none !important; }
+        body { padding-bottom: 70px; background-color: #f8fafc; }
     }
-    .hero-mobile {
-        background: linear-gradient(to bottom right, var(--primary), var(--secondary), var(--primary));
-        min-height: 300px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .hero-content-mobile {
-        width: 100%;
-        padding: 0 1rem;
-        z-index: 10;
-    }
-    .glass {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 1rem;
-    }
-    .float-animation {
-        animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
+    /* Float animation for cards */
+    @keyframes floatY {
         0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
+        50%       { transform: translateY(-10px); }
     }
-    .pulse-glow {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-        animation: pulse 2s infinite;
+    @keyframes floatY2 {
+        0%, 100% { transform: translateY(0px); }
+        50%       { transform: translateY(-7px); }
     }
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideRight {
+        from { opacity: 0; transform: translateX(40px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulseRing {
+        0%   { box-shadow: 0 0 0 0 rgba(249,115,22,.4); }
+        70%  { box-shadow: 0 0 0 12px rgba(249,115,22,0); }
+        100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+    }
+    .float-card-1 { animation: floatY  3.5s ease-in-out infinite; }
+    .float-card-2 { animation: floatY2 4.0s ease-in-out infinite 0.8s; }
+    .float-card-3 { animation: floatY  3.2s ease-in-out infinite 1.8s; }
+    .hero-left    { animation: fadeSlideUp    0.7s ease both; }
+    .hero-right   { animation: fadeSlideRight 0.8s ease 0.2s both; }
+    .pulse-orange { animation: pulseRing 2s infinite; }
+
+    /* Gradient mesh background */
+    .hero-mesh-bg {
+        background: #ffffff;
+        background-image:
+            radial-gradient(ellipse at 80% 20%, rgba(99,102,241,.07) 0%, transparent 55%),
+            radial-gradient(ellipse at 10% 80%, rgba(249,115,22,.06) 0%, transparent 50%);
+    }
+
+    /* Stat counter shimmer */
+    @keyframes statFadeIn {
+        from { opacity:0; transform:translateY(16px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .stat-card { animation: statFadeIn 0.6s ease both; }
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Scroll-reveal */
+    .reveal { opacity:0; transform:translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in-view { opacity:1; transform:translateY(0); }
+
+    /* Why-card hover lift */
+    .why-card { transition: transform .25s ease, box-shadow .25s ease; }
+    .why-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px -8px rgba(99,102,241,.18); }
+
+    /* Glass float card */
+    .glass-card {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.7);
     }
 </style>
-
 @endpush
 
 @section('content')
-<!-- Mobile-First Hero Section -->
-<div class="relative">
-    <!-- Background Image - Mobile Optimized -->
-    <!-- Mobile App Structure -->
-    <div class="md:hidden">
-        @include('partials.mobile-search')
-    </div>
-    
-    <!-- Desktop Hero Section -->
-    <div class="hidden md:block relative min-h-[580px] flex items-center pt-12 pb-24">
-        <!-- Background Image -->
-        <div class="absolute inset-0">
-            <picture>
-                <source srcset="{{ asset('assets/images/hero-bg-desktop.webp') }}" type="image/webp">
-                <img src="{{ asset('assets/images/hero-bg.png') }}"
-                     alt="Room rental background"
-                     class="w-full h-full object-cover"
-                     fetchpriority="high"
-                     width="1200" height="400"
-                     decoding="async"
-                     loading="eager">
-            </picture>
-            <!-- Soft gradient: dark on left/top, fades to translucent on right -->
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-800/70 to-slate-700/30"></div>
-            <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-transparent to-slate-900/80"></div>
+<!-- Mobile Search (Visible on Mobile Only) -->
+<div class="md:hidden relative bg-white">
+    @include('partials.mobile-search')
+</div>
+
+<!-- ===== DESKTOP HERO ===== -->
+<div class="hidden md:block hero-mesh-bg pt-8 pb-16 overflow-hidden relative">
+    <!-- Decorative orbs -->
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-indigo-100/30 blur-[120px] pointer-events-none -translate-y-1/4 translate-x-1/4"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-orange-100/40 blur-[100px] pointer-events-none translate-y-1/4 -translate-x-1/4"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 mb-6">
+            <span class="text-indigo-600">Verified Rooms</span>
+            <i class="fas fa-chevron-right text-[8px]"></i>
+            <span class="text-indigo-600">No-Brokerage</span>
+            <i class="fas fa-chevron-right text-[8px]"></i>
+            <span>Direct Owner Contact</span>
         </div>
-        
-        <div class="container mx-auto px-6 h-full flex items-center relative z-10">
-            <div class="w-full max-w-5xl mx-auto">
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start justify-between">
+
+            <!-- ===== LEFT CONTENT ===== -->
+            <div class="w-full lg:w-[65%] space-y-6 hero-left">
+
                 <!-- Headline -->
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center gap-2 bg-indigo-600/80 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4 border border-indigo-400/30">
-                        <i class="fas fa-shield-halved text-indigo-300"></i>
-                        <span>100% Verified Listings — Zero Brokerage</span>
+                <h1 class="text-4xl lg:text-[50px] font-black text-slate-900 leading-[1.1] tracking-tight">
+                    Find Verified Rooms<br>
+                    @if($homeCity)
+                        in <span class="text-orange-500 relative">
+                            {{ $homeCity }}
+                            <svg class="absolute -bottom-1 left-0 w-full" height="5" viewBox="0 0 200 5" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                <path d="M0 4 Q100 0 200 4" stroke="#f97316" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white ml-2 align-middle shadow-md" style="font-size:18px;"><i class="fas fa-check text-sm"></i></span>
+                    @else
+                        in <span class="text-orange-500 relative">
+                            Your City
+                            <svg class="absolute -bottom-1 left-0 w-full" height="5" viewBox="0 0 200 5" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                <path d="M0 4 Q100 0 200 4" stroke="#f97316" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    @endif
+                </h1>
+
+                <p class="text-slate-500 text-sm font-medium max-w-xl leading-relaxed">
+                    100% Verified Rooms, PGs &amp; Apartments{{ $homeCity ? ' in ' . $homeCity : '' }}.
+                    No Brokerage. Connect Directly with Owners.
+                </p>
+
+                <!-- Trust Badge Row -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-xs font-bold text-slate-700">
+                        <div class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[9px]"><i class="fas fa-ban"></i></div>
+                        No brokerage
                     </div>
-                    <h1 class="text-5xl md:text-6xl font-black text-white mb-4 leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,0.9),0_0_40px_rgba(0,0,0,0.5)]">
-                        @if($homeCity)
-                            Rooms in <span class="text-indigo-300">{{ $homeCity }}</span>
-                        @else
-                            Find Your Perfect<br><span class="text-indigo-300">Room to Call Home</span>
-                        @endif
-                    </h1>
-                    <p class="text-white/90 text-lg font-medium [text-shadow:0_1px_8px_rgba(0,0,0,0.8)] max-w-xl mx-auto">
-                        10,000+ rooms, PG & apartments across India with direct owner contact.
-                    </p>
+                    <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-xs font-bold text-slate-700">
+                        <div class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center text-[9px]"><i class="fas fa-user-check"></i></div>
+                        Owner Verified
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-xs font-bold text-slate-700">
+                        <div class="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-[9px]"><i class="fas fa-shield-halved"></i></div>
+                        Safe &amp; Secure
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-xs font-bold text-slate-700">
+                        <div class="w-5 h-5 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center text-[9px]"><i class="fas fa-headset"></i></div>
+                        24x7 Support
+                    </div>
                 </div>
 
-                <!-- Search Card -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-4">
+                <!-- Search Card — 5 fields + full-width button -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-5">
                     <form action="{{ route('rooms.index') }}" method="GET">
-                        <div class="flex items-end gap-3">
+                        <!-- Row 1: Fields -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                             <!-- Location -->
-                            <div class="flex-[2] min-w-0">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="text-xs font-bold text-white/90 uppercase tracking-wider flex items-center gap-1.5">
-                                        <i class="fas fa-map-marker-alt text-indigo-300"></i> Location
-                                    </label>
-                                    <button type="button" onclick="detectLocation(true)" 
-                                            class="text-[10px] font-bold text-indigo-200 hover:text-white flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600/60 px-2 py-0.5 rounded-full transition-all border border-indigo-400/30 whitespace-nowrap">
-                                        <i class="fas fa-location-crosshairs text-[8px]"></i> Near Me
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                                    <span>Location</span>
+                                    <button type="button" onclick="detectLocation(true)" class="text-[9px] text-orange-500 hover:text-orange-700 font-bold flex items-center gap-0.5">
+                                        <i class="fas fa-location-crosshairs text-[8px]"></i>
                                     </button>
-                                </div>
+                                </label>
                                 <div class="relative">
+                                    <i class="fas fa-map-pin absolute left-2.5 top-1/2 -translate-y-1/2 text-orange-400 text-[10px]"></i>
                                     <input type="text" name="city" id="hero-city-input"
-                                           value="{{ request('city') ?? session('user_city') }}" 
-                                           placeholder="City or area..."
-                                           class="w-full py-3 pl-4 pr-9 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
-                                    @if(request('city') || session('user_city'))
-                                        <a href="{{ route('rooms.index', ['clear' => 1]) }}" 
-                                           class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors" title="Clear">
-                                            <i class="fas fa-times-circle text-sm"></i>
-                                        </a>
-                                    @endif
+                                           value="{{ request('city') ?? session('user_city') }}"
+                                           placeholder="{{ $homeCity ?? 'City...' }}"
+                                           class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none transition-all">
                                 </div>
                             </div>
-                            <!-- Furnishing -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fas fa-couch text-indigo-300"></i> Type
-                                </label>
-                                <select name="furnishing_type" class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 appearance-none outline-none">
-                                    <option value="">Any</option>
-                                    <option value="furnished" {{ request('furnishing_type') == 'furnished' ? 'selected' : '' }}>Furnished</option>
-                                    <option value="semi-furnished" {{ request('furnishing_type') == 'semi-furnished' ? 'selected' : '' }}>Semi</option>
-                                    <option value="unfurnished" {{ request('furnishing_type') == 'unfurnished' ? 'selected' : '' }}>Unfurnished</option>
-                                </select>
+                            <!-- Property Type -->
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Property Type</label>
+                                <div class="relative">
+                                    <i class="fas fa-building absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+                                    <select name="room_type" class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none appearance-none transition-all">
+                                        <option value="">Any Type</option>
+                                        @foreach($roomCategories as $cat)
+                                            <option value="{{ $cat->room_type }}" {{ request('room_type') == $cat->room_type ? 'selected' : '' }}>{{ $cat->label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
-                            <!-- Room Type -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fas fa-bed text-indigo-300"></i> Room
-                                </label>
-                                <select name="room_type" class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 appearance-none outline-none">
-                                    <option value="">Any</option>
-                                    <option value="single_room" {{ request('room_type') == 'single_room' ? 'selected' : '' }}>Single</option>
-                                    <option value="shared_room" {{ request('room_type') == 'shared_room' ? 'selected' : '' }}>Shared</option>
-                                    <option value="1bhk" {{ request('room_type') == '1bhk' ? 'selected' : '' }}>1 BHK</option>
-                                    <option value="2bhk" {{ request('room_type') == '2bhk' ? 'selected' : '' }}>2 BHK</option>
-                                </select>
+                            <!-- Budget -->
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Budget</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" name="min_rent" value="{{ request('min_rent') }}" placeholder="₹ Min"
+                                           class="w-full py-2.5 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[10px] font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none transition-all">
+                                    <span class="text-slate-300 font-bold">–</span>
+                                    <input type="number" name="max_rent" value="{{ request('max_rent') }}" placeholder="Max"
+                                           class="w-full py-2.5 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[10px] font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none transition-all">
+                                </div>
                             </div>
-                            <!-- Budget Min -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider">
-                                    <i class="fas fa-rupee-sign text-indigo-300 mr-1"></i> Min
-                                </label>
-                                <input type="number" name="min_rent" value="{{ request('min_rent') }}" 
-                                       placeholder="Min ₹"
-                                       class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
+                            <!-- Gender -->
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Gender</label>
+                                <div class="relative">
+                                    <i class="fas fa-users absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+                                    <select name="tenant_type" class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none appearance-none transition-all">
+                                        <option value="">Any</option>
+                                        <option value="girls" {{ request('tenant_type') == 'girls' ? 'selected' : '' }}>Girls Only</option>
+                                        <option value="boys" {{ request('tenant_type') == 'boys' ? 'selected' : '' }}>Boys Only</option>
+                                        <option value="family" {{ request('tenant_type') == 'family' ? 'selected' : '' }}>Family</option>
+                                    </select>
+                                </div>
                             </div>
-                            <!-- Budget Max -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider">
-                                    Max
-                                </label>
-                                <input type="number" name="max_rent" value="{{ request('max_rent') }}" 
-                                       placeholder="Max ₹"
-                                       class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
-                            </div>
-                            <!-- Search Button -->
-                            <div class="flex-shrink-0">
-                                <label class="text-xs font-bold text-white/0 block mb-1.5">Go</label>
-                                <button type="submit" 
-                                        class="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg transition-all hover:-translate-y-0.5 flex items-center gap-2 text-sm whitespace-nowrap">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
-                            </div>
+                        </div>
+                        <!-- Row 2: Full-width Search Button -->
+                        <button type="submit" id="hero-search-btn"
+                                class="w-full py-3 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-extrabold rounded-xl shadow-lg shadow-orange-400/30 transition-all flex items-center justify-center gap-2 text-sm pulse-orange">
+                            <i class="fas fa-search"></i> Search Rooms
+                        </button>
+
+                        <!-- Popular Tags -->
+                        <div class="flex items-center gap-2 mt-3 flex-wrap border-t border-slate-100 pt-3">
+                            <span class="font-extrabold text-slate-400 uppercase tracking-wider text-[9px]">Popular:</span>
+                            <a href="{{ route('rooms.index', ['room_type' => 'single_room']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">Single Room</a>
+                            <a href="{{ route('rooms.index', ['room_type' => 'pg']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">PG</a>
+                            <a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">1 BHK</a>
+                            <a href="{{ route('rooms.index', ['tenant_type' => 'girls']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">Girls PG</a>
                         </div>
                     </form>
                 </div>
-
             </div>
-        </div>
 
-        <!-- Wave Divider -->
-        <div class="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-12 md:h-16">
-                <path d="M0,40L60,35C120,30 240,20 360,20C480,20 600,25 720,30C840,35 960,35 1080,30C1200,25 1320,20 1380,20L1440,20V80H1380C1320,80 1200,80 1080,80C960,80 840,80 720,80C600,80 480,80 360,80C240,80 120,80 60,80H0Z" fill="white"/>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Filter Chips (Desktop) -->
-<div class="hidden md:block bg-white border-b border-slate-100 shadow-sm">
-    <div class="container mx-auto px-6 py-3">
-        <form action="{{ route('rooms.index') }}" method="GET" id="quick-filter-form">
-            @if(request('city'))<input type="hidden" name="city" value="{{ request('city') }}">@endif
-            @if(request('min_rent'))<input type="hidden" name="min_rent" value="{{ request('min_rent') }}">@endif
-            @if(request('max_rent'))<input type="hidden" name="max_rent" value="{{ request('max_rent') }}">@endif
-            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                <span class="text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap mr-1">Quick Filters:</span>
-
-                <?php
-                    $chips = [
-                        ['label' => '🏠 Single Room',   'name' => 'room_type',        'value' => 'single_room'],
-                        ['label' => '👥 Shared Room',   'name' => 'room_type',        'value' => 'shared_room'],
-                        ['label' => '🏢 1 BHK',          'name' => 'room_type',        'value' => '1bhk'],
-                        ['label' => '🛋 Furnished',      'name' => 'furnishing_type',  'value' => 'furnished'],
-                        ['label' => '👩 Girls Only',     'name' => 'tenant_type',      'value' => 'girls'],
-                        ['label' => '👨 Boys Only',      'name' => 'tenant_type',      'value' => 'boys'],
-                        ['label' => '💸 Under ₹5000',    'name' => 'max_rent',         'value' => '5000'],
-                        ['label' => '💸 Under ₹10000',   'name' => 'max_rent',         'value' => '10000'],
-                        ['label' => '✅ No Brokerage',   'name' => 'listing_type',     'value' => 'owner'],
-                    ];
-                ?>
-                <?php foreach ($chips as $chip): ?>
-                    <?php
-                        $isActive = request($chip['name']) === $chip['value'];
-                        $params = array_merge(request()->except([$chip['name']]), $isActive ? [] : [$chip['name'] => $chip['value']]);
-                    ?>
-                    <a href="<?php echo e(route('rooms.index', $params)); ?>"
-                       class="flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border transition-all duration-200
-                              <?php echo e($isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50'); ?>">
-                        <?php echo e($chip['label']); ?>
-                    </a>
-                <?php endforeach; ?>
-
-                @if(request()->hasAny(['room_type','furnishing_type','tenant_type','max_rent','min_rent','listing_type','city']))
-                    <a href="{{ route('rooms.index', ['clear' => 1]) }}"
-                       class="flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition-all ml-2">
-                        ✕ Clear All
-                    </a>
+            <!-- ===== RIGHT — Hero Room Card ===== -->
+            <div class="w-full lg:w-[32%] hero-right">
+                @if($heroRoom)
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+                    <!-- Room Photo -->
+                    <div class="relative h-52 overflow-hidden">
+                        <img src="{{ $heroRoom->photo_url }}" alt="{{ $heroRoom->title }}"
+                             class="w-full h-full object-cover" loading="eager">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+                        @if($heroRoom->is_featured)
+                        <div class="absolute top-3 left-3 bg-orange-500 text-white text-[9px] font-extrabold px-2 py-1 rounded-lg flex items-center gap-1">
+                            <i class="fas fa-bolt text-[8px]"></i> Featured
+                        </div>
+                        @endif
+                        <div class="absolute bottom-3 left-3">
+                            <span class="block text-white font-black text-xl">₹{{ number_format($heroRoom->rent) }}<span class="text-slate-300 text-xs font-medium">/month</span></span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                            <i class="fas fa-circle-check text-[8px] mr-0.5"></i> Verified
+                        </div>
+                    </div>
+                    <!-- Card info -->
+                    <div class="p-4">
+                        <p class="font-bold text-slate-900 text-sm line-clamp-1">{{ $heroRoom->title }}</p>
+                        <p class="text-slate-500 text-xs mt-1 flex items-center gap-1">
+                            <i class="fas fa-map-pin text-orange-500 text-[10px]"></i>
+                            {{ $heroRoom->city }}{{ $heroRoom->address ? ', '.$heroRoom->address : '' }}
+                        </p>
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex text-amber-400 text-xs gap-0.5">
+                                @for($i=0;$i<5;$i++)<i class="fas fa-star"></i>@endfor
+                                <span class="text-slate-500 text-[10px] ml-1 font-bold">4.8</span>
+                            </div>
+                            <a href="{{ route('rooms.show', $heroRoom->slug) }}"
+                               class="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg transition-all">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @else
+                <!-- Fallback card if no rooms -->
+                <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-8 text-white text-center shadow-xl">
+                    <i class="fas fa-home text-5xl text-indigo-300 mb-4 block"></i>
+                    <p class="font-bold text-lg">Find Your Perfect Room</p>
+                    <p class="text-indigo-300 text-sm mt-2">Browse verified listings near you</p>
+                    <a href="{{ route('rooms.index') }}" class="mt-4 inline-block bg-white text-indigo-700 font-bold px-5 py-2 rounded-xl text-sm hover:bg-indigo-50 transition-all">Browse Rooms</a>
+                </div>
                 @endif
             </div>
-        </form>
+        </div>
     </div>
 </div>
-
-<!-- Offer Hero Banner Section -->
-<section class="bg-white">
-    <div class="container mx-auto px-4 md:px-6">
-        @include('partials.offer-banner', ['placement' => 'home_hero'])
-    </div>
-     <!-- 1st Ad Slot: Below Search/Hero -->
-    <div class="container mx-auto px-4 mt-4">
-        @include('partials.adsense-slot', ['placement' => 'home_top'])
+<!-- ===== WHY CHOOSE APNANEST ===== -->
+<section class="bg-[#f8fafc] py-16 reveal">
+    <div class="container mx-auto px-6">
+        <div class="text-center max-w-xl mx-auto mb-12">
+            <h2 class="text-3xl font-black text-slate-900 font-heading">Why Choose <span class="text-indigo-600">ApnaNest?</span></h2>
+            <p class="text-slate-500 text-sm font-medium mt-2">We ensure a safe, secure, and hassle-free renting experience.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-indigo-200">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <h3 class="font-bold text-base text-slate-900">Verified Listings</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">All rooms and properties are physically verified for authenticity.</p>
+            </div>
+            <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-orange-200">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="font-bold text-base text-slate-900">Zero Brokerage</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Direct connection with owners. No hidden charges or end-to-commission fees.</p>
+            </div>
+            <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-emerald-200">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <h3 class="font-bold text-base text-slate-900">Secure Payments</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Safe rent transactions and refunds via our secure payment system.</p>
+            </div>
+            <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-purple-200">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3 class="font-bold text-base text-slate-900">24×7 Support</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Dedicated support agents to assist you throughout your rental journey.</p>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- Rooms Section -->
-<div class="bg-gradient-to-b from-gray-50 to-white py-6 md:py-8">
-    <div class="container mx-auto px-4">
-        <!-- Section Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
+
+
+<!-- Browse by Category -->
+<section class="bg-white py-16 reveal">
+    <div class="container mx-auto px-6">
+        <div class="max-w-5xl mx-auto">
             <div>
-                <div class="inline-flex items-center gap-2 md:gap-3 mb-2">
-                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg md:rounded-xl flex items-center justify-center shadow-md">
-                        <i class="fas fa-home text-white text-base md:text-lg"></i>
-                    </div>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900">
-                        {{ request('city') ? 'Rooms in ' . request('city') : 'Available Rooms' }}
-                    </h2>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-slate-900">Browse by Category</h2>
+                    <p class="text-slate-500 text-sm font-medium mt-1">Explore different types of rental options available near you.</p>
                 </div>
-                <p class="text-slate-600 text-sm md:text-base font-medium ml-12 md:ml-14">
-                    @if(request('city'))
-                        Best <b>PG</b>, <b>shared rooms</b>, and <b>rented apartments</b> in {{ request('city') }}.
-                        Found <span class="font-black text-indigo-600 text-lg md:text-xl">{{ $rooms->total() }}</span> verified listings.
-                    @elseif(request('min_rent') || request('max_rent'))
-                        Found <span class="font-black text-indigo-600 text-lg md:text-xl">{{ $rooms->total() }}</span> rooms matching your search
-                    @else
-                        Browse the latest verified room listings across all cities.
-                    @endif
-                </p>
-            </div>
-            
-            <!-- Trust Badges -->
-            <div class="hidden lg:flex items-center gap-8">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-                        <i class="fas fa-check-double"></i>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-black text-slate-900 uppercase">100% Verified</span>
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Direct Owners</span>
-                    </div>
+                <?php if($roomCategories->count() > 0): ?>
+                <?php
+                    $catColors = [
+                        'single_room' => 'indigo',
+                        'shared_room' => 'orange',
+                        'pg'          => 'emerald',
+                        '1bhk'        => 'purple',
+                        '2bhk'        => 'pink',
+                        '3bhk'        => 'amber',
+                        'flat'        => 'blue',
+                        'hostel'      => 'cyan',
+                        'studio'      => 'teal',
+                        'villa'       => 'rose'
+                    ];
+                ?>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <?php foreach($roomCategories->take(8) as $cat): ?>
+                        <?php
+                            $color = $catColors[$cat->room_type] ?? 'indigo';
+                        ?>
+                        <a href="<?php echo route('rooms.index', ['room_type' => [$cat->room_type]]); ?>"
+                           class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 hover:shadow-md hover:-translate-y-1 transition-all shadow-sm group">
+                            <div class="w-11 h-11 bg-<?php echo $color; ?>-50 text-<?php echo $color; ?>-600 rounded-xl flex items-center justify-center text-lg mb-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="<?php echo $cat->icon; ?>"></i>
+                            </div>
+                            <span class="block text-slate-900 font-bold text-xs leading-tight mb-0.5"><?php echo $cat->label; ?></span>
+                            <span class="block text-[10px] text-slate-400 font-semibold"><?php echo number_format($cat->total); ?> Listings</span>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
-                        <i class="fas fa-shield-halved"></i>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-black text-slate-900 uppercase">Secure Contact</span>
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Verified PG</span>
-                    </div>
-                </div>
-            </div>
-            @auth
-                @if(Auth::user()->role === 'owner')
-<a href="{{ route('rooms.create') }}"
-                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 md:px-6 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
-                        <i class="fas fa-plus-circle mr-2"></i>List Your Room
+                <div class="mt-4">
+                    <a href="{{ route('rooms.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-sm flex items-center gap-1">
+                        View All Categories <i class="fas fa-arrow-right text-xs"></i>
                     </a>
-                @endif
-            @endauth
+                </div>
+                <?php else: ?>
+                <div class="text-center py-12 text-slate-400 text-sm">
+                    <i class="fas fa-layer-group text-3xl mb-3 block"></i>
+                    <p class="font-medium">No categories available yet.</p>
+                </div>
+                <?php endif; ?>
+            </div>
+
         </div>
-    </div> <!-- Close Header Container -->
-        
-    <div class="container mx-auto px-4">
-        @if($rooms->count() > 0)
+    </div>
+</section>
+
+<!-- Latest Verified Rooms Section -->
+<div class="bg-white py-16">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 font-heading">Latest Verified Rooms</h2>
+                <p class="text-slate-500 text-sm font-medium mt-1">Handpicked verified listings just for you.</p>
+            </div>
             
+            <a href="{{ route('rooms.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-sm flex items-center gap-1 mt-4 md:mt-0">
+                View All Rooms <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+        
+        <?php if($rooms->count() > 0): ?>
             @include('rooms.partials.listing-mobile', ['homePage' => true])
             @include('rooms.partials.listing-desktop', ['homePage' => true])
+        <?php else: ?>
+            <!-- Empty state fallback -->
+            <div class="text-center py-12 bg-slate-50 border border-slate-200/60 rounded-2xl">
+                <i class="fas fa-house-chimney text-4xl text-slate-300 mb-2"></i>
+                <h3 class="font-bold text-slate-700 text-sm">No Listings Available</h3>
+                <p class="text-slate-500 text-xs mt-1">Check back later or change your filters.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
-            <div class="mt-6 flex justify-center">
-                <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all duration-300">
-                    View All Rooms
-                    <i class="fas fa-arrow-right ml-2"></i>
+<!-- Trust & Info Ribbon -->
+<div class="bg-[#0b0f19] text-white py-8">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <span class="block font-bold text-sm text-white leading-tight">Available Today</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">Move in hassle free</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                    <span class="block font-bold text-sm text-white leading-tight">Instant Bookings</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">Quick & easy process</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <span class="block font-bold text-sm text-white leading-tight">Easy Documentation</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">Minimal paperwork</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <div>
+                    <span class="block font-bold text-sm text-white leading-tight">100% Verified</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">Trusted & genuine listings</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Multi-Section Grid: How it Works, Testimonials, App Download -->
+<section class="bg-white py-16 border-b border-slate-100">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- 1. How It Works (Col span 4) -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h3 class="text-xl font-black text-slate-900 font-heading">How It Works?</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">3 simple steps to find your perfect home.</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Search</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Find rooms by location, budget & preference.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Connect</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Contact with owner and visit the property.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Book</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Complete documentation and move in.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Testimonials (Col span 5) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h3 class="text-xl font-black text-slate-900 font-heading">What Our Users Say</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">Trusted by thousands of happy tenants.</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Review 1 -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
+                        <div class="flex text-amber-400 text-xs">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-slate-600 text-xs italic">"Found my perfect room in Bhopal within 2 days. Direct owner contact and zero brokerage. Great experience!"</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-xs">R</div>
+                            <div>
+                                <span class="block text-slate-800 font-bold text-xs">Rahul Sharma</span>
+                                <span class="block text-[9px] text-slate-500">Student</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Review 2 -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
+                        <div class="flex text-amber-400 text-xs">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-slate-600 text-xs italic">"Very easy to use platform. Listings are truly verified. Finding PG was never this hassle-free!"</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 font-bold flex items-center justify-center text-xs">N</div>
+                            <div>
+                                <span class="block text-slate-800 font-bold text-xs">Neha Verma</span>
+                                <span class="block text-[9px] text-slate-500">Working Professional</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. App Download (Col span 3) -->
+            <div class="lg:col-span-3 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h3 class="text-xl font-black text-slate-900 font-heading">Download Our App</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">Find stays on the go with mobile app.</p>
+                </div>
+                
+                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-5 flex flex-col items-center justify-center gap-4 text-center">
+                    <!-- Simulated QR Code SVG -->
+                    <div class="w-28 h-28 bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex items-center justify-center">
+                        <i class="fas fa-qrcode text-6xl text-slate-800"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest leading-none">Scan to Download</span>
+                    
+                    <div class="flex flex-col gap-2 w-full">
+                        <a href="#" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
+                            <i class="fab fa-apple text-base"></i>
+                            <div class="text-left leading-tight">
+                                <span class="block text-[8px] font-medium text-slate-400">Download on</span>
+                                <span class="block text-xs font-black">App Store</span>
+                            </div>
+                        </a>
+                        <a href="#" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
+                            <i class="fab fa-google-play text-base text-emerald-400"></i>
+                            <div class="text-left leading-tight">
+                                <span class="block text-[8px] font-medium text-slate-400">Get it on</span>
+                                <span class="block text-xs font-black">Google Play</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Own a Property CTA Banner -->
+<section class="bg-white py-12">
+    <div class="container mx-auto px-6">
+        <div class="bg-[#0b0f19] rounded-[32px] overflow-hidden relative border border-slate-900 shadow-xl flex flex-col lg:flex-row items-center justify-between p-8 lg:p-12 gap-8">
+            <!-- Background lights inside block -->
+            <div class="absolute -top-32 -left-32 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+            
+            <div class="space-y-4 max-w-2xl relative z-10">
+                <h3 class="text-2xl lg:text-3xl font-black text-white font-heading">Own a Property?</h3>
+                <p class="text-slate-400 text-sm font-medium">List it on ApnaNest and find verified tenants without paying any brokerage fee.</p>
+                <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-300">
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> 100% Free Listing</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Zero Brokerage</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Verified Tenants</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Quick Payments</span>
+                </div>
+            </div>
+            
+            <div class="relative z-10 flex-shrink-0">
+                <a href="{{ route('register') }}?role=owner" class="px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl shadow-lg shadow-orange-500/25 transition-all text-sm flex items-center gap-2 hover:-translate-y-0.5">
+                    List Your Property Free <i class="fas fa-arrow-right text-xs"></i>
                 </a>
             </div>
+        </div>
+    </div>
+</section>
 
-            <!-- 2nd Ad Slot: Bottom of List -->
-            <div class="mt-8">
-                 @include('partials.adsense-slot', ['placement' => 'home_bottom'])
-            </div>
-
-        @else
-            <!-- Empty State -->
-            <div class="text-center py-12 md:py-16 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl md:rounded-2xl shadow-lg border-2 border-dashed border-slate-300">
-                <div class="max-w-md mx-auto">
-                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mb-4 md:mb-6 shadow-md float-animation">
-                        <i class="fas fa-home text-4xl md:text-5xl text-indigo-400"></i>
+<!-- Blog and FAQs Section -->
+<section class="bg-[#f8fafc] py-16">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Left Side: Latest from Blog (Col span 7) -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="flex items-end justify-between border-b border-slate-200/80 pb-4">
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-900 font-heading">Latest from Blog</h3>
+                        <p class="text-slate-500 text-xs font-semibold mt-1">Tips, guides, and room insights.</p>
                     </div>
-                    <h3 class="text-2xl md:text-3xl font-black text-slate-900 mb-2 md:mb-3">No Rooms Found</h3>
-                    <p class="text-slate-600 mb-6 md:mb-8 text-sm md:text-base">Try adjusting your search criteria or browse all available rooms</p>
-<a href="{{ route('rooms.index') }}" 
-                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 md:px-8 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
-                        <i class="fas fa-search mr-2"></i>Browse All Rooms
+                    <a href="{{ route('blogs.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-xs flex items-center gap-0.5">
+                        View All Blogs <i class="fas fa-arrow-right text-[10px]"></i>
                     </a>
-                    
-                    @if(request('city'))
-                        <div class="mt-8 p-6 bg-white rounded-xl shadow-sm border border-indigo-100">
-                            <h4 class="text-lg font-bold text-slate-900 mb-2">Want to be notified?</h4>
-                            <p class="text-slate-600 text-sm mb-4">We'll email you as soon as a new room is listed in <strong>{{ request('city') }}</strong>.</p>
-<button onclick="subscribeToAlerts('{{ request('city') }}')" 
-                                id="notify-btn"
-                                class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md text-sm">
-                                <i class="fas fa-bell mr-2"></i>Notify Me for {{ request('city') }}
-                            </button>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    @if(isset($latestBlogs) && $latestBlogs->count() > 0)
+                        @foreach($latestBlogs as $blog)
+                            <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+                                <div class="h-28 bg-slate-100 relative">
+                                    <img src="{{ $blog->featured_image ?? 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop&q=80' }}" 
+                                         alt="{{ $blog->title }}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="p-3.5 flex flex-col flex-grow">
+                                    <span class="text-[9px] bg-indigo-50 text-indigo-600 font-extrabold uppercase px-2 py-0.5 rounded-full inline-block self-start mb-2">Guide</span>
+                                    <h4 class="font-bold text-slate-900 text-xs line-clamp-2 leading-tight mb-2 hover:text-indigo-600"><a href="{{ route('blogs.show', $blog->slug) }}">{{ $blog->title }}</a></h4>
+                                    <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-auto">
+                                        <span>{{ $blog->created_at->format('M d, Y') }}</span>
+                                        <span>5 min read</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <!-- Mock data Fallback in case of no database posts -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col">
+                            <div class="h-28 bg-slate-100 relative">
+                                <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop&q=80" alt="Blog stay guide" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-3.5 flex flex-col flex-grow">
+                                <span class="text-[9px] bg-indigo-50 text-indigo-600 font-extrabold uppercase px-2 py-0.5 rounded-full inline-block self-start mb-2">Rental Guide</span>
+                                <h4 class="font-bold text-slate-900 text-xs line-clamp-2 leading-tight mb-2">How to Rent a Room Safely in India</h4>
+                                <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-auto">
+                                    <span>May 20, 2026</span>
+                                    <span>5 min read</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col">
+                            <div class="h-28 bg-slate-100 relative">
+                                <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=300&h=200&fit=crop&q=80" alt="PG locations" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-3.5 flex flex-col flex-grow">
+                                <span class="text-[9px] bg-indigo-50 text-indigo-600 font-extrabold uppercase px-2 py-0.5 rounded-full inline-block self-start mb-2">PG Guide</span>
+                                <h4 class="font-bold text-slate-900 text-xs line-clamp-2 leading-tight mb-2">Top PG Areas in Bhopal for Students</h4>
+                                <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-auto">
+                                    <span>May 18, 2026</span>
+                                    <span>6 min read</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col">
+                            <div class="h-28 bg-slate-100 relative">
+                                <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=300&h=200&fit=crop&q=80" alt="Move tips" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-3.5 flex flex-col flex-grow">
+                                <span class="text-[9px] bg-indigo-50 text-indigo-600 font-extrabold uppercase px-2 py-0.5 rounded-full inline-block self-start mb-2">Tips</span>
+                                <h4 class="font-bold text-slate-900 text-xs line-clamp-2 leading-tight mb-2">Checklist For Moving Into a New Room</h4>
+                                <div class="flex items-center justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-auto">
+                                    <span>May 15, 2026</span>
+                                    <span>4 min read</span>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
             </div>
-        @endif
+            
+            <!-- Right Side: Frequently Asked Questions (Col span 5) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="border-b border-slate-200/80 pb-4">
+                    <h3 class="text-2xl font-black text-slate-900 font-heading">Frequently Asked Questions</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">Quick answers to common queries.</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <?php
+                        $faqs = [
+                            ['q' => 'How do I book a room?', 'a' => 'Search for your preferred room by location and filters. Once you find a suitable listing, click "View Details", verify the info, and click on "Book Room" or unlock details to connect directly with the owner.'],
+                            ['q' => 'Is there any brokerage charge?', 'a' => 'No! ApnaNest connects owners and tenants directly. There are no brokerage charges or hidden fees involved.'],
+                            ['q' => 'How can I contact the owner?', 'a' => 'You can view the owner\'s verified contact details after unlocking the contact section on the stay details page.'],
+                            ['q' => 'Is my payment information secure?', 'a' => 'Yes, absolutely. All payments on ApnaNest are processed via Razorpay secure gateways. We do not store any card or credential details.'],
+                            ['q' => 'Can I visit the property before booking?', 'a' => 'Yes, we recommend contacting the owner using their unlocked contact details to schedule a physical visit before confirming your stay.']
+                        ];
+                    ?>
+                    @foreach($faqs as $i => $faq)
+                        <div class="bg-white border border-slate-200/85 rounded-xl overflow-hidden shadow-sm faq-item">
+                            <button onclick="toggleFaqAccordion({{ $i }})" class="w-full text-left p-4 font-bold text-slate-800 text-xs md:text-sm flex justify-between items-center hover:bg-slate-50/50 transition-colors">
+                                <span>{{ $faq['q'] }}</span>
+                                <span class="faq-icon-{{ $i }} transition-transform"><i class="fas fa-plus text-slate-400"></i></span>
+                            </button>
+                            <div class="faq-content-{{ $i }} hidden px-4 pb-4 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
+                                {{ $faq['a'] }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<!-- Stay Updated Newsletter Section -->
+<section class="bg-[#f8fafc] pb-16 reveal">
+    <div class="container mx-auto px-6">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl border border-indigo-100">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-900 text-base md:text-lg">Stay Updated</h3>
+                    <p class="text-slate-500 text-xs md:text-sm font-medium">Subscribe to get updates on new rooms and offers.</p>
+                </div>
+            </div>
+            <div class="w-full md:w-auto flex-1 max-w-md">
+                <form action="#" method="POST" class="flex gap-2" onsubmit="event.preventDefault(); toastr.success('Thank you for subscribing!', 'Success');">
+                    <input type="email" required placeholder="Enter your email address"
+                           class="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                    <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-extrabold rounded-xl shadow-md transition-all text-xs whitespace-nowrap">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Accordion Toggle JavaScript -->
+<script>
+    function toggleFaqAccordion(index) {
+        const content = document.querySelector(`.faq-content-${index}`);
+        const icon = document.querySelector(`.faq-icon-${index}`);
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            icon.style.transform = 'rotate(45deg)';
+        } else {
+            content.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+</script>
 
 @push('scripts')
 @auth
@@ -889,6 +1274,22 @@
             }
         }
     });
+</script>
+<script>
+    // ===== SCROLL-REVEAL =====
+    (function () {
+        const revealEls = document.querySelectorAll('.reveal');
+        if (!revealEls.length) return;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('in-view');
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        revealEls.forEach(el => observer.observe(el));
+    })();
 </script>
 @endpush
 @endsection

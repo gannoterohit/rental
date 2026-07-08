@@ -3,362 +3,662 @@
 @section('title', (request('city') ? 'Verified Rooms & PG in ' . request('city') : 'Browse Rooms & PG for Rent') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 @section('description', (request('city') ? 'Find the best verified rooms, apartments, and PG in ' . request('city') . '. Browse listings with photos, rents, and owner contacts.' : 'Browse verified room listings in your city. Find apartments, houses, and rooms for rent with verified owners.'))
 @section('keywords', (request('city') ? 'pg in ' . request('city') . ', room for rent in ' . request('city') . ', ' : '') . 'browse rooms, room listings, ' . \App\Models\Setting::get('seo_meta_keywords', 'apartment, house, property'))
-@section('og_title', (request('city') ? 'Rooms & PG in ' . request('city') : 'Browse Rooms') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-@section('og_description', (request('city') ? 'Check out available rooms and paying guests in ' . request('city') : 'Browse verified room listings in your city. Find apartments and rooms for rent.'))
-@section('og_url', route('rooms.index', request()->all()))
-@section('canonical', route('rooms.index'))
 
 @push('styles')
 @include('partials.listings-ld')
-<link rel="preload" href="{{ asset('assets/images/hero-bg-desktop.webp') }}" as="image" fetchpriority="high" media="(min-width: 768px)">
 <style>
-    /* Inline critical CSS for above-the-fold content */
     @media (max-width: 1023px) {
-        .navbar, footer, .hero-mobile {
-            display: none !important;
-        }
-        body {
-            padding-bottom: 70px; /* Space for bottom nav */
-            background-color: #f8fafc;
-        }
+        .navbar, footer { display: none !important; }
+        body { padding-bottom: 70px; background-color: #f8fafc; }
     }
-    .hero-mobile {
-        background: linear-gradient(to bottom right, var(--primary), var(--secondary), var(--primary));
-        min-height: 300px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .custom-shadow {
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     }
-    .hero-content-mobile {
-        width: 100%;
-        padding: 0 1rem;
-        z-index: 10;
+    .filter-sticky {
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
     }
-    .glass {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 1rem;
-    }
-    .float-animation {
-        animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-    .pulse-glow {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-    }
+    /* Scrollbar styling for sidebar */
+    .filter-sticky::-webkit-scrollbar { width: 5px; }
+    .filter-sticky::-webkit-scrollbar-track { background: #f1f5f9; }
+    .filter-sticky::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 </style>
-
 @endpush
 
 @section('content')
-<!-- Mobile-First Hero Section -->
-<div class="relative">
-    <!-- Background Image - Mobile Optimized -->
-    <!-- Mobile App Structure -->
-    <div class="md:hidden">
-        @include('partials.mobile-search')
-    </div>
-    
-    <!-- Desktop Hero Section -->
-    <div class="hidden md:block relative min-h-[580px] flex items-center pt-12 pb-24">
-        <!-- Background Image -->
-        <div class="absolute inset-0">
-            <picture>
-                <source srcset="{{ asset('assets/images/hero-bg-desktop.webp') }}" type="image/webp">
-                <img src="{{ asset('assets/images/hero-bg.png') }}"
-                     alt="Room rental background"
-                     class="w-full h-full object-cover"
-                     fetchpriority="high"
-                     width="1200" height="400"
-                     decoding="async"
-                     loading="eager">
-            </picture>
-            <!-- Soft gradient: dark on left/top, fades to translucent on right -->
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-800/70 to-slate-700/30"></div>
-            <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-transparent to-slate-900/80"></div>
-        </div>
-        
-        <div class="container mx-auto px-6 h-full flex items-center relative z-10">
-            <div class="w-full max-w-5xl mx-auto">
-                <!-- Headline -->
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center gap-2 bg-indigo-600/80 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4 border border-indigo-400/30">
-                        <i class="fas fa-shield-halved text-indigo-300"></i>
-                        <span>100% Verified Listings — Zero Brokerage</span>
-                    </div>
-                    <h1 class="text-5xl md:text-6xl font-black text-white mb-4 leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,0.9),0_0_40px_rgba(0,0,0,0.5)]">
-                        @if(request('city'))
-                            Rooms in <span class="text-indigo-300">{{ request('city') }}</span>
-                        @else
-                            Find Your Perfect<br><span class="text-indigo-300">Room to Call Home</span>
+<!-- ===== TOP SEARCH HEADER BAR ===== -->
+<div class="bg-[#f8fafc] border-b border-slate-200/80 py-5 hidden md:block">
+    <div class="container mx-auto px-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <form action="{{ route('rooms.index') }}" method="GET" class="flex flex-wrap gap-4 items-center justify-between">
+                <!-- Location -->
+                <div class="flex-1 min-w-[200px] border-r border-slate-100 pr-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between mb-1">
+                        <span>Location</span>
+                        <button type="button" onclick="detectLocation(true)" class="text-[9px] text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5 font-bold">
+                            <i class="fas fa-location-crosshairs"></i> Near Me
+                        </button>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" name="city" id="hero-city-input"
+                               value="{{ request('city') ?? session('user_city') }}"
+                               placeholder="City or area..."
+                               class="w-full py-2 pl-8 pr-7 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none transition-all">
+                        @if(request('city') || session('user_city'))
+                            <a href="{{ route('rooms.index', ['clear' => 1]) }}" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500">
+                                <i class="fas fa-times-circle text-xs"></i>
+                            </a>
                         @endif
-                    </h1>
-                    <p class="text-white/90 text-lg font-medium [text-shadow:0_1px_8px_rgba(0,0,0,0.8)] max-w-xl mx-auto">
-                        10,000+ rooms, PG & apartments across India with direct owner contact.
-                    </p>
+                    </div>
                 </div>
 
-                <!-- Search Card -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-4">
-                    <form action="{{ route('rooms.index') }}" method="GET">
-                        <div class="flex items-end gap-3">
-                            <!-- Location -->
-                            <div class="flex-[2] min-w-0">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="text-xs font-bold text-white/90 uppercase tracking-wider flex items-center gap-1.5">
-                                        <i class="fas fa-map-marker-alt text-indigo-300"></i> Location
-                                    </label>
-                                    <button type="button" onclick="detectLocation(true)" 
-                                            class="text-[10px] font-bold text-indigo-200 hover:text-white flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600/60 px-2 py-0.5 rounded-full transition-all border border-indigo-400/30 whitespace-nowrap">
-                                        <i class="fas fa-location-crosshairs text-[8px]"></i> Near Me
-                                    </button>
-                                </div>
-                                <div class="relative">
-                                    <input type="text" name="city" id="hero-city-input"
-                                           value="{{ request('city') ?? session('user_city') }}" 
-                                           placeholder="City or area..."
-                                           class="w-full py-3 pl-4 pr-9 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
-                                    @if(request('city') || session('user_city'))
-                                        <a href="{{ route('rooms.index', ['clear' => 1]) }}" 
-                                           class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors" title="Clear">
-                                            <i class="fas fa-times-circle text-sm"></i>
-                                        </a>
-                                    @endif
-                                </div>
-                            </div>
-                            <!-- Furnishing -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fas fa-couch text-indigo-300"></i> Type
-                                </label>
-                                <select name="furnishing_type" class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 appearance-none outline-none">
-                                    <option value="">Any</option>
-                                    <option value="furnished" {{ request('furnishing_type') == 'furnished' ? 'selected' : '' }}>Furnished</option>
-                                    <option value="semi-furnished" {{ request('furnishing_type') == 'semi-furnished' ? 'selected' : '' }}>Semi</option>
-                                    <option value="unfurnished" {{ request('furnishing_type') == 'unfurnished' ? 'selected' : '' }}>Unfurnished</option>
-                                </select>
-                            </div>
-                            <!-- Room Type -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fas fa-bed text-indigo-300"></i> Room
-                                </label>
-                                <select name="room_type" class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 appearance-none outline-none">
-                                    <option value="">Any</option>
-                                    <option value="single_room" {{ request('room_type') == 'single_room' ? 'selected' : '' }}>Single</option>
-                                    <option value="shared_room" {{ request('room_type') == 'shared_room' ? 'selected' : '' }}>Shared</option>
-                                    <option value="1bhk" {{ request('room_type') == '1bhk' ? 'selected' : '' }}>1 BHK</option>
-                                    <option value="2bhk" {{ request('room_type') == '2bhk' ? 'selected' : '' }}>2 BHK</option>
-                                </select>
-                            </div>
-                            <!-- Budget Min -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider">
-                                    <i class="fas fa-rupee-sign text-indigo-300 mr-1"></i> Min
-                                </label>
-                                <input type="number" name="min_rent" value="{{ request('min_rent') }}" 
-                                       placeholder="Min ₹"
-                                       class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
-                            </div>
-                            <!-- Budget Max -->
-                            <div class="flex-1 min-w-0">
-                                <label class="text-xs font-bold text-white/90 block mb-1.5 uppercase tracking-wider">
-                                    Max
-                                </label>
-                                <input type="number" name="max_rent" value="{{ request('max_rent') }}" 
-                                       placeholder="Max ₹"
-                                       class="w-full py-3 px-3 bg-white text-slate-800 rounded-xl text-sm font-semibold shadow-md border-0 focus:ring-2 focus:ring-indigo-400 outline-none">
-                            </div>
-                            <!-- Search Button -->
-                            <div class="flex-shrink-0">
-                                <label class="text-xs font-bold text-white/0 block mb-1.5">Go</label>
-                                <button type="submit" 
-                                        class="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg transition-all hover:-translate-y-0.5 flex items-center gap-2 text-sm whitespace-nowrap">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                <!-- Property Type -->
+                <div class="flex-1 min-w-[180px] border-r border-slate-100 pr-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Property Type</label>
+                    <div class="relative">
+                        <i class="fas fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select name="room_type[]" class="w-full py-2 pl-8 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none appearance-none transition-all">
+                            <option value="">Any Type</option>
+                            <option value="single_room" {{ in_array('single_room', (array)request('room_type')) ? 'selected' : '' }}>Single Room</option>
+                            <option value="shared_room" {{ in_array('shared_room', (array)request('room_type')) ? 'selected' : '' }}>Shared Room / PG</option>
+                            <option value="1bhk" {{ in_array('1bhk', (array)request('room_type')) ? 'selected' : '' }}>1 BHK</option>
+                            <option value="2bhk" {{ in_array('2bhk', (array)request('room_type')) ? 'selected' : '' }}>2 BHK</option>
+                            <option value="3bhk" {{ in_array('3bhk', (array)request('room_type')) ? 'selected' : '' }}>3 BHK</option>
+                        </select>
+                    </div>
                 </div>
 
-            </div>
+                <!-- Budget -->
+                <div class="flex-1 min-w-[150px] border-r border-slate-100 pr-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Max Budget (₹/mo)</label>
+                    <div class="relative">
+                        <i class="fas fa-rupee-sign absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" name="max_rent" value="{{ request('max_rent') }}" placeholder="Max"
+                               class="w-full py-2 pl-7 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Gender -->
+                <div class="flex-1 min-w-[150px] border-r border-slate-100 pr-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Gender</label>
+                    <div class="relative">
+                        <i class="fas fa-users absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select name="tenant_type[]" class="w-full py-2 pl-8 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none appearance-none transition-all">
+                            <option value="">Any Gender</option>
+                            <option value="girls" {{ in_array('girls', (array)request('tenant_type')) ? 'selected' : '' }}>Girls Only</option>
+                            <option value="boys" {{ in_array('boys', (array)request('tenant_type')) ? 'selected' : '' }}>Boys Only</option>
+                            <option value="family" {{ in_array('family', (array)request('tenant_type')) ? 'selected' : '' }}>Family Preferred</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="w-[120px] pl-1">
+                    <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 text-xs">
+                        <i class="fas fa-search text-[10px]"></i> Search Stays
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <!-- Wave Divider -->
-        <div class="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-12 md:h-16">
-                <path d="M0,40L60,35C120,30 240,20 360,20C480,20 600,25 720,30C840,35 960,35 1080,30C1200,25 1320,20 1380,20L1440,20V80H1380C1320,80 1200,80 1080,80C960,80 840,80 720,80C600,80 480,80 360,80C240,80 120,80 60,80H0Z" fill="white"/>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Filter Chips (Desktop) -->
-<div class="hidden md:block bg-white border-b border-slate-100 shadow-sm">
-    <div class="container mx-auto px-6 py-3">
-        <form action="{{ route('rooms.index') }}" method="GET" id="quick-filter-form">
-            @if(request('city'))<input type="hidden" name="city" value="{{ request('city') }}">@endif
-            @if(request('min_rent'))<input type="hidden" name="min_rent" value="{{ request('min_rent') }}">@endif
-            @if(request('max_rent'))<input type="hidden" name="max_rent" value="{{ request('max_rent') }}">@endif
-            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                <span class="text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap mr-1">Quick Filters:</span>
-
-                @php
-                $chips = [
-                    ['label' => '🏠 Single Room',   'name' => 'room_type',        'value' => 'single_room'],
-                    ['label' => '👥 Shared Room',   'name' => 'room_type',        'value' => 'shared_room'],
-                    ['label' => '🏢 1 BHK',          'name' => 'room_type',        'value' => '1bhk'],
-                    ['label' => '🛋 Furnished',      'name' => 'furnishing_type',  'value' => 'furnished'],
-                    ['label' => '👩 Girls Only',     'name' => 'tenant_type',      'value' => 'girls'],
-                    ['label' => '👨 Boys Only',      'name' => 'tenant_type',      'value' => 'boys'],
-                    ['label' => '💸 Under ₹5000',    'name' => 'max_rent',         'value' => '5000'],
-                    ['label' => '💸 Under ₹10000',   'name' => 'max_rent',         'value' => '10000'],
-                    ['label' => '✅ No Brokerage',   'name' => 'listing_type',     'value' => 'owner'],
-                ];
-                @endphp
-
-                @foreach($chips as $chip)
-                    @php
-                        $isActive = request($chip['name']) === $chip['value'];
-                        $params = array_merge(request()->except([$chip['name']]), $isActive ? [] : [$chip['name'] => $chip['value']]);
-                    @endphp
-                    <a href="{{ route('rooms.index', $params) }}"
-                       class="flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border transition-all duration-200
-                              {{ $isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50' }}">
-                        {{ $chip['label'] }}
+        <!-- Popular Searches row — fully dynamic from DB -->
+        @php
+            $rtLabels = [
+                'single_room' => 'Single Room', 'shared_room' => 'Shared Room / PG',
+                'pg' => 'PG', '1bhk' => '1 BHK', '2bhk' => '2 BHK', '3bhk' => '3 BHK',
+                'flat' => 'Flat', 'studio' => 'Studio', 'villa' => 'Villa'
+            ];
+        @endphp
+        <div class="flex items-center gap-2 mt-3 text-[11px] flex-wrap">
+            <span class="font-extrabold text-slate-400 uppercase tracking-wider">Popular:</span>
+            <div class="flex gap-2 flex-wrap">
+                {{-- Top room types from DB --}}
+                @foreach($topRoomTypes as $typeKey => $typeCount)
+                    <a href="{{ route('rooms.index', ['room_type' => [$typeKey]]) }}"
+                       class="bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 font-semibold px-2.5 py-0.5 rounded-full transition-all">
+                        {{ $rtLabels[$typeKey] ?? ucwords(str_replace('_',' ',$typeKey)) }}
                     </a>
                 @endforeach
-
-                @if(request()->hasAny(['room_type','furnishing_type','tenant_type','max_rent','min_rent','listing_type','city']))
-                    <a href="{{ route('rooms.index', ['clear' => 1]) }}"
-                       class="flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition-all ml-2">
-                        ✕ Clear All
+                {{-- Top cities from DB --}}
+                @foreach($popularCities->take(3) as $pCity)
+                    <a href="{{ route('rooms.index', ['city' => $pCity->city]) }}"
+                       class="bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 font-semibold px-2.5 py-0.5 rounded-full transition-all">
+                        {{ $pCity->city }}
                     </a>
-                @endif
+                @endforeach
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- Offer Hero Banner Section -->
-<section class="bg-white">
-    <div class="container mx-auto px-4 md:px-6">
-        @include('partials.offer-banner', ['placement' => 'home_hero'])
+<!-- Mobile layout search box -->
+<div class="md:hidden">
+    @include('partials.mobile-search')
+</div>
+
+<!-- ===== MAIN CONTAINER ===== -->
+<div class="container mx-auto px-6 py-6">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-4 font-semibold">
+        <a href="{{ url('/') }}" class="hover:text-indigo-600 transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px]"></i>
+        <span class="text-slate-600">Rooms in {{ request('city') ?? session('user_city') ?? 'India' }}</span>
     </div>
-     <!-- 1st Ad Slot: Below Search/Hero -->
-    <div class="container mx-auto px-4 mt-4">
-        @include('partials.adsense-slot', ['placement' => 'home_top'])
-    </div>
-</section>
 
-<!-- Rooms Section -->
-<div class="bg-gradient-to-b from-gray-50 to-white py-6 md:py-8">
-    <div class="container mx-auto px-4">
-        <!-- Section Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-            <div>
-                <div class="inline-flex items-center gap-2 md:gap-3 mb-2">
-                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg md:rounded-xl flex items-center justify-center shadow-md">
-                        <i class="fas fa-home text-white text-base md:text-lg"></i>
-                    </div>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900">
-                        {{ request('city') ? 'Rooms in ' . request('city') : 'Available Rooms' }}
-                    </h2>
-                </div>
-                <p class="text-slate-600 text-sm md:text-base font-medium ml-12 md:ml-14">
-                    @if(request('city'))
-                        Best <b>PG</b>, <b>shared rooms</b>, and <b>rented apartments</b> in {{ request('city') }}.
-                        Found <span class="font-black text-indigo-600 text-lg md:text-xl">{{ $rooms->total() }}</span> verified listings.
-                    @elseif(request('min_rent') || request('max_rent'))
-                        Found <span class="font-black text-indigo-600 text-lg md:text-xl">{{ $rooms->total() }}</span> rooms matching your search
-                    @else
-                        Browse the latest verified room listings across all cities.
-                    @endif
-                </p>
-            </div>
-            
-            <!-- Trust Badges -->
-            <div class="hidden lg:flex items-center gap-8">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-                        <i class="fas fa-check-double"></i>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-black text-slate-900 uppercase">100% Verified</span>
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Direct Owners</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
-                        <i class="fas fa-shield-halved"></i>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-black text-slate-900 uppercase">Secure Contact</span>
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Verified PG</span>
-                    </div>
-                </div>
-            </div>
-            @auth
-                @if(Auth::user()->role === 'owner')
-<a href="{{ route('rooms.create') }}"
-                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 md:px-6 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
-                        <i class="fas fa-plus-circle mr-2"></i>List Your Room
+    <!-- Outer container (Flexbox for robust layout) -->
+    <div class="flex flex-col lg:flex-row gap-8">
+
+        <!-- ===== LEFT SIDEBAR (FILTERS) ===== -->
+        <div class="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 hidden lg:block">
+            <div class="filter-sticky bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-black text-slate-800 text-base">Filters</h3>
+                    <a href="{{ route('rooms.index', ['clear' => 1]) }}" class="text-xs font-bold text-red-500 hover:text-red-700 transition-colors flex items-center gap-1">
+                        <i class="fas fa-rotate-left text-[10px]"></i> Reset
                     </a>
-                @endif
-            @endauth
-        </div>
-    </div> <!-- Close Header Container -->
-        
-    <div class="container mx-auto px-4">
-        @if($rooms->count() > 0)
-            
-            @include('rooms.partials.listing-mobile')
-            @include('rooms.partials.listing-desktop')
+                </div>
 
-            <!-- 2nd Ad Slot: Bottom of List -->
-            <div class="mt-8">
-                 @include('partials.adsense-slot', ['placement' => 'home_bottom'])
-            </div>
-
-        @else
-            <!-- Empty State -->
-            <div class="text-center py-12 md:py-16 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl md:rounded-2xl shadow-lg border-2 border-dashed border-slate-300">
-                <div class="max-w-md mx-auto">
-                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mb-4 md:mb-6 shadow-md float-animation">
-                        <i class="fas fa-home text-4xl md:text-5xl text-indigo-400"></i>
+                <form action="{{ route('rooms.index') }}" method="GET" class="space-y-6">
+                    <!-- Locality Input -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Location</label>
+                        <input type="text" name="city" value="{{ request('city') }}" placeholder="Enter locality or area..."
+                               class="w-full py-2 px-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        
+                        {{-- City dropdown — fully dynamic from DB popular cities --}}
+                        <select name="city_dropdown" onchange="if(this.value){ document.querySelector('input[name=city]').value = this.value; }"
+                                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none transition-all">
+                            <option value="">Select City</option>
+                            @foreach($popularCities as $pCity)
+                                <option value="{{ $pCity->city }}" {{ request('city') === $pCity->city ? 'selected' : '' }}>
+                                    {{ $pCity->city }} ({{ $pCity->total }})
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <h3 class="text-2xl md:text-3xl font-black text-slate-900 mb-2 md:mb-3">No Rooms Found</h3>
-                    <p class="text-slate-600 mb-6 md:mb-8 text-sm md:text-base">Try adjusting your search criteria or browse all available rooms</p>
-<a href="{{ route('rooms.index') }}" 
-                        class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 md:px-8 rounded-lg md:rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base">
-                        <i class="fas fa-search mr-2"></i>Browse All Rooms
-                    </a>
-                    
-                    @if(request('city'))
-                        <div class="mt-8 p-6 bg-white rounded-xl shadow-sm border border-indigo-100">
-                            <h4 class="text-lg font-bold text-slate-900 mb-2">Want to be notified?</h4>
-                            <p class="text-slate-600 text-sm mb-4">We'll email you as soon as a new room is listed in <strong>{{ request('city') }}</strong>.</p>
-<button onclick="subscribeToAlerts('{{ request('city') }}')" 
-                                id="notify-btn"
-                                class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md text-sm">
-                                <i class="fas fa-bell mr-2"></i>Notify Me for {{ request('city') }}
-                            </button>
+
+                    <!-- Property Type — dynamic: only shows types that exist in DB -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Property Type</label>
+                        <div class="space-y-2.5">
+                            @php
+                                $allRoomTypeLabels = [
+                                    'single_room' => 'Single Room',
+                                    'shared_room' => 'Shared Room',
+                                    'pg' => 'PG',
+                                    '1bhk' => '1 BHK',
+                                    '2bhk' => '2 BHK',
+                                    '3bhk' => '3 BHK',
+                                    'flat' => 'Flat',
+                                    'studio' => 'Studio',
+                                    'villa' => 'Villa'
+                                ];
+                            @endphp
+                            @foreach($allRoomTypeLabels as $key => $label)
+                                @php
+                                    $count = $roomTypeCounts[$key] ?? 0;
+                                    $isChecked = in_array($key, (array)request('room_type'));
+                                @endphp
+                                {{-- Only show if there are listings OR it is currently filtered --}}
+                                @if($count > 0 || $isChecked)
+                                    <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600 transition-colors">
+                                        <span class="flex items-center gap-2">
+                                            <input type="checkbox" name="room_type[]" value="{{ $key }}" {{ $isChecked ? 'checked' : '' }}
+                                                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
+                                            <span>{{ $label }}</span>
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $count }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
                         </div>
-                    @endif
+                    </div>
+
+                    <!-- Budget Range -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Budget (per month)</label>
+                        <div class="space-y-2">
+                            @php
+                                $budgetRanges = [
+                                    ['label' => 'Under ₹5,000', 'min' => 0, 'max' => 5000],
+                                    ['label' => '₹5,000 - ₹10,000', 'min' => 5000, 'max' => 10000],
+                                    ['label' => '₹10,000 - ₹15,000', 'min' => 10000, 'max' => 15000],
+                                    ['label' => '₹15,000 - ₹20,000', 'min' => 15000, 'max' => 20000],
+                                    ['label' => 'Above ₹20,000', 'min' => 20000, 'max' => 999999],
+                                ];
+                            @endphp
+                            @foreach($budgetRanges as $range)
+                                @php
+                                    $isSel = request('min_rent') == $range['min'] && request('max_rent') == $range['max'];
+                                @endphp
+                                <label class="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600 transition-colors">
+                                    <input type="radio" name="budget_range" onchange="document.querySelector('input[name=min_rent]').value='{{ $range['min'] }}'; document.querySelector('input[name=max_rent]').value='{{ $range['max'] }}';"
+                                           {{ $isSel ? 'checked' : '' }}
+                                           class="text-indigo-600 focus:ring-indigo-500/20 border-slate-300">
+                                    <span>{{ $range['label'] }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <!-- Manual Min / Max inputs -->
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Min</span>
+                                <input type="number" name="min_rent" value="{{ request('min_rent') }}" placeholder="₹ Min"
+                                       class="w-full py-1.5 px-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Max</span>
+                                <input type="number" name="max_rent" value="{{ request('max_rent') }}" placeholder="₹ Max"
+                                       class="w-full py-1.5 px-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gender Preference — dynamic from DB tenant type counts -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Gender Preference</label>
+                        <div class="space-y-2">
+                            @php
+                                $tenantOptions = [
+                                    'boys'   => 'Male Only',
+                                    'girls'  => 'Female Only',
+                                    'family' => 'Family',
+                                    'any'    => 'Any / Co-ed',
+                                ];
+                            @endphp
+                            @foreach($tenantOptions as $tVal => $tLabel)
+                                @php
+                                    $tCount = $tenantTypeCounts[$tVal] ?? 0;
+                                    $tChecked = in_array($tVal, (array)request('tenant_type'));
+                                @endphp
+                                @if($tCount > 0 || $tChecked)
+                                    <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
+                                        <span class="flex items-center gap-2">
+                                            <input type="checkbox" name="tenant_type[]" value="{{ $tVal }}" {{ $tChecked ? 'checked' : '' }}
+                                                   class="rounded border-slate-300 text-indigo-600">
+                                            <span>{{ $tLabel }}</span>
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $tCount }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Furnishing Type — dynamic from DB -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Furnishing</label>
+                        <div class="space-y-2">
+                            @php
+                                $furnishingOptions = [
+                                    'furnished'      => 'Fully Furnished',
+                                    'semi-furnished' => 'Semi Furnished',
+                                    'unfurnished'    => 'Unfurnished',
+                                ];
+                            @endphp
+                            @foreach($furnishingOptions as $fVal => $fLabel)
+                                @php
+                                    $fCount = $furnishingCounts[$fVal] ?? 0;
+                                    $fChecked = in_array($fVal, (array)request('furnishing_type'));
+                                @endphp
+                                @if($fCount > 0 || $fChecked)
+                                    <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
+                                        <span class="flex items-center gap-2">
+                                            <input type="checkbox" name="furnishing_type[]" value="{{ $fVal }}" {{ $fChecked ? 'checked' : '' }}
+                                                   class="rounded border-slate-300 text-indigo-600">
+                                            <span>{{ $fLabel }}</span>
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $fCount }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Amenities -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Amenities</label>
+                        <div class="space-y-2">
+                            @php
+                                $amenityOpts = [
+                                    'wifi' => 'Wi-Fi',
+                                    'ac' => 'AC',
+                                    'parking' => 'Parking',
+                                    'kitchen' => 'Kitchen',
+                                    'power_backup' => 'Power Backup',
+                                    'washing_machine' => 'Washing Machine'
+                                ];
+                            @endphp
+                            @foreach($amenityOpts as $key => $lbl)
+                                <label class="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
+                                    <input type="checkbox" name="amenities[]" value="{{ $key }}" {{ in_array($key, (array)request('amenities')) ? 'checked' : '' }}
+                                           class="rounded border-slate-300 text-indigo-600">
+                                    <span>{{ $lbl }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Availability</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
+                                <input type="checkbox" name="available_now" value="1" {{ request('available_now') == '1' ? 'checked' : '' }}
+                                       class="rounded border-slate-300 text-indigo-600">
+                                <span>Available Now</span>
+                            </label>
+                            
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Available From</span>
+                                <input type="date" name="availability_from" value="{{ request('availability_from') }}"
+                                       class="w-full py-1.5 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 text-xs shadow-indigo-600/10">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT COLUMN (ROOMS GRID) ===== -->
+        <div class="flex-grow min-w-0">
+            <!-- Header bar inside list -->
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 font-heading">
+                        All Rooms in {{ request('city') ?? session('user_city') ?? 'India' }}
+                    </h2>
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                        {{ $rooms->total() }}+ Rooms Found
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Sort selection -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-slate-400">Sort by:</span>
+                        <select onchange="const url = new URL(window.location.href); url.searchParams.set('sort_by', this.value); window.location.href = url.toString();"
+                                class="py-1.5 pl-3 pr-8 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none cursor-pointer">
+                            <option value="newest" {{ request('sort_by') == 'newest' ? 'selected' : '' }}>Newest First</option>
+                            <option value="rent_asc" {{ request('sort_by') == 'rent_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                            <option value="rent_desc" {{ request('sort_by') == 'rent_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <!-- Layout Grid/List selectors -->
+                    <div class="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                        <button class="w-7 h-7 bg-white text-indigo-600 rounded-lg flex items-center justify-center text-xs shadow-sm" title="Grid view">
+                            <i class="fas fa-grip-vertical"></i>
+                        </button>
+                        <button class="w-7 h-7 text-slate-400 hover:text-slate-600 rounded-lg flex items-center justify-center text-xs transition-colors" title="List view">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        @endif
+
+            <!-- Active Filters Pills row -->
+            @php
+                $activeFilters = [];
+                if (request('city')) $activeFilters['city'] = ['label' => 'City: ' . request('city'), 'param' => 'city'];
+                if (request('room_type')) {
+                    foreach((array)request('room_type') as $t) {
+                        $activeFilters['room_type_' . $t] = ['label' => ucwords(str_replace('_', ' ', $t)), 'param' => 'room_type', 'value' => $t];
+                    }
+                }
+                if (request('min_rent') || request('max_rent')) {
+                    $label = 'Budget: ';
+                    if (request('min_rent') && request('max_rent')) $label .= '₹' . request('min_rent') . ' - ₹' . request('max_rent');
+                    elseif (request('min_rent')) $label .= 'Min ₹' . request('min_rent');
+                    else $label .= 'Max ₹' . request('max_rent');
+                    $activeFilters['budget'] = ['label' => $label, 'param' => ['min_rent', 'max_rent']];
+                }
+                if (request('tenant_type')) {
+                    foreach((array)request('tenant_type') as $t) {
+                        $activeFilters['tenant_type_' . $t] = ['label' => ucwords($t), 'param' => 'tenant_type', 'value' => $t];
+                    }
+                }
+                if (request('furnishing_type')) {
+                    foreach((array)request('furnishing_type') as $f) {
+                        $activeFilters['furnishing_type_' . $f] = ['label' => ucwords(str_replace('-', ' ', $f)), 'param' => 'furnishing_type', 'value' => $f];
+                    }
+                }
+                if (request('amenities')) {
+                    foreach((array)request('amenities') as $a) {
+                        $activeFilters['amenity_' . $a] = ['label' => ucwords(str_replace('_', ' ', $a)), 'param' => 'amenities', 'value' => $a];
+                    }
+                }
+            @endphp
+            @if(!empty($activeFilters))
+                <div class="flex items-center gap-2 flex-wrap mb-6 bg-slate-50 border border-slate-200/60 rounded-2xl p-3">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Active Filters:</span>
+                    @foreach($activeFilters as $key => $filter)
+                        @php
+                            if (is_array($filter['param'])) {
+                                $newParams = request()->except($filter['param']);
+                            } else {
+                                if (isset($filter['value'])) {
+                                    $arr = (array)request($filter['param']);
+                                    $newArr = array_filter($arr, fn($val) => $val !== $filter['value']);
+                                    $newParams = request()->except($filter['param']);
+                                    if(!empty($newArr)) {
+                                        $newParams[$filter['param']] = array_values($newArr);
+                                    }
+                                } else {
+                                    $newParams = request()->except($filter['param']);
+                                }
+                            }
+                            unset($newParams['clear']);
+                        @endphp
+                        <a href="{{ route('rooms.index', $newParams) }}"
+                           class="inline-flex items-center gap-1 bg-white border border-slate-200/80 hover:border-red-300 text-slate-600 hover:text-red-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full transition-all">
+                            <span>{{ $filter['label'] }}</span>
+                            <i class="fas fa-times text-[8px]"></i>
+                        </a>
+                    @endforeach
+                    <a href="{{ route('rooms.index', ['clear' => 1]) }}"
+                       class="text-[10px] font-black text-red-500 hover:text-red-700 transition-colors uppercase tracking-wider ml-1">
+                        Clear All
+                    </a>
+                </div>
+            @endif
+
+            <!-- Rooms list -->
+            @if($rooms->count() > 0)
+                <!-- Desktop Columns Grid (Flexbox wrapper for guaranteed column layout) -->
+                <div class="hidden md:flex flex-wrap -mx-2.5">
+                    @foreach($rooms as $room)
+                        <div class="w-full md:w-1/2 xl:w-1/3 px-2.5 mb-5 flex flex-col">
+                            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-indigo-300 transition-all duration-300 overflow-hidden flex flex-col h-full hover:-translate-y-1">
+                                <!-- Image Area -->
+                                <a href="{{ route('rooms.show', $room->id) }}" class="relative block h-44 overflow-hidden bg-slate-100">
+                                    @if($room->photo_url)
+                                        <img src="{{ $room->photo_url }}" alt="{{ $room->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                    @else
+                                        <div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300">
+                                            <i class="fas fa-image text-3xl mb-1"></i>
+                                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">No Image</span>
+                                        </div>
+                                    @endif
+
+                                    <!-- Status Badges -->
+                                    <div class="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+                                        @if($room->is_featured)
+                                            <span class="bg-amber-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg">Featured</span>
+                                        @endif
+                                        <span class="bg-white/90 backdrop-blur-sm text-indigo-700 text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-lg border border-white/40 shadow-sm">
+                                            {{ str_replace('_', ' ', $room->room_type) }}
+                                        </span>
+                                        @if($room->listing_type === 'broker')
+                                            <span class="bg-orange-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg">Broker Fee</span>
+                                        @else
+                                            <span class="bg-emerald-600 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg">No Broker Fee</span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Wishlist heart -->
+                                    <button onclick="toggleWishlist(event, {{ $room->id }})" id="wishlist-btn-{{ $room->id }}"
+                                            class="absolute top-2.5 right-2.5 w-8 h-8 rounded-xl bg-white/95 backdrop-blur-sm shadow-md text-slate-400 hover:text-red-500 active:scale-90 transition-all flex items-center justify-center">
+                                        <i class="{{ (Auth::check() && Auth::user()->hasInWishlist($room->id)) ? 'fas text-red-500' : 'far' }} fa-heart text-sm"></i>
+                                    </button>
+
+                                    <!-- Price tag overlay -->
+                                    <div class="absolute bottom-2.5 left-2.5">
+                                        <div class="bg-indigo-600 text-white px-3 py-1 rounded-xl shadow-lg border border-white/20">
+                                            <span class="text-sm font-black">₹{{ number_format($room->rent) }}</span>
+                                            <span class="text-[8px] font-bold text-indigo-100">/mo</span>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Card content -->
+                                <div class="p-4 flex flex-col flex-grow">
+                                    <h3 class="font-bold text-sm text-slate-900 line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
+                                        <a href="{{ route('rooms.show', $room->id) }}">{{ $room->title }}</a>
+                                    </h3>
+
+                                    <div class="flex items-center text-slate-500 text-xs mb-3">
+                                        <i class="fas fa-location-dot mr-1.5 text-indigo-500"></i>
+                                        <span>{{ $room->city }}</span>
+                                        <div class="distance-tag hidden ml-2 flex items-center gap-1" data-lat="{{ $room->latitude }}" data-lng="{{ $room->longitude }}">
+                                            <div class="w-1 h-1 bg-emerald-500 rounded-full"></div>
+                                            <span class="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest"><span class="distance-km">0</span> km</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Specs -->
+                                    <div class="flex flex-wrap gap-1.5 mb-4 mt-auto">
+                                        <span class="bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                            <i class="fas fa-couch text-indigo-400"></i> {{ $room->furnishing_type }}
+                                        </span>
+                                        @if($room->tenant_type)
+                                            <span class="bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                                <i class="fas fa-users text-indigo-400"></i> {{ $room->tenant_type }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Bottom actions -->
+                                    @auth
+                                        @if(Auth::user()->role === 'owner' && Auth::id() === $room->user_id)
+                                            <div class="grid grid-cols-2 gap-2 mt-auto">
+                                                <a href="{{ route('rooms.edit', $room) }}" class="flex items-center justify-center bg-amber-50 text-amber-700 font-extrabold py-2 rounded-xl hover:bg-amber-100 transition-colors text-xs">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                                <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" class="delete-room-form">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="w-full flex items-center justify-center bg-red-50 text-red-600 font-extrabold py-2 rounded-xl hover:bg-red-100 transition-colors text-xs">
+                                                        <i class="fas fa-trash mr-1"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            <a href="{{ route('rooms.show', $room->id) }}" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-1 text-xs mt-auto">
+                                                View Details <i class="fas fa-arrow-right text-[10px]"></i>
+                                            </a>
+                                        @endif
+                                    @else
+                                        <a href="{{ route('rooms.show', $room->id) }}" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-1 text-xs mt-auto">
+                                            View Details <i class="fas fa-arrow-right text-[10px]"></i>
+                                        </a>
+                                    @endauth
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Mobile listing support -->
+                <div class="md:hidden">
+                    @include('rooms.partials.listing-mobile')
+                </div>
+
+                <!-- Custom premium layout pagination -->
+                <div class="flex justify-center mt-8">
+                    {{ $rooms->withQueryString()->links() }}
+                </div>
+            @else
+                <!-- Empty state fallback -->
+                <div class="text-center py-16 bg-white border border-slate-200/80 rounded-2xl shadow-sm">
+                    <div class="max-w-md mx-auto">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full mb-6 shadow-sm">
+                            <i class="fas fa-house-circle-xmark text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2">No Rooms Found</h3>
+                        <p class="text-slate-500 mb-6 text-sm">We couldn't find any rooms matching your search criteria. Try modifying your filters or view all rooms.</p>
+                        <a href="{{ route('rooms.index', ['clear' => 1]) }}" class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-xl transition-all shadow-md text-xs">
+                            <i class="fas fa-rotate-left mr-1.5"></i> Clear All Filters
+                        </a>
+                        
+                        @if(request('city'))
+                            <div class="mt-8 p-5 border border-indigo-50 bg-indigo-50/20 rounded-2xl">
+                                <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Get Alerted</h4>
+                                <p class="text-slate-500 text-xs mb-3">Subscribe and we will email you when new rooms open up in <strong>{{ request('city') }}</strong>.</p>
+                                <button onclick="subscribeToAlerts('{{ request('city') }}')" id="notify-btn"
+                                        class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs transition-all shadow-sm">
+                                    <i class="fas fa-bell mr-1"></i> Notify Me
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== BOTTOM TRUST RIBBON ===== -->
+<div class="bg-[#0b0f19] text-white py-12 border-t border-slate-900 mt-12">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-left">
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <div>
+                    <span class="block text-sm font-black tracking-wide text-white uppercase font-black">100% Verified</span>
+                    <span class="block text-xs text-slate-400 mt-0.5">Physical inspections done</span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>
+                    <span class="block text-sm font-black tracking-wide text-white uppercase font-black">Zero Brokerage</span>
+                    <span class="block text-xs text-slate-400 mt-0.5">Direct owner connections</span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <span class="block text-sm font-black tracking-wide text-white uppercase font-black">Secure Payments</span>
+                    <span class="block text-xs text-slate-400 mt-0.5">Safe online transactions</span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div>
+                    <span class="block text-sm font-black tracking-wide text-white uppercase font-black">24/7 Support</span>
+                    <span class="block text-xs text-slate-400 mt-0.5">Help throughout renting</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -590,7 +890,6 @@
 
     async function initiatePayment(paymentId, amount, type, referenceId) {
         try {
-            // Lazy load Razorpay SDK
             const Razorpay = await loadRazorpaySDK();
 
             if (!razorpayKey || razorpayKey === '' || razorpayKey === 'null') {
@@ -749,63 +1048,57 @@
         }
     }
     </script>
-
 @endauth
 
-    <!-- Auto-City Detection -->
-    <script>
-    const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
-    const ROOM_SECONDARY_COLOR = '{{ \App\Models\Setting::get("secondary_color", "#10B981") }}';
-        async function detectLocation(force = false) {
-            if (!navigator.geolocation) return;
+<!-- Auto-City Detection -->
+<script>
+const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
+const ROOM_SECONDARY_COLOR = '{{ \App\Models\Setting::get("secondary_color", "#10B981") }}';
+    async function detectLocation(force = false) {
+        if (!navigator.geolocation) return;
 
-            // Show loading state in input
-            const cityInput = document.getElementById('hero-city-input');
-            const originalPlaceholder = cityInput ? cityInput.placeholder : '';
-            if (cityInput) cityInput.placeholder = 'Detecting location...';
+        const cityInput = document.getElementById('hero-city-input');
+        const originalPlaceholder = cityInput ? cityInput.placeholder : '';
+        if (cityInput) cityInput.placeholder = 'Detecting location...';
 
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+                const data = await response.json();
+                const city = data.address.city || data.address.town || data.address.village || data.address.suburb || data.address.state_district;
                 
-                try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
-                    const data = await response.json();
-                    const city = data.address.city || data.address.town || data.address.village || data.address.suburb || data.address.state_district;
-                    
-                    if (city) {
-                        if (cityInput) {
-                            cityInput.value = city;
-                            cityInput.placeholder = originalPlaceholder;
-                        }
-                        // Save to session and redirect
-                        await fetch(`{{ route('set-city') }}?city=${encodeURIComponent(city)}&lat=${lat}&lng=${lng}&verified=true`);
-                        window.location.href = window.location.pathname + `?lat=${lat}&lng=${lng}&city=${encodeURIComponent(city)}`;
-                    } else if (cityInput) {
+                if (city) {
+                    if (cityInput) {
+                        cityInput.value = city;
                         cityInput.placeholder = originalPlaceholder;
                     }
-                } catch (error) {
-                    console.error('Location error:', error);
-                    if (cityInput) cityInput.placeholder = originalPlaceholder;
+                    await fetch(`{{ route('set-city') }}?city=${encodeURIComponent(city)}&lat=${lat}&lng=${lng}&verified=true`);
+                    window.location.href = window.location.pathname + `?lat=${lat}&lng=${lng}&city=${encodeURIComponent(city)}`;
+                } else if (cityInput) {
+                    cityInput.placeholder = originalPlaceholder;
                 }
-            }, (error) => {
-                console.warn('Geolocation failed:', error);
-                if (cityInput) cityInput.placeholder = 'Location denied. Type city manually.';
-            });
-        }
+            } catch (error) {
+                console.error('Location error:', error);
+                if (cityInput) cityInput.placeholder = originalPlaceholder;
+            }
+        }, (error) => {
+            console.warn('Geolocation failed:', error);
+            if (cityInput) cityInput.placeholder = 'Location denied. Type city manually.';
+        });
+    }
 
-        // Run automatically catch-all if no city and NOT search
-        @if(!request('city') && !session('user_city') && !session('no_auto'))
-            document.addEventListener('DOMContentLoaded', () => {
-                // Don't annoy user with prompt instantly, maybe wait 2 seconds
-                setTimeout(() => detectLocation(), 2000);
-            });
-        @endif
-    </script>
+    @if(!request('city') && !session('user_city') && !session('no_auto'))
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => detectLocation(), 2000);
+        });
+    @endif
+</script>
 
 <script defer>
     document.addEventListener('DOMContentLoaded', () => {
-        // Wait for user coordinates before updating
         detectUserLocation((coords) => {
             const tags = document.querySelectorAll('.distance-tag');
             tags.forEach(tag => {
@@ -825,9 +1118,8 @@
     });
 </script>
 
-<!-- Infinite Scroll Script -->
+<!-- Infinite Scroll Script for Mobile -->
 <script defer>
-    // Infinite Scroll for Mobile
     document.addEventListener('DOMContentLoaded', function() {
         const mobileRoomList = document.getElementById('mobile-room-list');
         const loader = document.getElementById('infinite-loader');
