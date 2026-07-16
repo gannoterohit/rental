@@ -12,9 +12,9 @@ class Room extends Model
         'title',
         'description',
         'type',
-        'room_type',
-        'furnishing_type',
-        'tenant_type',
+        'room_type_option_id',
+        'furnishing_option_id',
+        'tenant_option_id',
         'amenities',
         'rent',
         'deposit',
@@ -115,6 +115,22 @@ class Room extends Model
     public function user() {
         return $this->belongsTo(User::class,'user_id');
     }
+
+    public function roomTypeOption()
+    {
+        return $this->belongsTo(RoomOption::class, 'room_type_option_id');
+    }
+
+    public function furnishingOption()
+    {
+        return $this->belongsTo(RoomOption::class, 'furnishing_option_id');
+    }
+
+    public function tenantOption()
+    {
+        return $this->belongsTo(RoomOption::class, 'tenant_option_id');
+    }
+
     public function bookings() {
         return $this->hasMany(Booking::class);
     }
@@ -167,5 +183,20 @@ class Room extends Model
         }
 
         return $urls;
+    }
+
+    public function roomTypeLabel(): string
+    {
+        return RoomOption::getLabel('room_type', $this->room_type_option_id);
+    }
+
+    public function furnishingTypeLabel(): string
+    {
+        return RoomOption::getLabel('furnishing_type', $this->furnishing_option_id);
+    }
+
+    public function tenantTypeLabel(): string
+    {
+        return RoomOption::getLabel('tenant_type', $this->tenant_option_id);
     }
 }

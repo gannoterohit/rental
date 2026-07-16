@@ -13,6 +13,7 @@ use App\Http\Controllers\UnlockController;
 use App\Http\Controllers\Admin\BusinessSettingsController;
 use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\RejectionReasonController;
+use App\Http\Controllers\Admin\RoomOptionController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\WalletController;
@@ -123,6 +124,7 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     Route::post('/settings', [BusinessSettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/store', [BusinessSettingsController::class, 'store'])->name('settings.store');
     Route::post('/settings/ping', [BusinessSettingsController::class, 'pingSearchEngines'])->name('settings.ping');
+    Route::resource('room-options', RoomOptionController::class)->except(['show']);
     Route::resource('plans', PlanController::class);
     Route::post('/plans/{plan}/toggle-active', [PlanController::class, 'toggleActive'])->name('plans.toggleActive');
     

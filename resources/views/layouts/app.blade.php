@@ -604,8 +604,8 @@
                 <div class="hidden lg:flex items-center gap-6">
                     <a href="{{ route('home') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Home</a>
                     <a href="{{ route('rooms.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Browse Rooms</a>
-                    <a href="{{ route('rooms.index', ['room_type' => 'shared_room']) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">PG</a>
-                    <a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Apartments</a>
+                    <a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', 'shared_room')]]) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">PG</a>
+                    <a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', '1bhk')]]) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Apartments</a>
                     <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Owners</a>
                     <a href="{{ route('plans') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Pricing</a>
                     <a href="{{ route('blogs.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Blog</a>
@@ -786,8 +786,8 @@
                     <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Discover</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
                         <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Browse Rooms</a></li>
-                        <li><a href="{{ route('rooms.index', ['room_type' => 'shared_room']) }}" class="text-slate-400 hover:text-white transition-all">PG</a></li>
-                        <li><a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="text-slate-400 hover:text-white transition-all">Apartments</a></li>
+                        <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', 'shared_room')]]) }}" class="text-slate-400 hover:text-white transition-all">PG</a></li>
+                        <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', '1bhk')]]) }}" class="text-slate-400 hover:text-white transition-all">Apartments</a></li>
                         <li><a href="{{ route('register') }}" class="text-slate-400 hover:text-white transition-all">Hostels</a></li>
                         <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Villas</a></li>
                     </ul>

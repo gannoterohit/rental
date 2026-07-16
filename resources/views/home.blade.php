@@ -186,7 +186,7 @@
                                     <select name="room_type" class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none appearance-none transition-all">
                                         <option value="">Any Type</option>
                                         @foreach($roomCategories as $cat)
-                                            <option value="{{ $cat->room_type }}" {{ request('room_type') == $cat->room_type ? 'selected' : '' }}>{{ $cat->label }}</option>
+                                            <option value="{{ $cat->room_type_option_id }}" {{ request('room_type') == $cat->room_type_option_id ? 'selected' : '' }}>{{ $cat->label }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -202,16 +202,16 @@
                                            class="w-full py-2.5 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[10px] font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none transition-all">
                                 </div>
                             </div>
-                            <!-- Gender -->
+                            <!-- Preferred Tenant -->
                             <div class="space-y-1">
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Gender</label>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Preferred Tenant</label>
                                 <div class="relative">
                                     <i class="fas fa-users absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                                     <select name="tenant_type" class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none appearance-none transition-all">
                                         <option value="">Any</option>
-                                        <option value="girls" {{ request('tenant_type') == 'girls' ? 'selected' : '' }}>Girls Only</option>
-                                        <option value="boys" {{ request('tenant_type') == 'boys' ? 'selected' : '' }}>Boys Only</option>
-                                        <option value="family" {{ request('tenant_type') == 'family' ? 'selected' : '' }}>Family</option>
+                                        @foreach(\App\Models\RoomOption::optionsFor('tenant_type') as $option)
+                                            <option value="{{ $option->id }}" {{ (string) request('tenant_type') === (string) $option->id ? 'selected' : '' }}>{{ $option->label }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
@@ -225,10 +225,9 @@
                         <!-- Popular Tags -->
                         <div class="flex items-center gap-2 mt-3 flex-wrap border-t border-slate-100 pt-3">
                             <span class="font-extrabold text-slate-400 uppercase tracking-wider text-[9px]">Popular:</span>
-                            <a href="{{ route('rooms.index', ['room_type' => 'single_room']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">Single Room</a>
-                            <a href="{{ route('rooms.index', ['room_type' => 'pg']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">PG</a>
-                            <a href="{{ route('rooms.index', ['room_type' => '1bhk']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">1 BHK</a>
-                            <a href="{{ route('rooms.index', ['tenant_type' => 'girls']) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">Girls PG</a>
+                            @foreach(\App\Models\RoomOption::optionsFor('room_type')->take(4) as $option)
+                                <a href="{{ route('rooms.index', ['room_type' => [$option->id]]) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">{{ $option->label }}</a>
+                            @endforeach
                         </div>
                     </form>
                 </div>
@@ -340,25 +339,14 @@
                 </div>
                 <?php if($roomCategories->count() > 0): ?>
                 <?php
-                    $catColors = [
-                        'single_room' => 'indigo',
-                        'shared_room' => 'orange',
-                        'pg'          => 'emerald',
-                        '1bhk'        => 'purple',
-                        '2bhk'        => 'pink',
-                        '3bhk'        => 'amber',
-                        'flat'        => 'blue',
-                        'hostel'      => 'cyan',
-                        'studio'      => 'teal',
-                        'villa'       => 'rose'
-                    ];
+                    $catPalette = ['indigo', 'orange', 'emerald', 'purple', 'pink', 'amber', 'blue', 'cyan', 'teal', 'rose'];
                 ?>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <?php foreach($roomCategories->take(8) as $cat): ?>
+                    <?php foreach($roomCategories->take(8) as $index => $cat): ?>
                         <?php
-                            $color = $catColors[$cat->room_type] ?? 'indigo';
+                            $color = $catPalette[$index % count($catPalette)];
                         ?>
-                        <a href="<?php echo route('rooms.index', ['room_type' => [$cat->room_type]]); ?>"
+                        <a href="<?php echo route('rooms.index', ['room_type' => [$cat->room_type_option_id]]); ?>"
                            class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 hover:shadow-md hover:-translate-y-1 transition-all shadow-sm group">
                             <div class="w-11 h-11 bg-<?php echo $color; ?>-50 text-<?php echo $color; ?>-600 rounded-xl flex items-center justify-center text-lg mb-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <i class="<?php echo $cat->icon; ?>"></i>

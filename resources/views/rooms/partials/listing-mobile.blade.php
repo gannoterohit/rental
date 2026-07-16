@@ -51,7 +51,7 @@
                         <h2 class="font-bold text-gray-800 text-sm truncate">{{ $room->title }}</h2>
                         <p class="text-xs text-gray-500 truncate mb-1"><i class="fas fa-map-marker-alt mr-1"></i>{{ $room->city }}</p>
                         <div class="flex flex-wrap gap-1 mt-2">
-                            <span class="text-[9px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">{{ $room->room_type }}</span>
+                            <span class="text-[9px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">{{ $room->roomTypeLabel() }}</span>
                             @if($room->listing_type === 'broker')
                                 <span style="background-color: #f97316 !important;" class="text-[9px] text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-tighter">B: ₹{{ $room->broker_fee }}</span>
                             @else

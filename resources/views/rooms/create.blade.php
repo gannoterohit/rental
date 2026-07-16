@@ -90,31 +90,27 @@
                             <div>
                                 <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Room Type</label>
                                 <select name="room_type" required class="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition font-bold text-gray-700">
-                                    <option value="single_room">Single Room</option>
-                                    <option value="shared_room">Shared Room</option>
-                                    <option value="1bhk">1 BHK</option>
-                                    <option value="2bhk">2 BHK</option>
-                                    <option value="3bhk">3 BHK</option>
-                                    <option value="flat">Full Flat</option>
+                                    @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
+                                        <option value="{{ $option->id }}">{{ $option->label }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Furnishing</label>
                                 <select name="furnishing_type" required class="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition font-bold text-gray-700">
-                                    <option value="furnished">Fully Furnished</option>
-                                    <option value="semi-furnished">Semi Furnished</option>
-                                    <option value="unfurnished">Unfurnished</option>
+                                    @foreach(App\Models\RoomOption::optionsFor('furnishing_type') as $option)
+                                        <option value="{{ $option->id }}">{{ $option->label }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Preferred Tenant</label>
                                 <select name="tenant_type" required class="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition font-bold text-gray-700">
-                                    <option value="any">Any / All</option>
-                                    <option value="family">Family</option>
-                                    <option value="bachelors">Bachelors</option>
-                                    <option value="girls">Girls Only</option>
+                                    @foreach(App\Models\RoomOption::optionsFor('tenant_type') as $option)
+                                        <option value="{{ $option->id }}">{{ $option->label }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 

@@ -2,7 +2,7 @@
 
 @section('title', ($room->title ?? 'Room') . ' in ' . $room->city . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 @section('description', 'Looking for ' . ($room->title ?? 'a room') . ' in ' . $room->city . ($room->landmarks ? ' near ' . implode(', ', $room->landmarks) : '') . '? Rent starts at ₹' . number_format($room->rent) . '. Verified listings with photos, amenities, and owner contact.')
-@section('keywords', 'pg in ' . $room->city . ', room on rent in ' . $room->city . ', paying guest for ' . $room->tenant_type . ' in ' . $room->city . ', ' . ($room->room_type ? str_replace('_', ' ', $room->room_type) : 'room') . ' in ' . $room->city . ($room->landmarks ? ', ' . implode(', ', $room->landmarks) : ''))
+@section('keywords', 'pg in ' . $room->city . ', room on rent in ' . $room->city . ', paying guest for ' . $room->tenantTypeLabel() . ' in ' . $room->city . ', ' . ($room->roomTypeLabel() !== 'N/A' ? $room->roomTypeLabel() : 'room') . ' in ' . $room->city . ($room->landmarks ? ', ' . implode(', ', $room->landmarks) : ''))
 @section('og_title', ($room->title ?? 'Room') . ' in ' . $room->city . ' - ₹' . number_format($room->rent))
 @section('og_description', Str::limit(($room->description ?? 'Find your perfect room in ' . $room->city) . ($room->landmarks ? '. Nearby: ' . implode(', ', $room->landmarks) : ''), 155))
 @section('og_url', route('rooms.show', $room->id))
@@ -187,7 +187,7 @@
                                     <span class="distance-tag hidden px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold" data-lat="{{ $room->latitude }}" data-lng="{{ $room->longitude }}">
                                         <i class="fas fa-walking mr-1"></i><span class="distance-km">...</span> km away
                                     </span>
-                                    <span class="capitalize bg-white/10 px-2 py-0.5 rounded-full text-[10px] font-medium border border-white/20 tracking-wide">{{ str_replace('_', ' ', $room->room_type ?? 'Room') }}</span>
+                                    <span class="capitalize bg-white/10 px-2 py-0.5 rounded-full text-[10px] font-medium border border-white/20 tracking-wide">{{ $room->roomTypeLabel() }}</span>
                                 </div>
                             </div>
                         </div>
@@ -231,11 +231,11 @@
                             @endif
                             <div class="text-center p-3 bg-purple-50 rounded-lg">
                                 <div class="text-xs text-slate-700 mb-1">Furnishing</div>
-                                <div class="text-sm font-bold text-purple-700 capitalize">{{ $room->furnishing_type ?? 'N/A' }}</div>
+                                <div class="text-sm font-bold text-purple-700 capitalize">{{ $room->furnishingTypeLabel() }}</div>
                             </div>
                             <div class="text-center p-3 bg-orange-50 rounded-lg">
                                 <div class="text-xs text-slate-700 mb-1">For</div>
-                                <div class="text-sm font-bold text-orange-700 capitalize">{{ $room->tenant_type == 'any' ? 'All' : $room->tenant_type }}</div>
+                                <div class="text-sm font-bold text-orange-700 capitalize">{{ $room->tenantTypeLabel() }}</div>
                             </div>
                         </div>
                     </div>

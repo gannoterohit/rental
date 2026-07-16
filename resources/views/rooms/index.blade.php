@@ -62,11 +62,9 @@
                         <i class="fas fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <select name="room_type[]" class="w-full py-2 pl-8 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none appearance-none transition-all">
                             <option value="">Any Type</option>
-                            <option value="single_room" {{ in_array('single_room', (array)request('room_type')) ? 'selected' : '' }}>Single Room</option>
-                            <option value="shared_room" {{ in_array('shared_room', (array)request('room_type')) ? 'selected' : '' }}>Shared Room / PG</option>
-                            <option value="1bhk" {{ in_array('1bhk', (array)request('room_type')) ? 'selected' : '' }}>1 BHK</option>
-                            <option value="2bhk" {{ in_array('2bhk', (array)request('room_type')) ? 'selected' : '' }}>2 BHK</option>
-                            <option value="3bhk" {{ in_array('3bhk', (array)request('room_type')) ? 'selected' : '' }}>3 BHK</option>
+                            @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
+                                <option value="{{ $option->id }}" {{ in_array($option->id, (array)request('room_type')) ? 'selected' : '' }}>{{ $option->label }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -88,9 +86,9 @@
                         <i class="fas fa-users absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <select name="tenant_type[]" class="w-full py-2 pl-8 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none appearance-none transition-all">
                             <option value="">Any Gender</option>
-                            <option value="girls" {{ in_array('girls', (array)request('tenant_type')) ? 'selected' : '' }}>Girls Only</option>
-                            <option value="boys" {{ in_array('boys', (array)request('tenant_type')) ? 'selected' : '' }}>Boys Only</option>
-                            <option value="family" {{ in_array('family', (array)request('tenant_type')) ? 'selected' : '' }}>Family Preferred</option>
+                            @foreach(App\Models\RoomOption::optionsFor('tenant_type') as $option)
+                                <option value="{{ $option->id }}" {{ in_array($option->id, (array)request('tenant_type')) ? 'selected' : '' }}>{{ $option->label }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -105,21 +103,14 @@
         </div>
 
         <!-- Popular Searches row — fully dynamic from DB -->
-        @php
-            $rtLabels = [
-                'single_room' => 'Single Room', 'shared_room' => 'Shared Room / PG',
-                'pg' => 'PG', '1bhk' => '1 BHK', '2bhk' => '2 BHK', '3bhk' => '3 BHK',
-                'flat' => 'Flat', 'studio' => 'Studio', 'villa' => 'Villa'
-            ];
-        @endphp
         <div class="flex items-center gap-2 mt-3 text-[11px] flex-wrap">
             <span class="font-extrabold text-slate-400 uppercase tracking-wider">Popular:</span>
             <div class="flex gap-2 flex-wrap">
                 {{-- Top room types from DB --}}
-                @foreach($topRoomTypes as $typeKey => $typeCount)
-                    <a href="{{ route('rooms.index', ['room_type' => [$typeKey]]) }}"
+                @foreach($topRoomTypes as $typeItem)
+                    <a href="{{ route('rooms.index', ['room_type' => [$typeItem['id']]]) }}"
                        class="bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 font-semibold px-2.5 py-0.5 rounded-full transition-all">
-                        {{ $rtLabels[$typeKey] ?? ucwords(str_replace('_',' ',$typeKey)) }}
+                        {{ $typeItem['label'] }}
                     </a>
                 @endforeach
                 {{-- Top cities from DB --}}
@@ -185,31 +176,18 @@
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Property Type</label>
                         <div class="space-y-2.5">
-                            @php
-                                $allRoomTypeLabels = [
-                                    'single_room' => 'Single Room',
-                                    'shared_room' => 'Shared Room',
-                                    'pg' => 'PG',
-                                    '1bhk' => '1 BHK',
-                                    '2bhk' => '2 BHK',
-                                    '3bhk' => '3 BHK',
-                                    'flat' => 'Flat',
-                                    'studio' => 'Studio',
-                                    'villa' => 'Villa'
-                                ];
-                            @endphp
-                            @foreach($allRoomTypeLabels as $key => $label)
+                            @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
                                 @php
-                                    $count = $roomTypeCounts[$key] ?? 0;
-                                    $isChecked = in_array($key, (array)request('room_type'));
+                                    $count = $roomTypeCounts[$option->id] ?? 0;
+                                    $isChecked = in_array($option->id, (array)request('room_type'));
                                 @endphp
                                 {{-- Only show if there are listings OR it is currently filtered --}}
                                 @if($count > 0 || $isChecked)
                                     <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600 transition-colors">
                                         <span class="flex items-center gap-2">
-                                            <input type="checkbox" name="room_type[]" value="{{ $key }}" {{ $isChecked ? 'checked' : '' }}
+                                            <input type="checkbox" name="room_type[]" value="{{ $option->id }}" {{ $isChecked ? 'checked' : '' }}
                                                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
-                                            <span>{{ $label }}</span>
+                                            <span>{{ $option->label }}</span>
                                         </span>
                                         <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $count }}</span>
                                     </label>
@@ -263,25 +241,17 @@
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Gender Preference</label>
                         <div class="space-y-2">
-                            @php
-                                $tenantOptions = [
-                                    'boys'   => 'Male Only',
-                                    'girls'  => 'Female Only',
-                                    'family' => 'Family',
-                                    'any'    => 'Any / Co-ed',
-                                ];
-                            @endphp
-                            @foreach($tenantOptions as $tVal => $tLabel)
+                            @foreach(App\Models\RoomOption::optionsFor('tenant_type') as $option)
                                 @php
-                                    $tCount = $tenantTypeCounts[$tVal] ?? 0;
-                                    $tChecked = in_array($tVal, (array)request('tenant_type'));
+                                    $tCount = $tenantTypeCounts[$option->id] ?? 0;
+                                    $tChecked = in_array($option->id, (array)request('tenant_type'));
                                 @endphp
                                 @if($tCount > 0 || $tChecked)
                                     <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
                                         <span class="flex items-center gap-2">
-                                            <input type="checkbox" name="tenant_type[]" value="{{ $tVal }}" {{ $tChecked ? 'checked' : '' }}
+                                            <input type="checkbox" name="tenant_type[]" value="{{ $option->id }}" {{ $tChecked ? 'checked' : '' }}
                                                    class="rounded border-slate-300 text-indigo-600">
-                                            <span>{{ $tLabel }}</span>
+                                            <span>{{ $option->label }}</span>
                                         </span>
                                         <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $tCount }}</span>
                                     </label>
@@ -294,24 +264,17 @@
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Furnishing</label>
                         <div class="space-y-2">
-                            @php
-                                $furnishingOptions = [
-                                    'furnished'      => 'Fully Furnished',
-                                    'semi-furnished' => 'Semi Furnished',
-                                    'unfurnished'    => 'Unfurnished',
-                                ];
-                            @endphp
-                            @foreach($furnishingOptions as $fVal => $fLabel)
+                            @foreach(App\Models\RoomOption::optionsFor('furnishing_type') as $option)
                                 @php
-                                    $fCount = $furnishingCounts[$fVal] ?? 0;
-                                    $fChecked = in_array($fVal, (array)request('furnishing_type'));
+                                    $fCount = $furnishingCounts[$option->id] ?? 0;
+                                    $fChecked = in_array($option->id, (array)request('furnishing_type'));
                                 @endphp
                                 @if($fCount > 0 || $fChecked)
                                     <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600">
                                         <span class="flex items-center gap-2">
-                                            <input type="checkbox" name="furnishing_type[]" value="{{ $fVal }}" {{ $fChecked ? 'checked' : '' }}
+                                            <input type="checkbox" name="furnishing_type[]" value="{{ $option->id }}" {{ $fChecked ? 'checked' : '' }}
                                                    class="rounded border-slate-300 text-indigo-600">
-                                            <span>{{ $fLabel }}</span>
+                                            <span>{{ $option->label }}</span>
                                         </span>
                                         <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $fCount }}</span>
                                     </label>
@@ -413,7 +376,7 @@
                 if (request('city')) $activeFilters['city'] = ['label' => 'City: ' . request('city'), 'param' => 'city'];
                 if (request('room_type')) {
                     foreach((array)request('room_type') as $t) {
-                        $activeFilters['room_type_' . $t] = ['label' => ucwords(str_replace('_', ' ', $t)), 'param' => 'room_type', 'value' => $t];
+                        $activeFilters['room_type_' . $t] = ['label' => \App\Models\RoomOption::getLabel('room_type', $t), 'param' => 'room_type', 'value' => $t];
                     }
                 }
                 if (request('min_rent') || request('max_rent')) {
@@ -425,12 +388,12 @@
                 }
                 if (request('tenant_type')) {
                     foreach((array)request('tenant_type') as $t) {
-                        $activeFilters['tenant_type_' . $t] = ['label' => ucwords($t), 'param' => 'tenant_type', 'value' => $t];
+                        $activeFilters['tenant_type_' . $t] = ['label' => \App\Models\RoomOption::getLabel('tenant_type', $t), 'param' => 'tenant_type', 'value' => $t];
                     }
                 }
                 if (request('furnishing_type')) {
                     foreach((array)request('furnishing_type') as $f) {
-                        $activeFilters['furnishing_type_' . $f] = ['label' => ucwords(str_replace('-', ' ', $f)), 'param' => 'furnishing_type', 'value' => $f];
+                        $activeFilters['furnishing_type_' . $f] = ['label' => \App\Models\RoomOption::getLabel('furnishing_type', $f), 'param' => 'furnishing_type', 'value' => $f];
                     }
                 }
                 if (request('amenities')) {
@@ -497,7 +460,7 @@
                                             <span class="bg-amber-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg">Featured</span>
                                         @endif
                                         <span class="bg-white/90 backdrop-blur-sm text-indigo-700 text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-lg border border-white/40 shadow-sm">
-                                            {{ str_replace('_', ' ', $room->room_type) }}
+                                            {{ $room->roomTypeLabel() }}
                                         </span>
                                         @if($room->listing_type === 'broker')
                                             <span class="bg-orange-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg">Broker Fee</span>
@@ -539,11 +502,11 @@
                                     <!-- Quick Specs -->
                                     <div class="flex flex-wrap gap-1.5 mb-4 mt-auto">
                                         <span class="bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                            <i class="fas fa-couch text-indigo-400"></i> {{ $room->furnishing_type }}
+                                            <i class="fas fa-couch text-indigo-400"></i> {{ $room->furnishingTypeLabel() }}
                                         </span>
-                                        @if($room->tenant_type)
+                                        @if($room->tenantTypeLabel() !== 'N/A')
                                             <span class="bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                                <i class="fas fa-users text-indigo-400"></i> {{ $room->tenant_type }}
+                                                <i class="fas fa-users text-indigo-400"></i> {{ $room->tenantTypeLabel() }}
                                             </span>
                                         @endif
                                     </div>

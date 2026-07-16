@@ -9,9 +9,11 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\Payout;
 use App\Models\Setting;
+use App\Models\RoomOption;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use App\Mail\RoomApprovedMail;
 use App\Mail\RoomRejectedMail;
 use App\Models\RejectionReason;
@@ -357,9 +359,9 @@ class AdminController extends Controller
             'address' => 'required|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'furnishing_type' => 'required|in:furnished,semi-furnished,unfurnished',
-            'tenant_type' => 'required|in:family,bachelors,girls,boys,any',
-            'room_type' => 'required|in:single_room,shared_room,1bhk,2bhk,3bhk,flat',
+            'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'landmarks' => 'nullable|array',
             'photos.*' => 'image|max:2048',
@@ -398,6 +400,8 @@ class AdminController extends Controller
             $data['video'] = $request->file('video')->store('rooms/videos', 'public');
         }
 
+        $data = $this->mapRoomOptionData($data);
+
         Room::create($data);
 
         return redirect()->route('admin.all-rooms')->with('success', 'Room created successfully by Admin!');
@@ -423,9 +427,9 @@ class AdminController extends Controller
             'address' => 'required|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'furnishing_type' => 'required|in:furnished,semi-furnished,unfurnished',
-            'tenant_type' => 'required|in:family,bachelors,girls,boys,any',
-            'room_type' => 'required|in:single_room,shared_room,1bhk,2bhk,3bhk,flat',
+            'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'landmarks' => 'nullable|array',
             'photos.*' => 'image|max:2048',
@@ -482,6 +486,8 @@ class AdminController extends Controller
             }
             $data['video'] = $request->file('video')->store('rooms/videos', 'public');
         }
+
+        $data = $this->mapRoomOptionData($data);
 
         $room->update($data);
 

@@ -33,7 +33,7 @@
         <!-- Tags Overlay -->
         <div class="absolute top-3 left-3 flex gap-2">
              <span class="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-800 dark:text-gray-200 shadow-sm uppercase tracking-wide">
-                {{ $room->room_type }}
+                {{ $room->roomTypeLabel() }}
             </span>
             @if($room->listing_type === 'broker')
                 <span style="background-color: #f97316 !important;" class="text-white px-2.5 py-1 rounded-lg text-[10px] font-black shadow-sm uppercase tracking-widest border border-white/20">
@@ -76,11 +76,11 @@
         <div class="flex gap-3 mb-5 overflow-x-auto hide-scrollbar">
             <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 whitespace-nowrap">
                 <i class="fas fa-couch text-indigo-400 text-[10px]"></i>
-                <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->furnishing_type }}</span>
+                <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->furnishingTypeLabel() }}</span>
             </div>
             <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 whitespace-nowrap">
                 <i class="fas fa-users text-indigo-400 text-[10px]"></i>
-                <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->tenant_type }}</span>
+                <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->tenantTypeLabel() }}</span>
             </div>
         </div>
         

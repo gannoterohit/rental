@@ -55,7 +55,7 @@
                         <span class="bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg shadow-lg">Featured</span>
                     @endif
                     <span class="bg-white/90 backdrop-blur-md dark:bg-slate-800/90 text-indigo-700 dark:text-indigo-400 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg shadow-sm border border-white/50 dark:border-slate-700">
-                        {{ str_replace('_', ' ', $room->room_type) }}
+                        {{ $room->roomTypeLabel() }}
                     </span>
                     
                     @if($room->listing_type === 'broker')
@@ -108,12 +108,12 @@
                 <div class="flex flex-wrap gap-1.5 mb-3 mt-auto">
                     <div class="flex items-center bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
                         <i class="fas fa-couch text-indigo-400 text-[10px] mr-1.5"></i>
-                        <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->furnishing_type }}</span>
+                        <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->furnishingTypeLabel() }}</span>
                     </div>
-                    @if($room->tenant_type)
+                    @if($room->tenantTypeLabel() !== 'N/A')
                     <div class="flex items-center bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
                         <i class="fas fa-users text-indigo-400 text-[10px] mr-1.5"></i>
-                        <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->tenant_type }}</span>
+                        <span class="text-[10px] font-bold text-slate-600 uppercase">{{ $room->tenantTypeLabel() }}</span>
                     </div>
                     @endif
                 </div>

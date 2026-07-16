@@ -59,9 +59,9 @@
                                 <label for="room_type" class="block text-sm font-semibold text-gray-700 mb-2">Room Type</label>
                                 <select name="room_type" id="room_type" required
                                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    @foreach(['single_room', 'shared_room', '1bhk', '2bhk', '3bhk', 'flat'] as $type)
-                                        <option value="{{ $type }}" {{ $room->room_type == $type ? 'selected' : '' }}>
-                                            {{ str_replace('_', ' ', ucfirst($type)) }}
+                                    @foreach(App\Models\RoomOption::optionsFor('room_type', $room->room_type_option_id) as $option)
+                                        <option value="{{ $option->id }}" {{ $room->room_type_option_id == $option->id ? 'selected' : '' }}>
+                                            {{ $option->label }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -91,18 +91,18 @@
                                 <label for="furnishing_type" class="block text-sm font-semibold text-gray-700 mb-2">Furnishing</label>
                                 <select name="furnishing_type" id="furnishing_type" required
                                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option value="furnished" {{ $room->furnishing_type == 'furnished' ? 'selected' : '' }}>Fully Furnished</option>
-                                    <option value="semi-furnished" {{ $room->furnishing_type == 'semi-furnished' ? 'selected' : '' }}>Semi Furnished</option>
-                                    <option value="unfurnished" {{ $room->furnishing_type == 'unfurnished' ? 'selected' : '' }}>Unfurnished</option>
+                                    @foreach(App\Models\RoomOption::optionsFor('furnishing_type', $room->furnishing_option_id) as $option)
+                                        <option value="{{ $option->id }}" {{ $room->furnishing_option_id == $option->id ? 'selected' : '' }}>{{ $option->label }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div>
                                 <label for="tenant_type" class="block text-sm font-semibold text-gray-700 mb-2">Tenant Type</label>
                                 <select name="tenant_type" id="tenant_type" required
                                         class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    @foreach(['any', 'family', 'bachelors', 'girls', 'boys'] as $tenant)
-                                        <option value="{{ $tenant }}" {{ $room->tenant_type == $tenant ? 'selected' : '' }}>
-                                            {{ ucfirst($tenant) }}
+                                    @foreach(App\Models\RoomOption::optionsFor('tenant_type', $room->tenant_option_id) as $option)
+                                        <option value="{{ $option->id }}" {{ $room->tenant_option_id == $option->id ? 'selected' : '' }}>
+                                            {{ $option->label }}
                                         </option>
                                     @endforeach
                                 </select>

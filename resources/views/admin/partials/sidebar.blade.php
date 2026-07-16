@@ -76,6 +76,11 @@
             </div>
         </div>
         
+        <a href="{{ route('admin.room-options.index') }}" 
+           class="flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.room-options*') ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-700' }} transition transform hover:scale-105">
+            <i class="fas fa-list-ul mr-3 text-lg"></i>
+            <span class="font-medium">Room Options</span>
+        </a>
         <a href="{{ route('admin.plans.index') }}" 
            class="flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.plans*') ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-700' }} transition transform hover:scale-105">
             <i class="fas fa-tags mr-3 text-lg"></i>

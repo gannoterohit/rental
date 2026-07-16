@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 use App\Models\Room;
 use App\Models\Payment;
 use App\Models\Enquiry;
+use App\Models\RoomOption;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -101,30 +103,15 @@ class RoomController extends Controller {
 
     // Advanced Filters
     if ($request->filled('furnishing_type')) {
-        $furnishing = $request->furnishing_type;
-        if (is_array($furnishing)) {
-            $query->whereIn('furnishing_type', $furnishing);
-        } else {
-            $query->where('furnishing_type', $furnishing);
-        }
+        $this->applyOptionFilter($query, 'furnishing_type', $request->furnishing_type);
     }
 
     if ($request->filled('tenant_type')) {
-        $tenant = $request->tenant_type;
-        if (is_array($tenant)) {
-            $query->whereIn('tenant_type', $tenant);
-        } else {
-            $query->where('tenant_type', $tenant);
-        }
+        $this->applyOptionFilter($query, 'tenant_type', $request->tenant_type);
     }
 
     if ($request->filled('room_type')) {
-        $roomType = $request->room_type;
-        if (is_array($roomType)) {
-            $query->whereIn('room_type', $roomType);
-        } else {
-            $query->where('room_type', $roomType);
-        }
+        $this->applyOptionFilter($query, 'room_type', $request->room_type);
     }
 
     if ($request->filled('amenities')) {
@@ -207,22 +194,32 @@ class RoomController extends Controller {
     }
     
     // Fetch room type counts dynamically from DB
-    $roomTypeCounts = Room::select('room_type', DB::raw('count(*) as total'))
+    $roomTypeCounts = Room::select('room_type_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
-        ->groupBy('room_type')
-        ->pluck('total', 'room_type')
+        ->whereNotNull('room_type_option_id')
+        ->groupBy('room_type_option_id')
+        ->pluck('total', 'room_type_option_id')
+        ->map(fn ($total) => (int) $total)
         ->toArray();
 
     // Top room types (only types that have listings, sorted by count)
-    $topRoomTypes = Room::select('room_type', DB::raw('count(*) as total'))
+    $topRoomTypes = Room::select('room_type_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
-        ->groupBy('room_type')
+        ->whereNotNull('room_type_option_id')
+        ->groupBy('room_type_option_id')
         ->orderByDesc('total')
         ->take(6)
-        ->pluck('total', 'room_type')
-        ->toArray();
+        ->get()
+        ->map(function ($item) {
+            $option = RoomOption::find($item->room_type_option_id);
+            return [
+                'id' => $item->room_type_option_id,
+                'label' => $option ? $option->label : 'Room',
+                'total' => (int) $item->total,
+            ];
+        });
 
     // Dynamic rent bounds from actual DB data
     $rentBounds = Room::where('status', 'active')
@@ -231,20 +228,23 @@ class RoomController extends Controller {
         ->first();
 
     // Tenant type counts (girls/boys/family/any)
-    $tenantTypeCounts = Room::select('tenant_type', DB::raw('count(*) as total'))
+    $tenantTypeCounts = Room::select('tenant_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
-        ->whereNotNull('tenant_type')
-        ->groupBy('tenant_type')
-        ->pluck('total', 'tenant_type')
+        ->whereNotNull('tenant_option_id')
+        ->groupBy('tenant_option_id')
+        ->pluck('total', 'tenant_option_id')
+        ->map(fn ($total) => (int) $total)
         ->toArray();
 
     // Furnishing counts from DB
-    $furnishingCounts = Room::select('furnishing_type', DB::raw('count(*) as total'))
+    $furnishingCounts = Room::select('furnishing_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
-        ->groupBy('furnishing_type')
-        ->pluck('total', 'furnishing_type')
+        ->whereNotNull('furnishing_option_id')
+        ->groupBy('furnishing_option_id')
+        ->pluck('total', 'furnishing_option_id')
+        ->map(fn ($total) => (int) $total)
         ->toArray();
 
     return view('rooms.index', compact(
@@ -270,9 +270,9 @@ class RoomController extends Controller {
             'address' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'furnishing_type' => 'required|in:furnished,semi-furnished,unfurnished',
-            'tenant_type' => 'required|in:family,bachelors,girls,boys,any',
-            'room_type' => 'required|in:single_room,shared_room,1bhk,2bhk,3bhk,flat',
+            'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'amenities.*' => 'string',
             'landmarks' => 'nullable|array',
@@ -324,6 +324,8 @@ class RoomController extends Controller {
             if ($req->hasFile('video')) {
                 $data['video'] = $req->file('video')->store('rooms/videos', 'public');
             }
+
+            $data = $this->mapRoomOptionData($data);
 
             $room = Room::create($data);
             \Illuminate\Support\Facades\Cache::forget('public_cities_list');
@@ -590,9 +592,9 @@ class RoomController extends Controller {
             'photos.*' => 'image|max:2048',
             'photos' => 'nullable|array|max:5',
             'video' => 'nullable|mimes:mp4,avi,mov,wmv|max:10240',
-            'furnishing_type' => 'required|in:furnished,semi-furnished,unfurnished',
-            'tenant_type' => 'required|in:family,bachelors,girls,boys,any',
-            'room_type' => 'required|in:single_room,shared_room,1bhk,2bhk,3bhk,flat',
+            'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'landmarks' => 'nullable|array',
             'listing_type' => 'required|in:owner,broker',
@@ -645,6 +647,8 @@ class RoomController extends Controller {
                 }
                 $data['video'] = $req->file('video')->store('rooms/videos', 'public');
             }
+
+            $data = $this->mapRoomOptionData($data);
 
             $room->update($data);
             \Illuminate\Support\Facades\Cache::forget('public_cities_list');

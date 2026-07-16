@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Room;
 use App\Models\Payment;
+use App\Models\RoomOption;
 use App\Models\Setting;
 use App\Http\Resources\RoomResource;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ApiRoomController extends BaseApiController
 {
@@ -38,16 +40,20 @@ class ApiRoomController extends BaseApiController
             $query->where('rent', '<=', $request->max_rent);
         }
 
-        if ($request->filled('room_type')) {
-            $query->where('room_type', $request->room_type);
+        $roomTypeFilter = $request->input('room_type_option_id', $request->input('room_type'));
+        $furnishingFilter = $request->input('furnishing_option_id', $request->input('furnishing_type'));
+        $tenantFilter = $request->input('tenant_option_id', $request->input('tenant_type'));
+
+        if ($roomTypeFilter !== null && $roomTypeFilter !== '') {
+            $this->applyOptionFilter($query, 'room_type', $roomTypeFilter);
         }
         
-        if ($request->filled('furnishing_type')) {
-            $query->where('furnishing_type', $request->furnishing_type);
+        if ($furnishingFilter !== null && $furnishingFilter !== '') {
+            $this->applyOptionFilter($query, 'furnishing_type', $furnishingFilter);
         }
 
-        if ($request->filled('tenant_type')) {
-            $query->where('tenant_type', $request->tenant_type);
+        if ($tenantFilter !== null && $tenantFilter !== '') {
+            $this->applyOptionFilter($query, 'tenant_type', $tenantFilter);
         }
         
         if ($request->filled('search')) {
@@ -80,7 +86,9 @@ class ApiRoomController extends BaseApiController
                     'filters'     => [
                         'min_rent' => $request->min_rent,
                         'max_rent' => $request->max_rent,
-                        'room_type' => $request->room_type,
+                        'room_type_option_id' => $roomTypeFilter,
+                        'furnishing_option_id' => $furnishingFilter,
+                        'tenant_option_id' => $tenantFilter,
                         'is_api'   => true
                     ],
                     'user_id'     => Auth::id(),
@@ -183,6 +191,8 @@ class ApiRoomController extends BaseApiController
      */
     public function store(Request $request)
     {
+        $this->normalizeRoomOptionInput($request);
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -193,9 +203,9 @@ class ApiRoomController extends BaseApiController
             'address' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'furnishing_type' => 'required|in:furnished,semi-furnished,unfurnished',
-            'tenant_type' => 'required|in:family,bachelors,girls,boys,any',
-            'room_type' => 'required|in:single_room,shared_room,1bhk,2bhk,3bhk,flat',
+            'furnishing_type' => ['required', 'in:' . implode(',', RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', 'in:' . implode(',', RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', 'in:' . implode(',', RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'landmarks' => 'nullable|array',
             'photos' => 'required|array|min:1|max:5',
@@ -237,6 +247,8 @@ class ApiRoomController extends BaseApiController
             if ($request->hasFile('video')) {
                 $data['video'] = $request->file('video')->store('rooms/videos', 'public');
             }
+
+            $data = $this->mapRoomOptionData($data);
 
             $room = Room::create($data);
             \Illuminate\Support\Facades\Cache::forget('public_cities_list');
@@ -307,15 +319,35 @@ class ApiRoomController extends BaseApiController
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'rent' => 'required|numeric',
+            'description' => 'nullable|string',
+            'rent' => 'required|numeric|min:0',
+            'deposit' => 'nullable|numeric|min:0',
+            'city' => 'required|string',
+            'state' => 'nullable|string',
+            'address' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
+            'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
+            'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'string',
+            'landmarks' => 'nullable|array',
+            'landmarks.*' => 'string',
+            'photos' => 'nullable|array|max:5',
             'photos.*' => 'image|max:2048',
+            'video' => 'nullable|mimes:mp4,avi,mov|max:10240',
+            'video_url' => 'nullable|url|max:255',
+            'listing_type' => 'required|in:owner,broker',
+            'broker_fee' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation failed', $validator->errors(), 422);
         }
 
-        $data = $request->except('photos', 'video');
+        $data = $validator->validated();
+        unset($data['photos'], $data['video']);
 
         if ($request->hasFile('photos')) {
             if ($room->photos) {
@@ -341,10 +373,41 @@ class ApiRoomController extends BaseApiController
             $data['photo'] = $photos[0];
         }
 
+        $this->normalizeRoomOptionInput($request);
+
+        if ($request->hasFile('video')) {
+            if ($room->video) {
+                Storage::disk('public')->delete($room->video);
+            }
+
+            $data['video'] = $request->file('video')->store('rooms/videos', 'public');
+        }
+
+        $data = $this->mapRoomOptionData($data);
+
         $room->update($data);
         \Illuminate\Support\Facades\Cache::forget('public_cities_list');
 
         return $this->sendSuccess(new RoomResource($room), 'Room updated successfully');
+    }
+
+    /**
+     * Accept canonical Room model foreign-key names while retaining the
+     * original mobile API aliases. Canonical *_option_id values take priority.
+     */
+    private function normalizeRoomOptionInput(Request $request): void
+    {
+        $aliases = [
+            'room_type_option_id' => 'room_type',
+            'furnishing_option_id' => 'furnishing_type',
+            'tenant_option_id' => 'tenant_type',
+        ];
+
+        foreach ($aliases as $canonical => $alias) {
+            if ($request->has($canonical)) {
+                $request->merge([$alias => $request->input($canonical)]);
+            }
+        }
     }
 
     /**

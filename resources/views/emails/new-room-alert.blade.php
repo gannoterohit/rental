@@ -12,7 +12,7 @@
         <h3 style="margin: 0; color: #1e3a8a;">{{ $room->title }}</h3>
         <p style="margin: 10px 0; font-size: 14px; color: #4a5568;">🚩 {{ $room->address }}</p>
         <p style="margin: 10px 0; font-size: 18px; font-weight: 700; color: #059669;">Price: ₹{{ number_format($room->rent) }} / month</p>
-        <p style="margin: 0; font-size: 13px; color: #718096;">🏠 Type: {{ ucfirst($room->room_type) }} | Furnishing: {{ ucfirst($room->furnishing_type) }}</p>
+        <p style="margin: 0; font-size: 13px; color: #718096;">🏠 Type: {{ $room->roomTypeLabel() }} | Furnishing: {{ $room->furnishingTypeLabel() }}</p>
     </div>
 
     <p>यह कमरा काफी अच्छी लोकेशन पर है और जल्दी बुक हो सकता है। डिटेल्स देखने के लिए नीचे दिए गए बटन पर क्लिक करें।</p>

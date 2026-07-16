@@ -20,9 +20,9 @@
                     <label for="mobile_furnishing_type" class="sr-only">Furnishing Type</label>
                     <select id="mobile_furnishing_type" name="furnishing_type" aria-label="Select furnishing type" class="w-full pl-3 pr-6 py-2 bg-white border border-indigo-100 rounded-full text-[11px] font-bold text-gray-600 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none shadow-sm shadow-indigo-100/50">
                         <option value="">Furnish</option>
-                        <option value="furnished" {{ request('furnishing_type') == 'furnished' ? 'selected' : '' }}>Full</option>
-                        <option value="semi-furnished" {{ request('furnishing_type') == 'semi-furnished' ? 'selected' : '' }}>Semi</option>
-                        <option value="unfurnished" {{ request('furnishing_type') == 'unfurnished' ? 'selected' : '' }}>None</option>
+                        @foreach(App\Models\RoomOption::optionsFor('furnishing_type') as $option)
+                            <option value="{{ $option->id }}" {{ request('furnishing_type') == $option->id ? 'selected' : '' }}>{{ $option->label }}</option>
+                        @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
                         <i class="fas fa-chevron-down text-indigo-400 text-[9px]"></i>
@@ -33,10 +33,9 @@
                     <label for="mobile_tenant_type" class="sr-only">Tenant Type</label>
                     <select id="mobile_tenant_type" name="tenant_type" aria-label="Select tenant type" class="w-full pl-3 pr-6 py-2 bg-white border border-indigo-100 rounded-full text-[11px] font-bold text-gray-600 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none shadow-sm shadow-indigo-100/50">
                         <option value="">Tenant</option>
-                        <option value="family" {{ request('tenant_type') == 'family' ? 'selected' : '' }}>Family</option>
-                        <option value="bachelors" {{ request('tenant_type') == 'bachelors' ? 'selected' : '' }}>Bachelor</option>
-                        <option value="girls" {{ request('tenant_type') == 'girls' ? 'selected' : '' }}>Girls</option>
-                        <option value="boys" {{ request('tenant_type') == 'boys' ? 'selected' : '' }}>Boys</option>
+                        @foreach(App\Models\RoomOption::optionsFor('tenant_type') as $option)
+                            <option value="{{ $option->id }}" {{ request('tenant_type') == $option->id ? 'selected' : '' }}>{{ $option->label }}</option>
+                        @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
                         <i class="fas fa-chevron-down text-indigo-400 text-[9px]"></i>
@@ -47,10 +46,9 @@
                     <label for="mobile_room_type" class="sr-only">Room Type</label>
                     <select id="mobile_room_type" name="room_type" aria-label="Select room type" class="w-full pl-3 pr-6 py-2 bg-white border border-indigo-100 rounded-full text-[11px] font-bold text-gray-600 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none shadow-sm shadow-indigo-100/50">
                         <option value="">Type</option>
-                        <option value="single_room" {{ request('room_type') == 'single_room' ? 'selected' : '' }}>Single</option>
-                        <option value="shared_room" {{ request('room_type') == 'shared_room' ? 'selected' : '' }}>Shared</option>
-                        <option value="1bhk" {{ request('room_type') == '1bhk' ? 'selected' : '' }}>1BHK</option>
-                        <option value="2bhk" {{ request('room_type') == '2bhk' ? 'selected' : '' }}>2BHK</option>
+                        @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
+                            <option value="{{ $option->id }}" {{ request('room_type') == $option->id ? 'selected' : '' }}>{{ $option->label }}</option>
+                        @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
                         <i class="fas fa-chevron-down text-indigo-400 text-[9px]"></i>

@@ -17,7 +17,10 @@ class DatabaseSeeder extends Seeder
     {
         // Seed Settings
         $this->call(SettingsSeeder::class);
-        
+
+        // Seed Room Options
+        $this->call(RoomOptionSeeder::class);
+
         // Seed Dummy Data
         $this->call(DummyDataSeeder::class);
         $this->call([

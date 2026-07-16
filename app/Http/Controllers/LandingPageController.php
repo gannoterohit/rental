@@ -110,32 +110,18 @@ class LandingPageController extends Controller
 
         // Room categories with dynamic counts from DB
         $roomCategories = FacadesCache::remember('room_categories_web', 3600, function () {
-            $labelMap = [
-                'single_room' => ['label' => 'Single Room', 'icon' => 'fas fa-door-closed'],
-                'shared_room' => ['label' => 'Shared Room', 'icon' => 'fas fa-people-roof'],
-                'pg'          => ['label' => 'PG',          'icon' => 'fas fa-hotel'],
-                '1bhk'        => ['label' => '1 BHK',       'icon' => 'fas fa-building'],
-                '2bhk'        => ['label' => '2 BHK',       'icon' => 'fas fa-building-user'],
-                '3bhk'        => ['label' => '3 BHK',       'icon' => 'fas fa-city'],
-                'flat'        => ['label' => 'Flat',        'icon' => 'fas fa-home'],
-                'hostel'      => ['label' => 'Hostel',      'icon' => 'fas fa-bed'],
-                'studio'      => ['label' => 'Studio',      'icon' => 'fas fa-cubes'],
-                'villa'       => ['label' => 'Villa',       'icon' => 'fas fa-house-laptop'],
-            ];
-
-            return Room::select('room_type', \DB::raw('count(*) as total'))
+            return Room::select('room_type_option_id', \DB::raw('count(*) as total'))
                 ->where('status', 'active')
                 ->where('listing_status', 'approved')
-                ->groupBy('room_type')
+                ->whereNotNull('room_type_option_id')
+                ->groupBy('room_type_option_id')
                 ->orderByDesc('total')
                 ->get()
-                ->map(function ($item) use ($labelMap) {
-                    $meta = $labelMap[$item->room_type] ?? [
-                        'label' => ucwords(str_replace('_', ' ', $item->room_type)),
-                        'icon'  => 'fas fa-home',
-                    ];
-                    $item->label = $meta['label'];
-                    $item->icon  = $meta['icon'];
+                ->map(function ($item) {
+                    $option = \App\Models\RoomOption::find($item->room_type_option_id);
+                    $item->room_type_option_id = $item->room_type_option_id;
+                    $item->label = $option ? $option->label : 'Room';
+                    $item->icon  = 'fas fa-home';
                     return $item;
                 });
         });
