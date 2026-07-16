@@ -7,6 +7,38 @@ use App\Models\Setting;
 
 class PageController extends Controller
 {
+    public function about()
+    {
+        $content = Setting::get('about_content', '<p>We help tenants find trusted rooms and property owners connect with genuine renters. Our goal is to make renting simple, transparent and accessible.</p><p>Browse verified listings, compare options and connect with owners from one convenient platform.</p>');
+        $title = 'About Us';
+
+        return view('pages.show', compact('content', 'title'));
+    }
+
+    public function careers()
+    {
+        $content = Setting::get('careers_content', '<p>Join us in building a simpler and more trustworthy rental experience.</p><p>For current opportunities, send your profile to our contact email with the role you are interested in.</p>');
+        $title = 'Careers';
+
+        return view('pages.show', compact('content', 'title'));
+    }
+
+    public function howItWorks()
+    {
+        $content = Setting::get('how_it_works_content', '<h2>Find a room</h2><p>Search by city, budget, room type, furnishing and preferred tenant.</p><h2>Review the details</h2><p>Compare rent, amenities, photos, location and owner information.</p><h2>Connect securely</h2><p>Contact the owner and finalize your stay after verifying the property details.</p><h2>List a property</h2><p>Owners can create a listing, add photos and details, and manage enquiries from their dashboard.</p>');
+        $title = 'How It Works';
+
+        return view('pages.show', compact('content', 'title'));
+    }
+
+    public function safetyTips()
+    {
+        $content = Setting::get('safety_tips_content', '<h2>Visit before paying</h2><p>Inspect the property and confirm its condition before making a payment.</p><h2>Verify the owner</h2><p>Check the identity and ownership or authorization documents of the person listing the property.</p><h2>Use written agreements</h2><p>Record rent, deposit, notice period and included facilities in a signed rental agreement.</p><h2>Protect personal information</h2><p>Do not share OTPs, passwords or unnecessary financial information with anyone.</p>');
+        $title = 'Safety Tips';
+
+        return view('pages.show', compact('content', 'title'));
+    }
+
     public function terms()
     {
         $content = Setting::get('terms_content', 'Terms and Conditions content not set.');

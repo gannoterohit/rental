@@ -1,15 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Payout Requests - Admin')
 
-@section('content')
+@section('admin-content')
 <div class="min-h-screen bg-gray-50 uppercase-none">
     <div class="flex">
         {{-- SIDEBAR --}}
-        @include('admin.partials.sidebar')
-
         {{-- MAIN --}}
-        <div class="flex-1 min-w-0 overflow-hidden p-4 md:p-8">
+        <div class="flex-1 min-w-0 p-4 md:p-8">
             {{-- HEADER --}}
             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-indigo-100"></div>

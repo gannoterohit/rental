@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', isset($blog) ? 'Edit Blog' : 'Create Blog')
 
-@section('content')
+@section('admin-content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <div class="flex items-center mb-6">

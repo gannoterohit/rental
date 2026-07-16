@@ -1,5 +1,6 @@
-@extends('layouts.app')
-@section('content')
+@extends('layouts.admin')
+@section('title', 'Create Subscription Plan')
+@section('admin-content')
 <div class="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         <div class="text-center mb-12">

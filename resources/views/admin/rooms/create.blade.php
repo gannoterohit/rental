@@ -1,18 +1,16 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Create New Room - Admin')
 
-@section('content')
+@section('admin-content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-<div class="flex h-screen bg-gray-100">
+<div class="flex min-h-0 bg-gray-100">
     <!-- Sidebar -->
-    @include('admin.partials.sidebar')
-
     <!-- Main Content -->
-    <div class="flex-1 min-w-0 overflow-hidden overflow-y-auto">
+    <div class="flex-1 min-w-0">
         <div class="container mx-auto px-6 py-8">
             <div class="flex items-center justify-between mb-8">
                 <div>

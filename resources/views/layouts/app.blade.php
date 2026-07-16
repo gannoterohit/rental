@@ -797,8 +797,8 @@
                 <div class="lg:col-span-2">
                     <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Company</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
-                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">About Us</a></li>
-                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>
+                        <li><a href="{{ route('pages.about') }}" class="text-slate-400 hover:text-white transition-all">About Us</a></li>
+                        <li><a href="{{ route('pages.careers') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>
                         <li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white transition-all">Terms of Service</a></li>
                         <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white transition-all">Privacy Policy</a></li>
                         <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Contact Us</a></li>
@@ -810,8 +810,8 @@
                     <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Support</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
                         <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Help Center</a></li>
-                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
-                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>
+                        <li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
+                        <li><a href="{{ route('pages.safety-tips') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>
                         <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Report an Issue</a></li>
                         <li><a href="{{ route('sitemap') }}" class="text-slate-400 hover:text-white transition-all">Sitemap</a></li>
                     </ul>

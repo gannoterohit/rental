@@ -1,10 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="flex h-screen overflow-hidden">
-    @include('admin.partials.sidebar')
-    
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+@section('admin-content')
+<div class="flex min-h-0">
+    <div class="flex-1 min-w-0 flex flex-col">
         <div class="container-fluid px-4 py-6 overflow-y-auto">
             <h1 class="text-2xl font-bold text-slate-800 mb-6">User Search Analytics</h1>
 

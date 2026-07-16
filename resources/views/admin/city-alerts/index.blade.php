@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'City Alert Subscriptions - Admin')
 
-@section('content')
+@section('admin-content')
 <div class="min-h-screen bg-gray-50 pb-12">
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 shadow-lg">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">

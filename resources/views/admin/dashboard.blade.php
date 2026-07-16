@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin Dashboard')
 
-@section('content')
+@section('admin-content')
 @php
  $logo = \App\Models\Setting::get('website_logo');
 @endphp
@@ -11,10 +11,8 @@
     <div class="flex">
 
         {{-- SIDEBAR --}}
-        @include('admin.partials.sidebar')
-
         {{-- MAIN --}}
-        <div class="flex-1 min-w-0 overflow-hidden p-4 md:p-6">
+        <div class="flex-1 min-w-0 p-4 md:p-6">
 
             {{-- WELCOME SECTION --}}
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 mb-6 text-white">

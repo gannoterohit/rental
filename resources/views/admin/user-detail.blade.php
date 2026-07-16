@@ -1,12 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'User Details - Admin')
 
-@section('content')
-<div class="flex h-screen bg-gray-100">
-    @include('admin.partials.sidebar')
-
-    <div class="flex-1 min-w-0 overflow-hidden overflow-y-auto">
+@section('admin-content')
+<div class="flex min-h-0 bg-gray-100">
+    <div class="flex-1 min-w-0">
         <div class="container mx-auto px-6 py-8">
             <div class="flex items-center justify-between mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">

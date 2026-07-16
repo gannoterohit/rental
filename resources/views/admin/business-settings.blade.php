@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Business Settings')
 
-@section('content')
+@section('admin-content')
 @push('styles')
 <style>
     /* Hide main site footer and mobile nav on settings page for better full-height layout */
@@ -12,7 +12,7 @@
 </style>
 @endpush
 <!-- Alpine Data for Tabs -->
-<div x-data="{ activeTab: 'general' }" class="flex flex-col h-[calc(100vh-64px)] bg-gray-50">
+<div x-data="{ activeTab: 'general' }" class="flex flex-col min-h-0 bg-gray-50">
     
     <!-- Header -->
     <div class="bg-white border-b border-gray-200 shadow-sm z-10 w-full">
@@ -36,10 +36,10 @@
     </div>
 
     <!-- Layout Container -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 items-start">
         
         <!-- Sidebar Navigation -->
-        <div class="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 py-6 px-4 hidden md:block">
+        <div class="w-72 bg-white border-r border-gray-200 flex-shrink-0 py-6 px-4 hidden md:block md:sticky md:top-[80px]">
             <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Configuration Modules</p>
             <nav class="space-y-1">
                 <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
@@ -112,7 +112,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8 flex flex-col items-center">
+        <div class="flex-1 min-w-0 bg-gray-50 p-4 md:p-6 flex flex-col items-center">
             <!-- Mobile Menu -->
             <div class="md:hidden mb-6 overflow-x-auto pb-2 w-full">
                 <div class="flex space-x-2">
@@ -694,4 +694,3 @@ syncColorInputs('secondary_color', 'secondary_color_text');
 </script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 @endpush
-

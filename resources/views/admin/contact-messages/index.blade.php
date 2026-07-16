@@ -1,12 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Contact Messages - Admin')
 
-@section('content')
+@section('admin-content')
 <div class="min-h-screen bg-gray-50 flex">
     <!-- Sidebar -->
-    @include('admin.partials.sidebar')
-
     <!-- Main Content -->
     <div class="flex-1 p-4 md:p-8">
         <div class="container mx-auto">

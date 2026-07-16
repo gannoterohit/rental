@@ -1,10 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
-<div class="flex h-screen overflow-hidden">
-    @include('admin.partials.sidebar')
-    
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+@section('admin-content')
+<div class="flex min-h-0">
+    <div class="flex-1 min-w-0 flex flex-col">
         <div class="container-fluid px-4 py-6">
             <h1 class="text-2xl font-bold text-slate-800 mb-6">{{ $pageTitle }}</h1>
 
@@ -66,7 +64,7 @@
     </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+@include('admin.pages.partials.rich-editor')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('faq-container');
@@ -78,10 +76,7 @@
 
         // Helper to init editor
         function initEditor(element) {
-            ClassicEditor
-                .create(element, {
-                    toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'undo', 'redo']
-                })
+            createRichEditor(element)
                 .then(editor => {
                     editors[element.name] = editor;
                 })

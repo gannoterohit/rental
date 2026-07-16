@@ -1,15 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Rejection Reasons')
 
-@section('content')
+@section('admin-content')
 <div class="min-h-screen bg-gray-50">
     <div class="flex">
         {{-- SIDEBAR --}}
-        @include('admin.partials.sidebar')
-
         {{-- MAIN --}}
-        <div class="flex-1 min-w-0 overflow-hidden p-4 md:p-6">
+        <div class="flex-1 min-w-0 p-4 md:p-6">
             {{-- HEADER --}}
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <div class="flex justify-between items-center">
@@ -53,7 +51,7 @@
                                     {{ $reason->reason }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $reason->created_at->format('d M Y') }}
+                                    {{ $reason->created_at?->format('d M Y') ?? '—' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">

@@ -8,6 +8,57 @@ use Illuminate\Http\Request;
 
 class PagesController extends Controller
 {
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'upload' => 'required|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+        ]);
+
+        $path = $request->file('upload')->store('page-content', 'public');
+
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
+    public function about()
+    {
+        return $this->showEditor('about_content', 'About Us', 'admin.pages.about.update');
+    }
+
+    public function updateAbout(Request $request)
+    {
+        return $this->saveEditor($request, 'about_content', 'About Us');
+    }
+
+    public function careers()
+    {
+        return $this->showEditor('careers_content', 'Careers', 'admin.pages.careers.update');
+    }
+
+    public function updateCareers(Request $request)
+    {
+        return $this->saveEditor($request, 'careers_content', 'Careers');
+    }
+
+    public function howItWorks()
+    {
+        return $this->showEditor('how_it_works_content', 'How It Works', 'admin.pages.how-it-works.update');
+    }
+
+    public function updateHowItWorks(Request $request)
+    {
+        return $this->saveEditor($request, 'how_it_works_content', 'How It Works');
+    }
+
+    public function safetyTips()
+    {
+        return $this->showEditor('safety_tips_content', 'Safety Tips', 'admin.pages.safety-tips.update');
+    }
+
+    public function updateSafetyTips(Request $request)
+    {
+        return $this->saveEditor($request, 'safety_tips_content', 'Safety Tips');
+    }
+
     /**
      * Show the form for editing the Terms page.
      */
@@ -136,4 +187,20 @@ class PagesController extends Controller
             ]);
         }
     }
-}   
+
+    private function showEditor(string $key, string $pageTitle, string $routeName)
+    {
+        $setting = Setting::where('key', $key)->first();
+        $route = route($routeName);
+
+        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+    }
+
+    private function saveEditor(Request $request, string $key, string $pageTitle)
+    {
+        $request->validate(['content' => 'nullable|string']);
+        $this->updatePageContent($key, $request->input('content', ''));
+
+        return back()->with('success', $pageTitle . ' page updated successfully!');
+    }
+}

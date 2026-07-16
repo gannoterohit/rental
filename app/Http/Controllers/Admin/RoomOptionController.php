@@ -16,6 +16,20 @@ class RoomOptionController extends Controller
         return view('admin.room-options.index', compact('options', 'groups'));
     }
 
+    public function create()
+    {
+        $groups = ['room_type' => 'Room Type', 'furnishing_type' => 'Furnishing', 'tenant_type' => 'Preferred Tenant'];
+
+        return view('admin.room-options.create', compact('groups'));
+    }
+
+    public function edit(RoomOption $roomOption)
+    {
+        $groups = ['room_type' => 'Room Type', 'furnishing_type' => 'Furnishing', 'tenant_type' => 'Preferred Tenant'];
+
+        return view('admin.room-options.edit', compact('roomOption', 'groups'));
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -27,7 +41,7 @@ class RoomOptionController extends Controller
 
         RoomOption::create(array_merge($data, ['is_active' => true]));
 
-        return redirect()->back()->with('success', 'Room option added successfully.');
+        return redirect()->route('admin.room-options.index')->with('success', 'Room option added successfully.');
     }
 
     public function update(Request $request, RoomOption $roomOption)
@@ -41,7 +55,7 @@ class RoomOptionController extends Controller
 
         $roomOption->update($data);
 
-        return redirect()->back()->with('success', 'Room option updated successfully.');
+        return redirect()->route('admin.room-options.index')->with('success', 'Room option updated successfully.');
     }
 
     public function destroy(RoomOption $roomOption)
@@ -49,5 +63,14 @@ class RoomOptionController extends Controller
         $roomOption->update(['is_active' => false]);
 
         return redirect()->back()->with('success', 'Room option removed successfully.');
+    }
+
+    public function toggleStatus(RoomOption $roomOption)
+    {
+        $roomOption->update(['is_active' => !$roomOption->is_active]);
+
+        $message = $roomOption->is_active ? 'Room option activated successfully.' : 'Room option deactivated successfully.';
+
+        return redirect()->route('admin.room-options.index')->with('success', $message);
     }
 }

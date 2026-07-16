@@ -105,6 +105,12 @@
         <div>
             <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-3 ml-2">App Info & Support</p>
             <div class="space-y-1">
+                <a href="{{ route('pages.about') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                    <i class="fas fa-info-circle w-5 text-indigo-500"></i> About Us
+                </a>
+                <a href="{{ route('pages.faq') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                    <i class="fas fa-question-circle w-5 text-purple-500"></i> FAQ
+                </a>
                 <a href="{{ route('pages.contact') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-headset w-5 text-blue-500"></i> Support Center
                 </a>

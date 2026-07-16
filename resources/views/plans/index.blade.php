@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends(request()->routeIs('admin.*') ? 'layouts.admin' : 'layouts.app')
 
 @section('title', 'Subscription Plans - RoomRental')
 
-@section('content')
+@section(request()->routeIs('admin.*') ? 'admin-content' : 'content')
 @push('head')
     @include('partials.plans-ld')
 @endpush

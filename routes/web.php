@@ -67,6 +67,10 @@ Route::post('/newsletter/subscribe', [\App\Http\Controllers\SubscriberController
 
 // Static Pages
 Route::controller(\App\Http\Controllers\PageController::class)->group(function () {
+    Route::get('/about-us', 'about')->name('pages.about');
+    Route::get('/careers', 'careers')->name('pages.careers');
+    Route::get('/how-it-works', 'howItWorks')->name('pages.how-it-works');
+    Route::get('/safety-tips', 'safetyTips')->name('pages.safety-tips');
     Route::get('/terms-and-conditions', 'terms')->name('pages.terms');
     Route::get('/privacy-policy', 'privacy')->name('pages.privacy');
     Route::get('/condition-policy', 'condition')->name('pages.condition');
@@ -125,6 +129,7 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     Route::post('/settings/store', [BusinessSettingsController::class, 'store'])->name('settings.store');
     Route::post('/settings/ping', [BusinessSettingsController::class, 'pingSearchEngines'])->name('settings.ping');
     Route::resource('room-options', RoomOptionController::class)->except(['show']);
+    Route::patch('room-options/{roomOption}/toggle-status', [RoomOptionController::class, 'toggleStatus'])->name('room-options.toggle-status');
     Route::resource('plans', PlanController::class);
     Route::post('/plans/{plan}/toggle-active', [PlanController::class, 'toggleActive'])->name('plans.toggleActive');
     
@@ -187,6 +192,16 @@ Route::delete('rooms/{room}', [AdminController::class, 'deleteRoom'])->name('roo
 
 
 Route::controller(PagesController::class)->group(function () {
+    Route::post('/pages/upload-image', 'uploadImage')->name('pages.upload-image');
+    Route::get('/pages/about', 'about')->name('pages.about');
+    Route::put('/pages/about', 'updateAbout')->name('pages.about.update');
+    Route::get('/pages/careers', 'careers')->name('pages.careers');
+    Route::put('/pages/careers', 'updateCareers')->name('pages.careers.update');
+    Route::get('/pages/how-it-works', 'howItWorks')->name('pages.how-it-works');
+    Route::put('/pages/how-it-works', 'updateHowItWorks')->name('pages.how-it-works.update');
+    Route::get('/pages/safety-tips', 'safetyTips')->name('pages.safety-tips');
+    Route::put('/pages/safety-tips', 'updateSafetyTips')->name('pages.safety-tips.update');
+
     Route::get('/pages/terms', 'terms')->name('pages.terms');
     Route::put('/pages/terms', 'updateTerms')->name('pages.terms.update');
 

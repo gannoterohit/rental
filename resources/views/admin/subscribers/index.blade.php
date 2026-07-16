@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin-content')
 <div class="bg-white rounded-lg shadow-sm border border-gray-100">
     <div class="p-6 border-b border-gray-100 flex justify-between items-center">
         <div>

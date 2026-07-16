@@ -1,15 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'All Owners - Admin')
 
-@section('content')
+@section('admin-content')
 <div class="min-h-screen bg-gray-50">
     <div class="flex">
         <!-- Sidebar -->
-        @include('admin.partials.sidebar')
-
         <!-- Main Content -->
-        <div class="flex-1 min-w-0 overflow-hidden p-4 md:p-6">
+        <div class="flex-1 min-w-0 p-4 md:p-6">
         <div class="container mx-auto px-6 py-8">
             <div class="flex items-center justify-between mb-8">
                 <div>
