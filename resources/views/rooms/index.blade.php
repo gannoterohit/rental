@@ -24,14 +24,62 @@
     .filter-sticky::-webkit-scrollbar { width: 5px; }
     .filter-sticky::-webkit-scrollbar-track { background: #f1f5f9; }
     .filter-sticky::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .rooms-search-shell {
+        background: #f1f5f9;
+        padding: 1.25rem 0;
+    }
+    .rooms-search-panel {
+        border-radius: 1rem;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, .06);
+    }
+    .rooms-main {
+        background: #f8fafc;
+        min-height: 65vh;
+    }
+    .rooms-filter-panel {
+        border-color: #e2e8f0;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, .045);
+    }
+    .rooms-results-head {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: .9rem 1rem;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, .035);
+    }
+    .room-listing-card {
+        border-color: #e2e8f0;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, .055);
+    }
+    .room-listing-card:hover {
+        border-color: color-mix(in srgb, var(--primary-color, #4f46e5) 35%, #e2e8f0);
+        box-shadow: 0 18px 38px rgba(15, 23, 42, .11);
+    }
+    .room-listing-card .room-image {
+        height: 12rem;
+    }
+    .room-listing-card .room-card-body {
+        padding: 1rem;
+    }
+    @media (max-width: 1279px) {
+        .room-listing-card .room-image { height: 13rem; }
+    }
+    @media (max-width: 767px) {
+        .rooms-main { padding-top: .75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .room-listing-card, .room-listing-card img { transition: none !important; }
+        .room-listing-card:hover { transform: none !important; }
+    }
 </style>
 @endpush
 
 @section('content')
 <!-- ===== TOP SEARCH HEADER BAR ===== -->
-<div class="bg-[#f8fafc] border-b border-slate-200/80 py-5 hidden md:block">
+<div class="rooms-search-shell border-b border-slate-200/80 hidden md:block">
     <div class="container mx-auto px-6">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+        <div class="rooms-search-panel bg-white border border-slate-200 p-4">
             <form action="{{ route('rooms.index') }}" method="GET" class="flex flex-wrap gap-4 items-center justify-between">
                 <!-- Location -->
                 <div class="flex-1 min-w-[200px] border-r border-slate-100 pr-4">
@@ -62,7 +110,7 @@
                         <i class="fas fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <select name="room_type[]" class="w-full py-2 pl-8 pr-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none appearance-none transition-all">
                             <option value="">Any Type</option>
-                            @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
+                            @foreach($roomTypeOptions as $option)
                                 <option value="{{ $option->id }}" {{ in_array($option->id, (array)request('room_type')) ? 'selected' : '' }}>{{ $option->label }}</option>
                             @endforeach
                         </select>
@@ -102,26 +150,6 @@
             </form>
         </div>
 
-        <!-- Popular Searches row — fully dynamic from DB -->
-        <div class="flex items-center gap-2 mt-3 text-[11px] flex-wrap">
-            <span class="font-extrabold text-slate-400 uppercase tracking-wider">Popular:</span>
-            <div class="flex gap-2 flex-wrap">
-                {{-- Top room types from DB --}}
-                @foreach($topRoomTypes as $typeItem)
-                    <a href="{{ route('rooms.index', ['room_type' => [$typeItem['id']]]) }}"
-                       class="bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 font-semibold px-2.5 py-0.5 rounded-full transition-all">
-                        {{ $typeItem['label'] }}
-                    </a>
-                @endforeach
-                {{-- Top cities from DB --}}
-                @foreach($popularCities->take(3) as $pCity)
-                    <a href="{{ route('rooms.index', ['city' => $pCity->city]) }}"
-                       class="bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 font-semibold px-2.5 py-0.5 rounded-full transition-all">
-                        {{ $pCity->city }}
-                    </a>
-                @endforeach
-            </div>
-        </div>
     </div>
 </div>
 
@@ -131,7 +159,8 @@
 </div>
 
 <!-- ===== MAIN CONTAINER ===== -->
-<div class="container mx-auto px-6 py-6">
+<div class="rooms-main">
+<div class="container mx-auto px-4 sm:px-6 py-6">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-4 font-semibold">
         <a href="{{ url('/') }}" class="hover:text-indigo-600 transition-colors">Home</a>
@@ -144,7 +173,7 @@
 
         <!-- ===== LEFT SIDEBAR (FILTERS) ===== -->
         <div class="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 hidden lg:block">
-            <div class="filter-sticky bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-6">
+            <div class="rooms-filter-panel filter-sticky bg-white border rounded-2xl p-5 space-y-6">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-black text-slate-800 text-base">Filters</h3>
@@ -176,23 +205,24 @@
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Property Type</label>
                         <div class="space-y-2.5">
-                            @foreach(App\Models\RoomOption::optionsFor('room_type') as $option)
+                            @forelse($roomTypeOptions as $option)
                                 @php
                                     $count = $roomTypeCounts[$option->id] ?? 0;
                                     $isChecked = in_array($option->id, (array)request('room_type'));
                                 @endphp
-                                {{-- Only show if there are listings OR it is currently filtered --}}
-                                @if($count > 0 || $isChecked)
-                                    <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600 transition-colors">
-                                        <span class="flex items-center gap-2">
-                                            <input type="checkbox" name="room_type[]" value="{{ $option->id }}" {{ $isChecked ? 'checked' : '' }}
-                                                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
-                                            <span>{{ $option->label }}</span>
-                                        </span>
-                                        <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $count }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
+                                <label class="flex items-center justify-between text-xs text-slate-600 font-semibold cursor-pointer hover:text-indigo-600 transition-colors">
+                                    <span class="flex items-center gap-2">
+                                        <input type="checkbox" name="room_type[]" value="{{ $option->id }}" {{ $isChecked ? 'checked' : '' }}
+                                               class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
+                                        <span>{{ $option->label }}</span>
+                                    </span>
+                                    <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-full">{{ $count }}</span>
+                                </label>
+                            @empty
+                                <p class="rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700">
+                                    No active property types configured.
+                                </p>
+                            @endforelse
                         </div>
                     </div>
 
@@ -336,7 +366,7 @@
         <!-- ===== RIGHT COLUMN (ROOMS GRID) ===== -->
         <div class="flex-grow min-w-0">
             <!-- Header bar inside list -->
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div class="rooms-results-head flex items-center justify-between mb-5 flex-wrap gap-3">
                 <div>
                     <h2 class="text-2xl font-black text-slate-900 font-heading">
                         All Rooms in {{ request('city') ?? session('user_city') ?? 'India' }}
@@ -442,9 +472,9 @@
                 <div class="hidden md:flex flex-wrap -mx-2.5">
                     @foreach($rooms as $room)
                         <div class="w-full md:w-1/2 xl:w-1/3 px-2.5 mb-5 flex flex-col">
-                            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-indigo-300 transition-all duration-300 overflow-hidden flex flex-col h-full hover:-translate-y-1">
+                            <div class="room-listing-card group bg-white rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col h-full hover:-translate-y-1">
                                 <!-- Image Area -->
-                                <a href="{{ route('rooms.show', $room->id) }}" class="relative block h-44 overflow-hidden bg-slate-100">
+                                <a href="{{ route('rooms.show', $room->id) }}" class="room-image relative block overflow-hidden bg-slate-100">
                                     @if($room->photo_url)
                                         <img src="{{ $room->photo_url }}" alt="{{ $room->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                                     @else
@@ -485,7 +515,7 @@
                                 </a>
 
                                 <!-- Card content -->
-                                <div class="p-4 flex flex-col flex-grow">
+                                <div class="room-card-body flex flex-col flex-grow">
                                     <h3 class="font-bold text-sm text-slate-900 line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
                                         <a href="{{ route('rooms.show', $room->id) }}">{{ $room->title }}</a>
                                     </h3>
@@ -579,6 +609,7 @@
         </div>
 
     </div>
+</div>
 </div>
 
 <!-- ===== BOTTOM TRUST RIBBON ===== -->

@@ -3,6 +3,9 @@
 @section('title', 'My Wallet')
 
 @section('content')
+<div class="user-workspace min-h-screen bg-slate-50 flex">
+    @include('user.partials.sidebar', ['active' => 'wallet'])
+    <main class="flex-1 min-w-0">
 <div class="container mx-auto px-6 py-8">
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-800 mb-8">My Wallet</h1>
@@ -58,5 +61,7 @@
             </form>
         </div>
     </div>
+</div>
+    </main>
 </div>
 @endsection

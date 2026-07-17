@@ -205,6 +205,26 @@
         footer {
             margin-top: auto;
         }
+
+        .site-footer {
+            background-color: #111827 !important;
+            color: #94a3b8;
+            border-top-color: #1f2937 !important;
+            padding-top: 4.5rem !important;
+        }
+
+        .navbar-brand-logo,
+        .footer-brand-logo {
+            height: 2.5rem;
+            width: auto;
+            object-fit: contain;
+            transform: scale(1.7);
+            transform-origin: left center;
+        }
+
+        .footer-brand-logo {
+            margin-bottom: 0.875rem;
+        }
         /* App-like Bottom Navigation */
         .bottom-nav {
             position: fixed;
@@ -548,10 +568,10 @@
     <!-- Mobile App Header - Enhanced App Style -->
     <div class="mobile-app-header lg:hidden">
         <div class="header-left">
-                    @php $mobileLogo = \App\Models\Setting::get('website_logo'); @endphp
+                    @php $mobileLogo = \App\Models\Setting::get('navbar_logo') ?: \App\Models\Setting::get('website_logo'); @endphp
                     @if($mobileLogo)
                         <a href="{{ route('home') }}">
-                            <img src="{{ asset('storage/' . $mobileLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-9 w-auto rounded-lg">
+                            <img src="{{ asset('storage/' . $mobileLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-9 w-9 object-contain rounded-lg border border-slate-200 p-1 bg-white">
                         </a>
                     @else
                         <div class="app-icon">
@@ -560,7 +580,7 @@
                     @endif
                 <div class="header-content">
                 <h1 class="text-lg font-bold text-gray-900 leading-none">{{ \App\Models\Setting::get('website_name', 'RoomRental') }}</h1>
-                <p class="text-[10px] text-gray-600 font-medium">Find your stay</p>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Find your perfect stay</p>
                 </div>
         </div>
         <div class="header-right">
@@ -589,7 +609,7 @@
                     @if($navbarLogo)
                         <img src="{{ asset('storage/' . $navbarLogo) }}"
                              alt="ApnaNest Logo"
-                             class="h-10 w-auto object-contain">
+                             class="navbar-brand-logo">
                     @else
                         <div class="flex items-center gap-2">
                             <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
@@ -601,14 +621,13 @@
                 </a>
                 
                 <!-- Center Links -->
-                <div class="hidden lg:flex items-center gap-6">
-                    <a href="{{ route('home') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Home</a>
-                    <a href="{{ route('rooms.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Browse Rooms</a>
-                    <a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', 'shared_room')]]) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">PG</a>
-                    <a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', '1bhk')]]) }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Apartments</a>
-                    <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Owners</a>
-                    <a href="{{ route('plans') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Pricing</a>
-                    <a href="{{ route('blogs.index') }}" class="text-slate-600 hover:text-indigo-600 text-sm font-semibold transition-colors duration-200">Blog</a>
+                <div class="hidden lg:flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-xl p-1">
+                    <a href="{{ route('home') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Home</a>
+                    <a href="{{ route('rooms.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Browse Rooms</a>
+                    <a href="{{ route('pages.how-it-works') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">How It Works</a>
+                    <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register', ['role' => 'owner']) }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">For Owners</a>
+                    <a href="{{ route('plans') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Pricing</a>
+                    <a href="{{ route('blogs.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Blog</a>
                 </div>
                 
                 <!-- Right Side Actions -->
@@ -618,15 +637,14 @@
                         <i class="far fa-heart text-lg"></i>
                     </a>
                     
-                    <!-- Notification Icon (Bell) -->
-                    <a href="{{ route('pages.faq') }}" class="text-slate-600 hover:text-indigo-600 transition-colors p-2 relative" title="Notifications">
-                        <i class="far fa-bell text-lg"></i>
-                    </a>
-                    
                     @auth
-                        <!-- User Profile Dropdown -->
-                        <div class="relative group">
-                            <button class="flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                        <!-- Compact account link; account actions live in the role sidebar. -->
+                        @php
+                            $accountHome = Auth::user()->role === 'owner'
+                                ? route('owner.dashboard')
+                                : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard'));
+                        @endphp
+                        <a href="{{ $accountHome }}" class="flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60" title="Open dashboard">
                                 @if(Auth::user()->avatar)
                                     <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
                                 @else
@@ -635,36 +653,16 @@
                                     </div>
                                 @endif
                                 <span class="hidden xl:inline text-xs font-semibold">{{ Str::limit(Auth::user()->name, 12) }}</span>
-                                <i class="fas fa-chevron-down text-[10px]"></i>
-                            </button>
-                            <div class="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl py-1 hidden group-hover:block border border-slate-100 z-50">
-                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
-                                    <i class="far fa-user text-slate-400 text-xs"></i>Profile
-                                </a>
-                                <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
-                                    <i class="fas fa-tachometer-alt text-slate-400 text-xs"></i>Dashboard
-                                </a>
-                                <a href="{{ route('wishlist.index') }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-50 text-sm font-medium">
-                                    <i class="far fa-heart text-red-500 text-xs"></i>My Wishlist
-                                </a>
-                                <a href="{{ route('referral.index') }}" class="flex items-center gap-2 px-4 py-2 text-emerald-600 hover:bg-emerald-50 text-sm font-bold">
-                                    <i class="fas fa-gift text-xs"></i>Refer & Earn
-                                </a>
-                                <div class="border-t border-slate-100 my-1"></div>
-                                <form action="{{ route('logout') }}" method="POST" class="block">
-                                    @csrf
-                                    <button type="submit" class="w-full text-left flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 text-sm font-medium">
-                                        <i class="fas fa-sign-out-alt text-xs"></i>Logout
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                                <i class="fas fa-arrow-right text-[9px] text-slate-400"></i>
+                        </a>
                         
                         <!-- Post Property Button for Logged In -->
-                        <a href="{{ route('rooms.create') }}"
-                           class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-orange-500/10 flex items-center gap-1.5">
-                            <i class="fas fa-plus text-xs"></i> Post Property
-                        </a>
+                        @if(Auth::user()->role === 'owner')
+                            <a href="{{ route('rooms.create') }}"
+                               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/10 flex items-center gap-1.5">
+                                <i class="fas fa-plus text-xs"></i> Post Property
+                            </a>
+                        @endif
                     @else
                         <!-- Guest Actions -->
                         <a href="{{ route('login') }}" 
@@ -676,7 +674,7 @@
                             Sign Up
                         </a>
                         <a href="{{ route('register') }}?role=owner"
-                           class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-orange-500/15">
+                           class="border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200">
                             Post Property
                         </a>
                     @endauth
@@ -742,15 +740,15 @@
     @endif
 
     <!-- Redesigned Footer Section -->
-    <footer class="relative bg-[#0b0f19] text-slate-400 py-12 hidden lg:block overflow-hidden border-t border-slate-900">
+    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t">
         <div class="container mx-auto px-6 relative z-10">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
                 <!-- Brand Info (Col span 3) -->
                 <div class="lg:col-span-3 space-y-4">
                     <a href="{{ route('home') }}" class="flex items-center gap-2 group" aria-label="RoomRental Home">
                         @php $footerLogo = \App\Models\Setting::get('footer_logo'); @endphp
                         @if($footerLogo)
-                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="h-10 w-auto object-contain">
+                            <img src="{{ asset('storage/' . $footerLogo) }}" alt="{{ \App\Models\Setting::get('website_name', 'RoomRental') }}" class="footer-brand-logo">
                         @else
                             <div class="flex items-center gap-2">
                                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
@@ -773,6 +771,7 @@
                             ];
                         @endphp
                         @foreach($socialLinks as $icon => $url)
+                            @continue(!$url || $url === '#')
                             <a href="{{ $url }}" aria-label="Visit us on {{ ucfirst(str_replace(['-f', '-in'], '', $icon)) }}" class="w-8 h-8 rounded-lg bg-white/5 text-slate-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-white/5" {{ $url != '#' ? 'target="_blank"' : '' }}>
                                 <i class="fa-brands fa-{{ $icon }} text-xs" aria-hidden="true"></i>
                             </a>
@@ -788,8 +787,8 @@
                         <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Browse Rooms</a></li>
                         <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', 'shared_room')]]) }}" class="text-slate-400 hover:text-white transition-all">PG</a></li>
                         <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', '1bhk')]]) }}" class="text-slate-400 hover:text-white transition-all">Apartments</a></li>
-                        <li><a href="{{ route('register') }}" class="text-slate-400 hover:text-white transition-all">Hostels</a></li>
-                        <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Villas</a></li>
+                        <li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
+                        <li><a href="{{ route('plans') }}" class="text-slate-400 hover:text-white transition-all">Pricing</a></li>
                     </ul>
                 </div>
 
@@ -840,7 +839,7 @@
             <!-- Footer Bottom -->
             <div class="pt-6 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-slate-500 font-semibold">
-                    &copy; {{ date('Y') }} ApnaNest. All rights reserved.
+                    &copy; {{ date('Y') }} {{ \App\Models\Setting::get('website_name', 'ApnaNest') }}. All rights reserved.
                 </p>
                 <div class="flex items-center gap-4">
                     <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">

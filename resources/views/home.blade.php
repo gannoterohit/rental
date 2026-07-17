@@ -1,11 +1,28 @@
 @extends('layouts.app')
 
-@php($homeCity = request('city') ?? session('user_city'))
-@section('title', ($homeCity ? 'Verified Rooms & PG in ' . $homeCity : 'Browse Rooms & PG for Rent') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-@section('description', ($homeCity ? 'Find the best verified rooms, apartments, and PG in ' . $homeCity . '. Browse listings with photos, rents, and owner contacts.' : 'Browse verified room listings in your city. Find apartments, houses, and rooms for rent with verified owners.'))
-@section('keywords', ($homeCity ? 'pg in ' . $homeCity . ', room for rent in ' . $homeCity . ', ' : '') . 'browse rooms, room listings, ' . \App\Models\Setting::get('seo_meta_keywords', 'apartment, house, property'))
-@section('og_title', ($homeCity ? 'Rooms & PG in ' . $homeCity : 'Browse Rooms') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-@section('og_description', ($homeCity ? 'Check out available rooms and paying guests in ' . $homeCity : 'Browse verified room listings in your city. Find apartments and rooms for rent.'))
+@php
+    $homeCity = request('city') ?? session('user_city');
+    $homeText = fn (string $key, string $default = '') => \App\Models\Setting::get($key, $default);
+    $homeWhyCards = collect(range(1, 4))->map(fn ($i) => [
+        'title' => $homeText("home_why_{$i}_title", ['Verified Listings', 'Zero Brokerage', 'Secure Payments', 'Customer Support'][$i - 1]),
+        'description' => $homeText("home_why_{$i}_description", ['Listings reviewed for authenticity.', 'Connect directly with property owners.', 'Protected payments through trusted gateways.', 'Support throughout your rental journey.'][$i - 1]),
+        'icon' => $homeText("home_why_{$i}_icon", ['fa-circle-check', 'fa-wallet', 'fa-shield-halved', 'fa-headset'][$i - 1]),
+    ]);
+    $homeSteps = collect(range(1, 3))->map(fn ($i) => [
+        'title' => $homeText("home_step_{$i}_title", ['Search', 'Connect', 'Move In'][$i - 1]),
+        'description' => $homeText("home_step_{$i}_description", ['Find rooms by city, budget and preference.', 'Review details and connect with the owner.', 'Verify the property, complete documentation and move in.'][$i - 1]),
+    ]);
+    $homeTestimonials = collect(range(1, 2))->map(fn ($i) => [
+        'name' => $homeText("home_testimonial_{$i}_name", $i === 1 ? 'Rahul Sharma' : 'Neha Verma'),
+        'role' => $homeText("home_testimonial_{$i}_role", $i === 1 ? 'Student' : 'Working Professional'),
+        'text' => $homeText("home_testimonial_{$i}_text", 'A simple and reliable room-finding experience.'),
+    ]);
+@endphp
+@section('title', ((request('city') ?? session('user_city')) ? 'Verified Rooms & PG in ' . (request('city') ?? session('user_city')) : 'Browse Rooms & PG for Rent') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
+@section('description', ((request('city') ?? session('user_city')) ? 'Find verified rooms, apartments and PG in ' . (request('city') ?? session('user_city')) . '.' : 'Browse verified room listings and connect with property owners.'))
+@section('keywords', ((request('city') ?? session('user_city')) ? 'pg in ' . (request('city') ?? session('user_city')) . ', room for rent, ' : '') . \App\Models\Setting::get('seo_meta_keywords', 'rooms, apartment, rental property'))
+@section('og_title', ((request('city') ?? session('user_city')) ? 'Rooms & PG in ' . (request('city') ?? session('user_city')) : 'Browse Rooms') . ' | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
+@section('og_description', ((request('city') ?? session('user_city')) ? 'Browse available rooms in ' . (request('city') ?? session('user_city')) . '.' : 'Browse verified room listings in your city.'))
 @section('og_url', route('rooms.index', request()->all()))
 @section('canonical', route('rooms.index'))
 
@@ -81,6 +98,63 @@
         -webkit-backdrop-filter: blur(14px);
         border: 1px solid rgba(255,255,255,0.7);
     }
+
+    /* Professional landing-page visual system */
+    @media (min-width: 768px) {
+        main > div:not(.md\:hidden) .container,
+        main > section .container { max-width: 1280px; }
+        main > section { padding-top: 56px !important; padding-bottom: 56px !important; }
+    }
+    .hero-mesh-bg {
+        padding-top: 44px !important;
+        padding-bottom: 64px !important;
+        background-color:#f8fafc;
+        background-image:linear-gradient(180deg, rgba(var(--primary-rgb),.055), rgba(255,255,255,.95) 55%, #fff) !important;
+        border-bottom:1px solid #e8edf4;
+    }
+    .hero-mesh-bg > .absolute { display:none; }
+    .hero-left, .hero-right, .float-card-1, .float-card-2, .float-card-3 { animation:none !important; }
+    .pulse-orange { animation:none !important; }
+    .why-card:hover { transform:translateY(-2px); box-shadow:0 12px 30px -18px rgba(15,23,42,.28); }
+    main .bg-orange-500 { background-color:var(--secondary) !important; }
+    main .hover\:bg-orange-600:hover { background-color:var(--secondary) !important; filter:brightness(.92); }
+    main .text-orange-500, main .text-orange-400, main .hover\:text-orange-600:hover { color:var(--secondary) !important; }
+    main .border-orange-400, main .focus\:border-orange-400:focus { border-color:var(--secondary) !important; }
+    main .shadow-orange-400\/30, main .shadow-orange-500\/25 { --tw-shadow-color:rgba(var(--secondary-rgb),.18) !important; }
+    main h2, main h3 { letter-spacing:-.02em; }
+    main section .rounded-\[32px\] { border-radius:20px !important; }
+    main section .rounded-3xl { border-radius:18px !important; }
+    main .shadow-xl, main .shadow-lg { box-shadow:0 12px 35px -22px rgba(15,23,42,.30) !important; }
+    main .reveal { opacity:1; transform:none; }
+    @media (prefers-reduced-motion: reduce) { .reveal, .why-card, .hero-left, .hero-right { animation:none !important; transition:none !important; } }
+
+    /* Landing micro-interactions */
+    .why-card, .category-card, .trust-tile, .step-item, .testimonial-card, .app-download-card, .owner-cta {
+        transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
+    }
+    .why-card:hover, .category-card:hover, .testimonial-card:hover { transform:translateY(-4px); }
+    .why-card > div:first-child, .category-card .category-icon, .trust-tile > div:first-child, .step-item > div:first-child {
+        transition:transform .24s cubic-bezier(.2,.8,.2,1), background-color .2s ease, color .2s ease;
+    }
+    .why-card:hover > div:first-child { transform:scale(1.08) rotate(-3deg); }
+    .category-card:hover .category-icon { transform:scale(1.08) rotate(3deg); background:var(--primary) !important; color:#fff !important; }
+    .category-card:active, .why-card:active, .trust-tile:active, .step-item:active, .testimonial-card:active { transform:scale(.985); }
+    .trust-tile:hover { transform:translateY(-3px); background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.12); }
+    .trust-tile:hover > div:first-child { transform:scale(1.08); }
+    .step-item { border-radius:14px; padding:10px; margin:-10px; }
+    .step-item:hover { background:rgba(var(--primary-rgb),.05); transform:translateX(4px); }
+    .step-item:hover > div:first-child { transform:scale(1.08); background:var(--primary) !important; color:#fff !important; }
+    .testimonial-card:hover { border-color:rgba(var(--primary-rgb),.22); box-shadow:0 12px 25px -20px rgba(15,23,42,.45); }
+    .app-download-card:hover { border-color:rgba(var(--primary-rgb),.2); box-shadow:0 14px 28px -22px rgba(15,23,42,.4); }
+    .app-download-card:hover .fa-qrcode { transform:scale(1.04); }
+    .app-download-card .fa-qrcode { transition:transform .22s ease; }
+    .owner-cta:hover { transform:translateY(-2px); box-shadow:0 22px 45px -28px rgba(15,23,42,.55) !important; }
+    main a[class*="rounded"], main button[class*="rounded"] { transition:transform .16s ease, filter .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease; }
+    main a[class*="rounded"]:active, main button[class*="rounded"]:active { transform:scale(.975); }
+    @media (prefers-reduced-motion: reduce) {
+        .why-card, .category-card, .trust-tile, .step-item, .testimonial-card, .app-download-card, .owner-cta,
+        .why-card > div:first-child, .category-card .category-icon { transition:none !important; transform:none !important; }
+    }
 </style>
 @endpush
 
@@ -99,11 +173,7 @@
     <div class="container mx-auto px-6 relative z-10">
         <!-- Breadcrumb -->
         <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 mb-6">
-            <span class="text-indigo-600">Verified Rooms</span>
-            <i class="fas fa-chevron-right text-[8px]"></i>
-            <span class="text-indigo-600">No-Brokerage</span>
-            <i class="fas fa-chevron-right text-[8px]"></i>
-            <span>Direct Owner Contact</span>
+            <span class="text-indigo-600">{{ $homeText('home_hero_eyebrow', 'Verified Rooms · No Brokerage · Direct Owner Contact') }}</span>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-8 items-start justify-between">
@@ -113,7 +183,7 @@
 
                 <!-- Headline -->
                 <h1 class="text-4xl lg:text-[50px] font-black text-slate-900 leading-[1.1] tracking-tight">
-                    Find Verified Rooms<br>
+                    {{ $homeText('home_hero_title', 'Find Verified Rooms') }}<br>
                     @if($homeCity)
                         in <span class="text-orange-500 relative">
                             {{ $homeCity }}
@@ -124,7 +194,7 @@
                         <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white ml-2 align-middle shadow-md" style="font-size:18px;"><i class="fas fa-check text-sm"></i></span>
                     @else
                         in <span class="text-orange-500 relative">
-                            Your City
+                            {{ $homeText('home_hero_highlight', 'Your City') }}
                             <svg class="absolute -bottom-1 left-0 w-full" height="5" viewBox="0 0 200 5" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                 <path d="M0 4 Q100 0 200 4" stroke="#f97316" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             </svg>
@@ -133,8 +203,7 @@
                 </h1>
 
                 <p class="text-slate-500 text-sm font-medium max-w-xl leading-relaxed">
-                    100% Verified Rooms, PGs &amp; Apartments{{ $homeCity ? ' in ' . $homeCity : '' }}.
-                    No Brokerage. Connect Directly with Owners.
+                    {{ $homeText('home_hero_description', 'Verified rooms, PGs and apartments. No brokerage. Connect directly with owners.') }}
                 </p>
 
                 <!-- Trust Badge Row -->
@@ -219,16 +288,9 @@
                         <!-- Row 2: Full-width Search Button -->
                         <button type="submit" id="hero-search-btn"
                                 class="w-full py-3 bg-orange-500 hover:bg-orange-600 active:scale-[0.99] text-white font-extrabold rounded-xl shadow-lg shadow-orange-400/30 transition-all flex items-center justify-center gap-2 text-sm pulse-orange">
-                            <i class="fas fa-search"></i> Search Rooms
+                            <i class="fas fa-search"></i> {{ $homeText('home_search_button', 'Search Rooms') }}
                         </button>
 
-                        <!-- Popular Tags -->
-                        <div class="flex items-center gap-2 mt-3 flex-wrap border-t border-slate-100 pt-3">
-                            <span class="font-extrabold text-slate-400 uppercase tracking-wider text-[9px]">Popular:</span>
-                            @foreach(\App\Models\RoomOption::optionsFor('room_type')->take(4) as $option)
-                                <a href="{{ route('rooms.index', ['room_type' => [$option->id]]) }}" class="bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px] transition-all">{{ $option->label }}</a>
-                            @endforeach
-                        </div>
                     </form>
                 </div>
             </div>
@@ -290,37 +352,37 @@
 <section class="bg-[#f8fafc] py-16 reveal">
     <div class="container mx-auto px-6">
         <div class="text-center max-w-xl mx-auto mb-12">
-            <h2 class="text-3xl font-black text-slate-900 font-heading">Why Choose <span class="text-indigo-600">ApnaNest?</span></h2>
-            <p class="text-slate-500 text-sm font-medium mt-2">We ensure a safe, secure, and hassle-free renting experience.</p>
+            <h2 class="text-3xl font-black text-slate-900 font-heading">{{ $homeText('home_why_title', 'Why Choose ApnaNest?') }}</h2>
+            <p class="text-slate-500 text-sm font-medium mt-2">{{ $homeText('home_why_description', 'A safe, secure and hassle-free renting experience.') }}</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
             <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-indigo-200">
-                    <i class="fas fa-circle-check"></i>
+                    <i class="fas {{ $homeText('home_why_1_icon', 'fa-circle-check') }}"></i>
                 </div>
-                <h3 class="font-bold text-base text-slate-900">Verified Listings</h3>
-                <p class="text-slate-500 text-xs mt-2 leading-relaxed">All rooms and properties are physically verified for authenticity.</p>
+                <h3 class="font-bold text-base text-slate-900">{{ $homeText('home_why_1_title', 'Verified Listings') }}</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">{{ $homeText('home_why_1_description', 'Listings reviewed for authenticity.') }}</p>
             </div>
             <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-orange-200">
-                    <i class="fas fa-wallet"></i>
+                    <i class="fas {{ $homeText('home_why_2_icon', 'fa-wallet') }}"></i>
                 </div>
-                <h3 class="font-bold text-base text-slate-900">Zero Brokerage</h3>
-                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Direct connection with owners. No hidden charges or end-to-commission fees.</p>
+                <h3 class="font-bold text-base text-slate-900">{{ $homeText('home_why_2_title', 'Zero Brokerage') }}</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">{{ $homeText('home_why_2_description', 'Connect directly with property owners.') }}</p>
             </div>
             <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-emerald-200">
-                    <i class="fas fa-shield-halved"></i>
+                    <i class="fas {{ $homeText('home_why_3_icon', 'fa-shield-halved') }}"></i>
                 </div>
-                <h3 class="font-bold text-base text-slate-900">Secure Payments</h3>
-                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Safe rent transactions and refunds via our secure payment system.</p>
+                <h3 class="font-bold text-base text-slate-900">{{ $homeText('home_why_3_title', 'Secure Payments') }}</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">{{ $homeText('home_why_3_description', 'Protected payments through trusted gateways.') }}</p>
             </div>
             <div class="why-card bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center text-xl mb-4 shadow-md shadow-purple-200">
-                    <i class="fas fa-headset"></i>
+                    <i class="fas {{ $homeText('home_why_4_icon', 'fa-headset') }}"></i>
                 </div>
-                <h3 class="font-bold text-base text-slate-900">24×7 Support</h3>
-                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Dedicated support agents to assist you throughout your rental journey.</p>
+                <h3 class="font-bold text-base text-slate-900">{{ $homeText('home_why_4_title', 'Customer Support') }}</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">{{ $homeText('home_why_4_description', 'Support throughout your rental journey.') }}</p>
             </div>
         </div>
     </div>
@@ -329,47 +391,40 @@
 
 
 <!-- Browse by Category -->
-<section class="bg-white py-16 reveal">
+<section class="bg-white py-16 reveal border-b border-slate-100">
     <div class="container mx-auto px-6">
-        <div class="max-w-5xl mx-auto">
-            <div>
-                <div class="mb-6">
-                    <h2 class="text-2xl font-black text-slate-900">Browse by Category</h2>
-                    <p class="text-slate-500 text-sm font-medium mt-1">Explore different types of rental options available near you.</p>
-                </div>
-                <?php if($roomCategories->count() > 0): ?>
-                <?php
-                    $catPalette = ['indigo', 'orange', 'emerald', 'purple', 'pink', 'amber', 'blue', 'cyan', 'teal', 'rose'];
-                ?>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <?php foreach($roomCategories->take(8) as $index => $cat): ?>
-                        <?php
-                            $color = $catPalette[$index % count($catPalette)];
-                        ?>
-                        <a href="<?php echo route('rooms.index', ['room_type' => [$cat->room_type_option_id]]); ?>"
-                           class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 hover:shadow-md hover:-translate-y-1 transition-all shadow-sm group">
-                            <div class="w-11 h-11 bg-<?php echo $color; ?>-50 text-<?php echo $color; ?>-600 rounded-xl flex items-center justify-center text-lg mb-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <i class="<?php echo $cat->icon; ?>"></i>
-                            </div>
-                            <span class="block text-slate-900 font-bold text-xs leading-tight mb-0.5"><?php echo $cat->label; ?></span>
-                            <span class="block text-[10px] text-slate-400 font-semibold"><?php echo number_format($cat->total); ?> Listings</span>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-                <div class="mt-4">
-                    <a href="{{ route('rooms.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-sm flex items-center gap-1">
-                        View All Categories <i class="fas fa-arrow-right text-xs"></i>
-                    </a>
-                </div>
-                <?php else: ?>
-                <div class="text-center py-12 text-slate-400 text-sm">
-                    <i class="fas fa-layer-group text-3xl mb-3 block"></i>
-                    <p class="font-medium">No categories available yet.</p>
-                </div>
-                <?php endif; ?>
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-indigo-600 mb-2"><span class="w-6 h-px bg-indigo-500"></span>{{ $homeText('home_category_eyebrow', 'Property Types') }}</span>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900">{{ $homeText('home_category_title', 'Browse by Category') }}</h2>
+                <p class="text-slate-500 text-sm font-medium mt-2">{{ $homeText('home_category_description', 'Explore rental options available near you.') }}</p>
             </div>
-
+            <a href="{{ route('rooms.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 group">
+                View all properties <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+            </a>
         </div>
+
+        @if($roomCategories->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                @foreach($roomCategories->take(8) as $cat)
+                    <a href="{{ route('rooms.index', ['room_type' => [$cat->room_type_option_id]]) }}" class="category-card group relative bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 hover:border-indigo-300 hover:shadow-[0_12px_30px_-18px_rgba(15,23,42,.35)] transition-all">
+                        <div class="category-icon w-12 h-12 shrink-0 rounded-xl flex items-center justify-center text-lg transition-colors" style="background:rgba(var(--primary-rgb),.08);color:var(--primary)">
+                            <i class="{{ $cat->icon }}"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="block text-slate-900 font-bold text-sm truncate group-hover:text-indigo-600 transition-colors">{{ $cat->label }}</span>
+                            <span class="block text-[11px] text-slate-400 font-semibold mt-1">{{ number_format($cat->total) }} {{ \Illuminate\Support\Str::plural('listing', $cat->total) }}</span>
+                        </div>
+                        <span class="w-7 h-7 shrink-0 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><i class="fas fa-chevron-right text-[9px]"></i></span>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-sm">
+                <i class="fas fa-layer-group text-3xl mb-3 block text-slate-300"></i>
+                <p class="font-semibold">No categories available yet.</p>
+            </div>
+        @endif
     </div>
 </section>
 
@@ -378,8 +433,8 @@
     <div class="container mx-auto px-6">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8">
             <div>
-                <h2 class="text-3xl font-black text-slate-900 font-heading">Latest Verified Rooms</h2>
-                <p class="text-slate-500 text-sm font-medium mt-1">Handpicked verified listings just for you.</p>
+                <h2 class="text-3xl font-black text-slate-900 font-heading">{{ $homeText('home_latest_title', 'Latest Verified Rooms') }}</h2>
+                <p class="text-slate-500 text-sm font-medium mt-1">{{ $homeText('home_latest_description', 'Handpicked verified listings just for you.') }}</p>
             </div>
             
             <a href="{{ route('rooms.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-sm flex items-center gap-1 mt-4 md:mt-0">
@@ -405,40 +460,40 @@
 <div class="bg-[#0b0f19] text-white py-8">
     <div class="container mx-auto px-6">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+            <div class="trust-tile flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4 border border-transparent">
                 <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas {{ $homeText('home_trust_1_icon', 'fa-calendar-check') }}"></i>
                 </div>
                 <div>
-                    <span class="block font-bold text-sm text-white leading-tight">Available Today</span>
-                    <span class="block text-[10px] text-slate-400 mt-0.5">Move in hassle free</span>
+                    <span class="block font-bold text-sm text-white leading-tight">{{ $homeText('home_trust_1_title', 'Available Today') }}</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">{{ $homeText('home_trust_1_description', 'Move in hassle free') }}</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+            <div class="trust-tile flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4 border border-transparent">
                 <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
-                    <i class="fas fa-bolt"></i>
+                    <i class="fas {{ $homeText('home_trust_2_icon', 'fa-bolt') }}"></i>
                 </div>
                 <div>
-                    <span class="block font-bold text-sm text-white leading-tight">Instant Bookings</span>
-                    <span class="block text-[10px] text-slate-400 mt-0.5">Quick & easy process</span>
+                    <span class="block font-bold text-sm text-white leading-tight">{{ $homeText('home_trust_2_title', 'Quick Enquiries') }}</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">{{ $homeText('home_trust_2_description', 'Connect without delays') }}</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+            <div class="trust-tile flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4 border border-transparent">
                 <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
-                    <i class="fas fa-file-signature"></i>
+                    <i class="fas {{ $homeText('home_trust_3_icon', 'fa-file-signature') }}"></i>
                 </div>
                 <div>
-                    <span class="block font-bold text-sm text-white leading-tight">Easy Documentation</span>
-                    <span class="block text-[10px] text-slate-400 mt-0.5">Minimal paperwork</span>
+                    <span class="block font-bold text-sm text-white leading-tight">{{ $homeText('home_trust_3_title', 'Easy Documentation') }}</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">{{ $homeText('home_trust_3_description', 'A simpler rental process') }}</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4">
+            <div class="trust-tile flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-4 border border-transparent">
                 <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
-                    <i class="fas fa-shield-halved"></i>
+                    <i class="fas {{ $homeText('home_trust_4_icon', 'fa-shield-halved') }}"></i>
                 </div>
                 <div>
-                    <span class="block font-bold text-sm text-white leading-tight">100% Verified</span>
-                    <span class="block text-[10px] text-slate-400 mt-0.5">Trusted & genuine listings</span>
+                    <span class="block font-bold text-sm text-white leading-tight">{{ $homeText('home_trust_4_title', 'Verified Listings') }}</span>
+                    <span class="block text-[10px] text-slate-400 mt-0.5">{{ $homeText('home_trust_4_description', 'Trusted property information') }}</span>
                 </div>
             </div>
         </div>
@@ -452,32 +507,32 @@
             <!-- 1. How It Works (Col span 4) -->
             <div class="lg:col-span-4 space-y-6">
                 <div class="border-b border-slate-100 pb-4">
-                    <h3 class="text-xl font-black text-slate-900 font-heading">How It Works?</h3>
-                    <p class="text-slate-500 text-xs font-semibold mt-1">3 simple steps to find your perfect home.</p>
+                    <h3 class="text-xl font-black text-slate-900 font-heading">{{ $homeText('home_steps_title', 'How It Works?') }}</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">{{ $homeText('home_steps_description', 'Three simple steps to find your next home.') }}</p>
                 </div>
                 
                 <div class="space-y-6">
-                    <div class="flex items-start gap-4">
+                    <div class="step-item flex items-start gap-4">
                         <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
                         <div>
-                            <h4 class="font-bold text-sm text-slate-900">Search</h4>
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Find rooms by location, budget & preference.</p>
+                            <h4 class="font-bold text-sm text-slate-900">{{ $homeText('home_step_1_title', 'Search') }}</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">{{ $homeText('home_step_1_description', 'Find rooms by city, budget and preference.') }}</p>
                         </div>
                     </div>
                     
-                    <div class="flex items-start gap-4">
+                    <div class="step-item flex items-start gap-4">
                         <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
                         <div>
-                            <h4 class="font-bold text-sm text-slate-900">Connect</h4>
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Contact with owner and visit the property.</p>
+                            <h4 class="font-bold text-sm text-slate-900">{{ $homeText('home_step_2_title', 'Connect') }}</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">{{ $homeText('home_step_2_description', 'Review details and connect with the owner.') }}</p>
                         </div>
                     </div>
                     
-                    <div class="flex items-start gap-4">
+                    <div class="step-item flex items-start gap-4">
                         <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
                         <div>
-                            <h4 class="font-bold text-sm text-slate-900">Book</h4>
-                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">Complete documentation and move in.</p>
+                            <h4 class="font-bold text-sm text-slate-900">{{ $homeText('home_step_3_title', 'Move In') }}</h4>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">{{ $homeText('home_step_3_description', 'Verify the property, complete documentation and move in.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -486,36 +541,36 @@
             <!-- 2. Testimonials (Col span 5) -->
             <div class="lg:col-span-5 space-y-6">
                 <div class="border-b border-slate-100 pb-4">
-                    <h3 class="text-xl font-black text-slate-900 font-heading">What Our Users Say</h3>
-                    <p class="text-slate-500 text-xs font-semibold mt-1">Trusted by thousands of happy tenants.</p>
+                    <h3 class="text-xl font-black text-slate-900 font-heading">{{ $homeText('home_testimonials_title', 'What Our Users Say') }}</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">{{ $homeText('home_testimonials_description', 'Experiences shared by tenants using our platform.') }}</p>
                 </div>
                 
                 <div class="space-y-4">
                     <!-- Review 1 -->
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
+                    <div class="testimonial-card bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
                         <div class="flex text-amber-400 text-xs">
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
-                        <p class="text-slate-600 text-xs italic">"Found my perfect room in Bhopal within 2 days. Direct owner contact and zero brokerage. Great experience!"</p>
+                        <p class="text-slate-600 text-xs italic">“{{ $homeText('home_testimonial_1_text', 'A simple and reliable room-finding experience.') }}”</p>
                         <div class="flex items-center gap-2 mt-1">
                             <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-xs">R</div>
                             <div>
-                                <span class="block text-slate-800 font-bold text-xs">Rahul Sharma</span>
-                                <span class="block text-[9px] text-slate-500">Student</span>
+                                <span class="block text-slate-800 font-bold text-xs">{{ $homeText('home_testimonial_1_name', 'Rahul Sharma') }}</span>
+                                <span class="block text-[9px] text-slate-500">{{ $homeText('home_testimonial_1_role', 'Student') }}</span>
                             </div>
                         </div>
                     </div>
                     <!-- Review 2 -->
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
+                    <div class="testimonial-card bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2">
                         <div class="flex text-amber-400 text-xs">
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
-                        <p class="text-slate-600 text-xs italic">"Very easy to use platform. Listings are truly verified. Finding PG was never this hassle-free!"</p>
+                        <p class="text-slate-600 text-xs italic">“{{ $homeText('home_testimonial_2_text', 'A simple and reliable room-finding experience.') }}”</p>
                         <div class="flex items-center gap-2 mt-1">
                             <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 font-bold flex items-center justify-center text-xs">N</div>
                             <div>
-                                <span class="block text-slate-800 font-bold text-xs">Neha Verma</span>
-                                <span class="block text-[9px] text-slate-500">Working Professional</span>
+                                <span class="block text-slate-800 font-bold text-xs">{{ $homeText('home_testimonial_2_name', 'Neha Verma') }}</span>
+                                <span class="block text-[9px] text-slate-500">{{ $homeText('home_testimonial_2_role', 'Working Professional') }}</span>
                             </div>
                         </div>
                     </div>
@@ -525,33 +580,43 @@
             <!-- 3. App Download (Col span 3) -->
             <div class="lg:col-span-3 space-y-6">
                 <div class="border-b border-slate-100 pb-4">
-                    <h3 class="text-xl font-black text-slate-900 font-heading">Download Our App</h3>
-                    <p class="text-slate-500 text-xs font-semibold mt-1">Find stays on the go with mobile app.</p>
+                    <h3 class="text-xl font-black text-slate-900 font-heading">{{ $homeText('home_app_title', 'Download Our App') }}</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">{{ $homeText('home_app_description', 'Find stays on the go with our mobile app.') }}</p>
                 </div>
                 
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-5 flex flex-col items-center justify-center gap-4 text-center">
+                <div class="app-download-card bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col items-center justify-center gap-4 text-center">
                     <!-- Simulated QR Code SVG -->
                     <div class="w-28 h-28 bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex items-center justify-center">
                         <i class="fas fa-qrcode text-6xl text-slate-800"></i>
                     </div>
                     <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest leading-none">Scan to Download</span>
                     
+                    @php
+                        $iosAppUrl = trim($homeText('home_ios_url', ''));
+                        $androidAppUrl = trim($homeText('home_android_url', ''));
+                    @endphp
+                    @if($iosAppUrl || $androidAppUrl)
                     <div class="flex flex-col gap-2 w-full">
-                        <a href="#" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
+                        @if($iosAppUrl)
+                        <a href="{{ $iosAppUrl }}" target="_blank" rel="noopener" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
                             <i class="fab fa-apple text-base"></i>
                             <div class="text-left leading-tight">
                                 <span class="block text-[8px] font-medium text-slate-400">Download on</span>
                                 <span class="block text-xs font-black">App Store</span>
                             </div>
                         </a>
-                        <a href="#" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
+                        @endif
+                        @if($androidAppUrl)
+                        <a href="{{ $androidAppUrl }}" target="_blank" rel="noopener" class="bg-black text-white hover:bg-slate-900 px-4 py-2 rounded-xl flex items-center justify-center gap-2.5 shadow-sm transition-colors text-xs font-bold w-full">
                             <i class="fab fa-google-play text-base text-emerald-400"></i>
                             <div class="text-left leading-tight">
                                 <span class="block text-[8px] font-medium text-slate-400">Get it on</span>
                                 <span class="block text-xs font-black">Google Play</span>
                             </div>
                         </a>
+                        @endif
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -561,13 +626,13 @@
 <!-- Own a Property CTA Banner -->
 <section class="bg-white py-12">
     <div class="container mx-auto px-6">
-        <div class="bg-[#0b0f19] rounded-[32px] overflow-hidden relative border border-slate-900 shadow-xl flex flex-col lg:flex-row items-center justify-between p-8 lg:p-12 gap-8">
+        <div class="owner-cta bg-[#0b0f19] rounded-[32px] overflow-hidden relative border border-slate-900 shadow-xl flex flex-col lg:flex-row items-center justify-between p-8 lg:p-12 gap-8">
             <!-- Background lights inside block -->
             <div class="absolute -top-32 -left-32 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
             
             <div class="space-y-4 max-w-2xl relative z-10">
-                <h3 class="text-2xl lg:text-3xl font-black text-white font-heading">Own a Property?</h3>
-                <p class="text-slate-400 text-sm font-medium">List it on ApnaNest and find verified tenants without paying any brokerage fee.</p>
+                <h3 class="text-2xl lg:text-3xl font-black text-white font-heading">{{ $homeText('home_owner_title', 'Own a Property?') }}</h3>
+                <p class="text-slate-400 text-sm font-medium">{{ $homeText('home_owner_description', 'List your property and connect with genuine tenants.') }}</p>
                 <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-300">
                     <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> 100% Free Listing</span>
                     <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Zero Brokerage</span>
@@ -578,7 +643,7 @@
             
             <div class="relative z-10 flex-shrink-0">
                 <a href="{{ route('register') }}?role=owner" class="px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl shadow-lg shadow-orange-500/25 transition-all text-sm flex items-center gap-2 hover:-translate-y-0.5">
-                    List Your Property Free <i class="fas fa-arrow-right text-xs"></i>
+                    {{ $homeText('home_owner_button', 'List Your Property') }} <i class="fas fa-arrow-right text-xs"></i>
                 </a>
             </div>
         </div>
@@ -593,8 +658,8 @@
             <div class="lg:col-span-7 space-y-6">
                 <div class="flex items-end justify-between border-b border-slate-200/80 pb-4">
                     <div>
-                        <h3 class="text-2xl font-black text-slate-900 font-heading">Latest from Blog</h3>
-                        <p class="text-slate-500 text-xs font-semibold mt-1">Tips, guides, and room insights.</p>
+                        <h3 class="text-2xl font-black text-slate-900 font-heading">{{ $homeText('home_blog_title', 'Latest from Blog') }}</h3>
+                        <p class="text-slate-500 text-xs font-semibold mt-1">{{ $homeText('home_blog_description', 'Tips, guides and rental insights.') }}</p>
                     </div>
                     <a href="{{ route('blogs.index') }}" class="text-indigo-600 hover:text-indigo-700 font-bold text-xs flex items-center gap-0.5">
                         View All Blogs <i class="fas fa-arrow-right text-[10px]"></i>
@@ -669,13 +734,14 @@
             <!-- Right Side: Frequently Asked Questions (Col span 5) -->
             <div class="lg:col-span-5 space-y-6">
                 <div class="border-b border-slate-200/80 pb-4">
-                    <h3 class="text-2xl font-black text-slate-900 font-heading">Frequently Asked Questions</h3>
-                    <p class="text-slate-500 text-xs font-semibold mt-1">Quick answers to common queries.</p>
+                    <h3 class="text-2xl font-black text-slate-900 font-heading">{{ $homeText('home_faq_title', 'Frequently Asked Questions') }}</h3>
+                    <p class="text-slate-500 text-xs font-semibold mt-1">{{ $homeText('home_faq_description', 'Quick answers to common questions.') }}</p>
                 </div>
                 
                 <div class="space-y-3">
                     <?php
-                        $faqs = [
+                        $faqs = json_decode(\App\Models\Setting::get('faq_content', '[]'), true);
+                        if (!is_array($faqs) || count($faqs) === 0) $faqs = [
                             ['q' => 'How do I book a room?', 'a' => 'Search for your preferred room by location and filters. Once you find a suitable listing, click "View Details", verify the info, and click on "Book Room" or unlock details to connect directly with the owner.'],
                             ['q' => 'Is there any brokerage charge?', 'a' => 'No! ApnaNest connects owners and tenants directly. There are no brokerage charges or hidden fees involved.'],
                             ['q' => 'How can I contact the owner?', 'a' => 'You can view the owner\'s verified contact details after unlocking the contact section on the stay details page.'],
@@ -686,11 +752,11 @@
                     @foreach($faqs as $i => $faq)
                         <div class="bg-white border border-slate-200/85 rounded-xl overflow-hidden shadow-sm faq-item">
                             <button onclick="toggleFaqAccordion({{ $i }})" class="w-full text-left p-4 font-bold text-slate-800 text-xs md:text-sm flex justify-between items-center hover:bg-slate-50/50 transition-colors">
-                                <span>{{ $faq['q'] }}</span>
+                                <span>{{ $faq['question'] ?? $faq['q'] ?? '' }}</span>
                                 <span class="faq-icon-{{ $i }} transition-transform"><i class="fas fa-plus text-slate-400"></i></span>
                             </button>
                             <div class="faq-content-{{ $i }} hidden px-4 pb-4 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
-                                {{ $faq['a'] }}
+                                {!! $faq['answer'] ?? $faq['a'] ?? '' !!}
                             </div>
                         </div>
                     @endforeach
@@ -709,8 +775,8 @@
                     <i class="fas fa-envelope"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-slate-900 text-base md:text-lg">Stay Updated</h3>
-                    <p class="text-slate-500 text-xs md:text-sm font-medium">Subscribe to get updates on new rooms and offers.</p>
+                    <h3 class="font-black text-slate-900 text-base md:text-lg">{{ $homeText('home_newsletter_title', 'Stay Updated') }}</h3>
+                    <p class="text-slate-500 text-xs md:text-sm font-medium">{{ $homeText('home_newsletter_description', 'Get updates on new rooms and offers.') }}</p>
                 </div>
             </div>
             <div class="w-full md:w-auto flex-1 max-w-md">

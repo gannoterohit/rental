@@ -6,7 +6,7 @@
   @php
                     $logo = \App\Models\Setting::get('website_logo');
                 @endphp
-<div class="min-h-screen bg-gray-50 pb-20">
+<div class="owner-workspace min-h-screen bg-gray-50 pb-20">
     <!-- Mobile App Header -->
     <div class="lg:hidden bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 border-b">
         <div class="flex items-center gap-3">
@@ -19,27 +19,12 @@
     </div>
 
     <div class="flex">
-        <!-- Desktop Sidebar -->
-        <aside class="hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-200 flex-col h-screen sticky top-0">
-            <div class="p-6 border-b">
-                <h2 class="font-bold text-gray-900">Room Settings</h2>
-            </div>
-            <nav class="flex-1 p-4 space-y-1">
-                <a href="{{ route('owner.dashboard') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 rounded-xl transition-all group">
-                    <i class="fas fa-tachometer-alt mr-3 text-gray-400 group-hover:text-indigo-600"></i>
-                    <span class="font-medium">Dashboard</span>
-                </a>
-                <a href="{{ url('/rooms') }}" class="flex items-center px-4 py-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <i class="fas fa-home mr-3"></i>
-                    <span class="font-medium">My Rooms</span>
-                </a>
-            </nav>
-        </aside>
+        @include('owner.partials.sidebar', ['active' => 'rooms'])
 
         <!-- Main Content -->
         <main class="flex-1">
             <!-- Desktop Header -->
-            <div class="hidden lg:block bg-indigo-600 text-white p-8">
+            <div class="owner-page-header hidden lg:block bg-indigo-600 text-white p-8">
                 <div class="max-w-4xl mx-auto flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-black mb-2">Update Room Listing</h1>
@@ -48,7 +33,7 @@
                 </div>
             </div>
 
-            <div class="max-w-4xl mx-auto p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto p-4 lg:p-8">
                 <!-- Status Alert -->
                 <div class="bg-indigo-50 border border-indigo-100 rounded-[2rem] p-6 mb-8 flex items-start gap-4">
                     <div class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
@@ -65,7 +50,7 @@
                     @csrf
                     @method('PUT')
                     
-                    <div class="space-y-6">
+                    <div class="owner-room-form-grid">
                         <!-- Basic Details Card -->
                         <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
                             <h3 class="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
@@ -205,7 +190,7 @@
 
                             
                         <!-- Amenities Card -->
-                        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
+                        <div class="owner-form-wide bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
                             <h3 class="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
                                 <span class="w-8 h-8 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 text-sm">
                                     <i class="fas fa-wifi"></i>
@@ -310,7 +295,7 @@
                         </div>
 
                         <!-- Action Button -->
-                        <div class="pt-4 px-2">
+                        <div class="owner-form-wide pt-2 px-2">
                             <button type="submit" 
                                     class="w-full bg-gradient-to-r from-indigo-600 to-blue-700 hover:from-indigo-700 hover:to-blue-800 text-white font-black py-5 px-4 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-2xl transform active:scale-[0.98] flex items-center justify-center gap-3 text-lg uppercase tracking-widest">
                                 <i class="fas fa-check-circle"></i> Save Changes

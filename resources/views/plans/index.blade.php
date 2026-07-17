@@ -6,6 +6,15 @@
 @push('head')
     @include('partials.plans-ld')
 @endpush
+@if(!request()->routeIs('admin.*') && Auth::check() && in_array(Auth::user()->role, ['user', 'owner']))
+    <div class="{{ Auth::user()->role === 'owner' ? 'owner-workspace' : 'user-workspace' }} min-h-screen bg-slate-50 flex">
+        @if(Auth::user()->role === 'owner')
+            @include('owner.partials.sidebar', ['active' => 'plans'])
+        @else
+            @include('user.partials.sidebar', ['active' => 'plans'])
+        @endif
+        <main class="flex-1 min-w-0">
+@endif
 <div class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 md:py-16 mb-8 relative overflow-hidden border-b border-slate-200">
     <div class="absolute inset-0">
         <div class="absolute top-0 left-0 w-64 h-64 md:w-96 md:h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -556,6 +565,11 @@
         </div>
     </div>
 </div>
+
+@if(!request()->routeIs('admin.*') && Auth::check() && in_array(Auth::user()->role, ['user', 'owner']))
+        </main>
+    </div>
+@endif
 
 @push('scripts')
 @auth

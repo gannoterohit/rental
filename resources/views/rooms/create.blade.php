@@ -10,7 +10,7 @@
     .toast-warning { background-color: #f89406 !important; }
 </style>
 
-<div class="min-h-screen bg-gray-50 pb-20">
+<div class="owner-workspace min-h-screen bg-gray-50 pb-20">
     <!-- Mobile App Header -->
     <div class="lg:hidden bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 border-b">
         <div class="flex items-center gap-3">
@@ -23,35 +23,12 @@
     </div>
 
     <div class="flex">
-        <!-- Desktop Sidebar (Hidden on Mobile) -->
-        <aside class="hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-200 flex-col h-screen sticky top-0">
-            <div class="p-6 border-b">
-                <h2 class="font-bold text-gray-900">Room Management</h2>
-            </div>
-            @php
-                $ownerNavItems = [
-                    ['label' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'href' => route('owner.dashboard'), 'active' => false],
-                    ['label' => 'List New Room', 'icon' => 'fas fa-plus-circle text-indigo-500', 'href' => route('rooms.create'), 'active' => true],
-                    ['label' => 'My Rooms', 'icon' => 'fas fa-home text-blue-500', 'href' => route('rooms.index'), 'active' => false],
-                    ['label' => 'Plans', 'icon' => 'fas fa-tags text-emerald-500', 'href' => route('plans'), 'active' => false],
-                ];
-            @endphp
-            <nav class="flex-1 p-3 space-y-1">
-                @foreach($ownerNavItems as $item)
-                    <a href="{{ $item['href'] }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {{ $item['active'] ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-700' }}">
-                        <div class="w-6 h-6 flex items-center justify-center mr-3">
-                            <i class="{{ $item['icon'] }} text-sm"></i>
-                        </div>
-                        <span class="font-medium">{{ $item['label'] }}</span>
-                    </a>
-                @endforeach
-            </nav>
-        </aside>
+        @include('owner.partials.sidebar', ['active' => 'create'])
 
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto">
             <!-- Desktop Header -->
-            <div class="hidden lg:block bg-indigo-600 text-white p-8">
+            <div class="owner-page-header hidden lg:block bg-indigo-600 text-white p-8">
                 <div class="max-w-4xl mx-auto flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-black mb-2">List Your Property</h1>
@@ -61,7 +38,7 @@
             </div>
 
             <!-- Form Content -->
-            <div class="max-w-4xl mx-auto p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto p-4 lg:p-8">
                 <!-- Listing Information Alert -->
                 <div class="bg-amber-50 border border-amber-200 rounded-[2rem] p-6 mb-8 flex items-start gap-4">
                     <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
@@ -73,7 +50,7 @@
                     </div>
                 </div>
 
-                <form id="roomForm" enctype="multipart/form-data" class="space-y-8">
+                <form id="roomForm" enctype="multipart/form-data" class="owner-room-form-grid">
                     @csrf
                     
                     <!-- Basic Details -->
@@ -196,7 +173,7 @@
                     </div>
 
                     <!-- Amenities -->
-                    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+                    <div class="owner-form-wide bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
                         <h3 class="text-xl font-black text-gray-900 border-b pb-4 mb-6">Common Amenities</h3>
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                             @foreach(['Wifi', 'AC', 'TV', 'Geyser', 'Cooler', 'Parking', 'Kitchen', 'Cleaning', 'Laundry', 'Power Backup', 'CCTV', 'Lift', 'Security', 'Water Supply', 'Gym', 'Swimming Pool', 'Clubhouse'] as $amenity)
@@ -209,7 +186,7 @@
                     </div>
 
                     <!-- Location Section -->
-                    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 space-y-6">
+                    <div class="owner-form-wide bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 space-y-6">
                         <h3 class="text-xl font-black text-gray-900 border-b pb-4 mb-2">Location Information</h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -302,7 +279,7 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="pt-8">
+                    <div class="owner-form-wide pt-2">
                         <button type="submit" 
                                 class="w-full bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white font-black py-6 rounded-[2rem] shadow-xl shadow-indigo-100 hover:shadow-indigo-200 transition-all duration-300 transform active:scale-95 text-lg flex items-center justify-center gap-3">
                             <i class="fas fa-paper-plane"></i> Post Room Listing

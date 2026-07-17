@@ -26,6 +26,7 @@
             ['route' => 'admin.offers.index', 'match' => 'admin.offers*', 'icon' => 'fa-bullhorn', 'label' => 'Offers'],
         ],
         'Content & Settings' => [
+            ['route' => 'admin.home-page.index', 'match' => 'admin.home-page*', 'icon' => 'fa-home', 'label' => 'Home Page'],
             ['route' => 'admin.blogs.index', 'match' => 'admin.blogs*', 'icon' => 'fa-newspaper', 'label' => 'Blogs'],
             ['route' => 'admin.settings', 'match' => 'admin.settings*', 'icon' => 'fa-cog', 'label' => 'Business Settings'],
         ],

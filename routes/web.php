@@ -125,6 +125,8 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
 
     Route::get('/settings', [BusinessSettingsController::class, 'index'])->name('settings');
+    Route::get('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'index'])->name('home-page.index');
+    Route::put('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'update'])->name('home-page.update');
     Route::post('/settings', [BusinessSettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/store', [BusinessSettingsController::class, 'store'])->name('settings.store');
     Route::post('/settings/ping', [BusinessSettingsController::class, 'pingSearchEngines'])->name('settings.ping');

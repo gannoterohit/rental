@@ -3,7 +3,9 @@
 @section('title', 'My Wishlist | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 
 @section('content')
-<div class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-8">
+<div class="user-workspace min-h-screen bg-slate-50 flex">
+    @include('user.partials.sidebar', ['active' => 'wishlist'])
+    <main class="flex-1 min-w-0 bg-gradient-to-br from-gray-50 to-blue-50 py-8">
     <div class="container mx-auto px-4 max-w-6xl">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
@@ -64,6 +66,8 @@
             </div>
         @endif
     </div>
+</div>
+    </main>
 </div>
 
 <script>

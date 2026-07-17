@@ -203,23 +203,14 @@ class RoomController extends Controller {
         ->map(fn ($total) => (int) $total)
         ->toArray();
 
-    // Top room types (only types that have listings, sorted by count)
-    $topRoomTypes = Room::select('room_type_option_id', DB::raw('count(*) as total'))
-        ->where('status', 'active')
-        ->where('listing_status', 'approved')
-        ->whereNotNull('room_type_option_id')
-        ->groupBy('room_type_option_id')
-        ->orderByDesc('total')
-        ->take(6)
-        ->get()
-        ->map(function ($item) {
-            $option = RoomOption::find($item->room_type_option_id);
-            return [
-                'id' => $item->room_type_option_id,
-                'label' => $option ? $option->label : 'Room',
-                'total' => (int) $item->total,
-            ];
-        });
+    // Property types are controlled exclusively from Admin > Room Options.
+    // Do not use model fallback values on the public listing page.
+    $roomTypeOptions = RoomOption::query()
+        ->active()
+        ->where('group', 'room_type')
+        ->orderBy('sort_order')
+        ->orderBy('label')
+        ->get(['id', 'key', 'label']);
 
     // Dynamic rent bounds from actual DB data
     $rentBounds = Room::where('status', 'active')
@@ -248,8 +239,8 @@ class RoomController extends Controller {
         ->toArray();
 
     return view('rooms.index', compact(
-        'rooms', 'popularCities', 'roomTypeCounts',
-        'topRoomTypes', 'rentBounds', 'tenantTypeCounts', 'furnishingCounts'
+        'rooms', 'popularCities', 'roomTypeCounts', 'roomTypeOptions',
+        'rentBounds', 'tenantTypeCounts', 'furnishingCounts'
     ));
     }
     

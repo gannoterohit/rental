@@ -3,38 +3,10 @@
 @section('title', 'Owner Dashboard - ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 
 @section('content')
-@php
-    $user = Auth::user();
-    
-    $ownerNavItems = [
-        ['label' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'href' => route('owner.dashboard'), 'active' => true],
-        ['label' => 'List New Room', 'icon' => 'fas fa-plus-circle text-indigo-500', 'href' => route('rooms.create'), 'active' => false],
-        ['label' => 'My Rooms', 'icon' => 'fas fa-home text-blue-500', 'href' => route('rooms.index'), 'active' => false],
-        ['label' => 'Plans', 'icon' => 'fas fa-tags text-emerald-500', 'href' => route('plans'), 'active' => false],
-        ['label' => 'Settings', 'icon' => 'fas fa-user-cog text-gray-500', 'href' => route('profile.edit'), 'active' => false],
-    ];
-@endphp
+@php $user = Auth::user(); @endphp
 
-<div class="min-h-screen bg-gray-50 flex flex-col lg:flex-row pb-20 lg:pb-0">
-    <!-- Desktop Sidebar (Hidden on Mobile) -->
-    <aside class="hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-200 flex-col h-screen sticky top-0">
-        <div class="p-6 border-b">
-            <h2 class="font-bold text-gray-900">Owner Panel</h2>
-        </div>
-        <nav class="flex-1 p-3 space-y-1">
-            @foreach($ownerNavItems as $item)
-                <a href="{{ $item['href'] }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {{ $item['active'] ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-700' }}">
-                    <div class="w-6 h-6 flex items-center justify-center mr-3">
-                        <i class="{{ $item['icon'] }} text-sm"></i>
-                    </div>
-                    <span class="font-medium">{{ $item['label'] }}</span>
-                    @if($item['active'])
-                        <i class="fas fa-chevron-right text-xs ml-auto text-indigo-400"></i>
-                    @endif
-                </a>
-            @endforeach
-        </nav>
-    </aside>
+<div class="owner-workspace min-h-screen flex flex-col lg:flex-row pb-20 lg:pb-0">
+    @include('owner.partials.sidebar', ['active' => 'dashboard'])
 
     <!-- Main Content Area -->
     <main class="flex-1 overflow-y-auto">
@@ -69,7 +41,7 @@
         </div>
 
         <!-- Desktop Header Card -->
-        <div class="hidden lg:block bg-white p-8 border-b border-gray-200">
+        <div class="owner-page-header hidden lg:block bg-white p-8 border-b border-gray-200">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <div class="flex items-center gap-6">
                     @if($user->avatar)
@@ -157,10 +129,10 @@
             </div>
 
             <!-- Rooms Section -->
-            <div class="space-y-6">
+            <div id="my-rooms" class="space-y-6 scroll-mt-24">
                 <div class="flex items-center justify-between px-2">
                     <h2 class="text-xl font-black text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-home text-indigo-600"></i> Local Listings
+                        <i class="fas fa-home text-indigo-600"></i> My Rooms
                     </h2>
                     <a href="{{ route('rooms.index') }}" class="text-xs font-black text-indigo-600 uppercase tracking-widest">View All</a>
                 </div>

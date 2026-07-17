@@ -3,40 +3,16 @@
 @section('title', 'Profile Settings - RoomRental')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 flex flex-col lg:flex-row pb-20 lg:pb-0">
-    <!-- Desktop Sidebar (Hidden on Mobile) -->
-    <aside class="hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-200 flex-col h-screen sticky top-0">
-        <div class="p-6 border-b">
-            <h2 class="font-bold text-gray-900">Settings</h2>
-        </div>
-        <nav class="flex-1 p-3 space-y-1">
-            @php
-                $userNavItems = [
-                    ['label' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'href' => route('dashboard'), 'active' => false],
-                    ['label' => 'Wishlist', 'icon' => 'fas fa-heart text-red-500', 'href' => route('wishlist.index'), 'active' => false],
-                    ['label' => 'Refer & Earn', 'icon' => 'fas fa-gift text-emerald-500', 'href' => route('referral.index'), 'active' => false],
-                    ['label' => 'Plans', 'icon' => 'fas fa-tags text-indigo-500', 'href' => route('plans'), 'active' => false],
-                    ['label' => 'Settings', 'icon' => 'fas fa-user-cog text-gray-500', 'href' => route('profile.edit'), 'active' => true],
-                ];
-            @endphp
-            
-            @foreach($userNavItems as $item)
-                <a href="{{ $item['href'] }}" class="flex items-center px-3 py-2.5 rounded-lg text-sm transition-all duration-200 {{ $item['active'] ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-700' }}">
-                    <div class="w-6 h-6 flex items-center justify-center mr-3">
-                        <i class="{{ $item['icon'] }} text-sm"></i>
-                    </div>
-                    <span class="font-medium">{{ $item['label'] }}</span>
-                    @if($item['active'])
-                        <i class="fas fa-chevron-right text-xs ml-auto text-indigo-400"></i>
-                    @endif
-                </a>
-            @endforeach
-        </nav>
-    </aside>
+<div class="{{ Auth::user()->role === 'owner' ? 'owner-workspace' : 'user-workspace' }} min-h-screen bg-gray-50 flex flex-col lg:flex-row pb-20 lg:pb-0">
+    @if(Auth::user()->role === 'owner')
+        @include('owner.partials.sidebar', ['active' => 'profile'])
+    @else
+        @include('user.partials.sidebar', ['active' => 'profile'])
+    @endif
 
     <!-- Mobile Header (Hidden on Desktop) -->
     <div class="lg:hidden bg-white px-4 py-4 border-b border-gray-100 sticky top-0 z-40 flex items-center justify-between">
-        <a href="{{ route('dashboard') }}" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-700">
+        <a href="{{ Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard') }}" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-700">
             <i class="fas fa-arrow-left"></i>
         </a>
         <h1 class="text-lg font-bold text-gray-900">Edit Profile</h1>

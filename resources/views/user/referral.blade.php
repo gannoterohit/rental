@@ -3,7 +3,9 @@
 @section('title', 'Refer & Earn - ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 
 @section('content')
-<div class="min-h-screen bg-slate-50 py-12">
+<div class="user-workspace min-h-screen bg-slate-50 flex">
+    @include('user.partials.sidebar', ['active' => 'referral'])
+    <main class="flex-1 min-w-0 py-12">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="text-center mb-12">
@@ -112,6 +114,8 @@
             </div>
         </div>
     </div>
+</div>
+    </main>
 </div>
 
 <script>
