@@ -20,6 +20,8 @@ class SubscriptionController extends Controller
         ]);
 
         $plan = Plan::findOrFail($request->plan_id);
+        abort_unless($plan->is_active, 422, 'This plan is not available.');
+        abort_unless(Auth::user()->role === $plan->type, 403, 'This plan is not available for your account type.');
         $paymentMethod = $request->input('payment_method', 'online');
         
         // Check if user already has active subscription of same type
@@ -29,6 +31,18 @@ class SubscriptionController extends Controller
                 $query->where('type', $plan->type);
             })
             ->first();
+
+        if ($activeSubscription) {
+            $limit = $plan->type === 'owner' ? $activeSubscription->plan->listing_limit : $activeSubscription->plan->contacts_limit;
+            $usageType = $plan->type === 'owner' ? 'listing' : 'contact';
+            $used = $activeSubscription->usages()->where('usage_type', $usageType)->count();
+            $expired = $activeSubscription->end_date && $activeSubscription->end_date->endOfDay()->isPast();
+            $exhausted = $limit !== -1 && $used >= (int) $limit;
+            if ($expired || $exhausted) {
+                $activeSubscription->update(['status' => 'expired']);
+                $activeSubscription = null;
+            }
+        }
 
         if ($activeSubscription) {
             return response()->json([
@@ -58,7 +72,7 @@ class SubscriptionController extends Controller
                     'user_id' => $user->id,
                     'plan_id' => $plan->id,
                     'start_date' => Carbon::now(),
-                    'end_date' => Carbon::now()->addYears(100),
+                    'end_date' => Carbon::now()->addDays($plan->duration_days),
                     'status' => 'active'
                 ]);
 
@@ -89,7 +103,7 @@ class SubscriptionController extends Controller
                 'user_id' => Auth::id(),
                 'plan_id' => $plan->id,
                 'start_date' => Carbon::now(),
-                'end_date' => Carbon::now()->addYears(100),
+                'end_date' => Carbon::now()->addDays($plan->duration_days),
                 'status' => 'pending'
             ]);
 

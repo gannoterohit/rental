@@ -12,6 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         // Modify enum to include 'booked'
         DB::statement("ALTER TABLE rooms MODIFY COLUMN status ENUM('pending','active','inactive','booked') DEFAULT 'pending'");
     }
@@ -21,6 +24,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         // Revert back to original enum
         DB::statement("ALTER TABLE rooms MODIFY COLUMN status ENUM('pending','active','inactive') DEFAULT 'pending'");
     }

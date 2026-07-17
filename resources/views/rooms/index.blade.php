@@ -901,7 +901,7 @@
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ amount }),
+                body: JSON.stringify({ payment_id: paymentId }),
                 credentials: 'same-origin'
             });
             

@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Enquiry;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\SubscriptionUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,9 @@ class ApiUnlockController extends BaseApiController
         
         if (!$room) {
             return $this->sendError('Room not found');
+        }
+        if ($room->status !== 'active' || $room->listing_status !== 'approved' || !$room->listing_fee_paid) {
+            return $this->sendError('This room is not available for contact unlock', [], 422);
         }
 
         // Check if user is owner
@@ -48,25 +52,24 @@ class ApiUnlockController extends BaseApiController
             // 1. Check Subscription
             $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())
                 ->where('status', 'active')
+                ->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn ($q) => $q->where('type', 'user')->where('is_active', true))
+                ->lockForUpdate()
                 ->with('plan')
                 ->first();
             
             if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->type === 'user') {
-                $usedContacts = Enquiry::where('user_id', Auth::id())
-                    ->where('unlocked', true)
-                    ->whereNull('payment_id')
-                    ->count();
+                $usedContacts = $activeSubscription->usages()->where('usage_type', 'contact')->count();
                 
                 $totalContacts = $activeSubscription->plan->contacts_limit ?? 0;
                 $remaining = ($totalContacts === -1) ? 9999 : max(0, $totalContacts - $usedContacts);
                 
                 if ($remaining > 0) {
-                    Enquiry::create([
-                        'user_id' => Auth::id(),
-                        'room_id' => $room->id,
-                        'unlocked' => true,
-                        'unlocked_at' => now()
-                    ]);
+                    Enquiry::updateOrCreate(['user_id' => Auth::id(), 'room_id' => $room->id], ['unlocked' => true, 'unlocked_at' => now()]);
+                    SubscriptionUsage::firstOrCreate(
+                        ['subscription_id' => $activeSubscription->id, 'usage_type' => 'contact', 'room_id' => $room->id],
+                        ['user_id' => Auth::id(), 'used_at' => now()]
+                    );
 
                     DB::commit();
 
@@ -108,6 +111,7 @@ class ApiUnlockController extends BaseApiController
                         'new_balance' => (float) $user->wallet_balance
                     ], 'Unlocked via wallet');
                 } else {
+                    DB::rollBack();
                     return $this->sendError('Insufficient wallet balance');
                 }
             }
@@ -126,8 +130,15 @@ class ApiUnlockController extends BaseApiController
                  ], 'Unlocked for free');
             }
             
+            $payment = Payment::create([
+                'user_id' => Auth::id(), 'type' => 'unlock', 'amount' => $unlockFee,
+                'gateway' => 'razorpay', 'reference_id' => $room->id, 'status' => 'pending'
+            ]);
+            Enquiry::updateOrCreate(['user_id' => Auth::id(), 'room_id' => $room->id], ['payment_id' => $payment->id, 'unlocked' => false]);
+            DB::commit();
             return $this->sendSuccess([
                 'amount' => (float) $unlockFee,
+                'payment_record_id' => $payment->id,
                 'reference_id' => $room->id,
                 'type' => 'unlock'
             ], 'Payment required to unlock contact');

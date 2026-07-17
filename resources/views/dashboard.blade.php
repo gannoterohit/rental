@@ -1,206 +1,52 @@
 @extends('layouts.app')
+@section('title', 'Dashboard - ' . \App\Models\Setting::get('website_name', 'RoomRental'))
 
-@section('title', 'Profile - ' . \App\Models\Setting::get('website_name', 'RoomRental'))
+@push('styles')
+<style>
+    .user-quick-actions { background: #0f172a !important; color: #fff !important; }
+    .user-quick-actions h2 { color: #fff !important; }
+    .user-quick-primary { background: #fff !important; color: #0f172a !important; }
+    .user-quick-primary span, .user-quick-primary i { color: inherit; }
+    .user-quick-secondary { background: #1e293b !important; color: #fff !important; border: 1px solid #334155; }
+    .user-quick-secondary span, .user-quick-secondary i { color: inherit; }
+    .user-quick-primary:hover { background: #eef2ff !important; }
+    .user-quick-secondary:hover { background: #334155 !important; }
+</style>
+@endpush
 
 @section('content')
 @php
     $user = Auth::user();
     $unlockedCount = \App\Models\Enquiry::where('user_id', $user->id)->where('unlocked', true)->count();
     $wishlistCount = \App\Models\Wishlist::where('user_id', $user->id)->count();
-
+    $recentUnlocks = \App\Models\Enquiry::where('user_id', $user->id)->where('unlocked', true)->with('room')->latest()->take(4)->get();
 @endphp
 
-<div class="user-workspace min-h-screen bg-gray-50 flex flex-col lg:flex-row pb-20 lg:pb-0">
+<div class="user-workspace min-h-screen bg-slate-50">
     @include('user.partials.sidebar', ['active' => 'dashboard'])
+    <main class="pb-20 lg:pb-12">
+        <header class="border-b border-slate-200 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5"><div><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">User dashboard</p><h1 class="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-950">Welcome back, {{ $user->name }}</h1><p class="mt-2 text-sm text-slate-500">Find rooms, manage unlocked contacts and track your rewards.</p></div><a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-700"><i class="fas fa-magnifying-glass"></i>Browse Rooms</a></div></header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto p-4 lg:p-8">
-        <!-- Dynamic Offer Banners from Database -->
-        @include('partials.offer-banner', ['placement' => 'dashboard'])
-        
-        <!-- Welcome Section (Hidden on Desktop) -->
-        <div class="lg:hidden bg-white px-6 pt-8 pb-6 border-b border-gray-100">
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-black text-gray-900">Profile</h1>
-                <a href="{{ route('profile.edit') }}" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600">
-                     <i class="fas fa-pen text-sm"></i>
-                </a>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="relative">
-                    @if($user->avatar)
-                        <img src="{{ asset('storage/' . $user->avatar) }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-indigo-50 shadow-xl">
-                    @else
-                        <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                            <i class="fas fa-user text-3xl"></i>
-                        </div>
-                    @endif
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">{{ $user->name }}</h2>
-                    <p class="text-gray-500 text-sm italic">{{ $user->email }}</p>
-                </div>
-            </div>
-        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <section class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                @foreach([['Wallet balance','₹'.number_format($user->wallet_balance ?? 0,2),'fa-wallet','bg-indigo-50 text-indigo-600'],['Reward points',number_format($user->wallet ?? 0),'fa-coins','bg-amber-50 text-amber-600'],['Unlocked rooms',$unlockedCount,'fa-lock-open','bg-emerald-50 text-emerald-600'],['Wishlist',$wishlistCount,'fa-heart','bg-rose-50 text-rose-600']] as $stat)
+                    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold text-slate-500">{{ $stat[0] }}</p><p class="mt-2 text-2xl font-extrabold text-slate-950">{{ $stat[1] }}</p></div><span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $stat[3] }}"><i class="fas {{ $stat[2] }}"></i></span></div></article>
+                @endforeach
+            </section>
 
-       
-
-        <!-- Desktop Header Card -->
-        <div class="workspace-header hidden lg:block bg-white p-8 border-b border-gray-200">
-            <div class="max-w-5xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-6">
-                    @if($user->avatar)
-                        <img src="{{ asset('storage/' . $user->avatar) }}" class="w-24 h-24 rounded-3xl object-cover border-4 border-indigo-50 shadow-xl">
-                    @else
-                        <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center text-white shadow-xl">
-                            <i class="fas fa-user text-4xl"></i>
-                        </div>
-                    @endif
-                    <div>
-                        <h1 class="text-3xl font-black text-gray-900">Welcome, {{ $user->name }}</h1>
-                        <p class="text-gray-500 mt-1">Manage your properties, wishlist and account settings.</p>
-                        <div class="mt-3 flex items-center gap-2">
-                             <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase">{{ $user->role }}</span>
-                             @if($user->is_verified)
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase">Verified User</span>
-                             @endif
-                        </div>
-                    </div>
-                </div>
-                <a href="{{ route('profile.edit') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center gap-2">
-                    <i class="fas fa-edit"></i> Edit Profile
-                </a>
-            </div>
-        </div>
-
-        <div class="max-w-5xl mx-auto p-6 md:p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Wallet & Stats -->
-                <div class="lg:col-span-1 space-y-6">
-                    <!-- Wallet Card -->
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 overflow-hidden relative">
-                        <div class="absolute -right-8 -bottom-8 opacity-20 transform rotate-12">
-                            <i class="fas fa-wallet text-9xl"></i>
-                        </div>
-                        <div class="relative z-10">
-                            <p class="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">My Balance</p>
-                            <div class="flex items-end gap-1 mb-6">
-                                <span class="text-3xl font-black text-white">₹{{ number_format($user->wallet_balance ?? 0, 2) }}</span>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                 <a href="{{ route('wallet') }}" class="w-full bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/30 transition text-center">
-                                    <i class="fas fa-plus"></i> Recharge Wallet
-                                 </a>
-                                 <a href="{{ route('referral.index') }}" class="w-full bg-white text-indigo-600 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg text-center">
-                                    <i class="fas fa-gift"></i> Refer & Earn
-                                 </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stats Row -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center gap-2">
-                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl">
-                                <i class="fas fa-unlock"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 font-bold uppercase">Unlocked</p>
-                                <p class="text-2xl font-black text-gray-900">{{ $unlockedCount }}</p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center gap-2">
-                            <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 text-xl">
-                                <i class="fas fa-heart"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 font-bold uppercase">Wishlist</p>
-                                <p class="text-2xl font-black text-gray-900">{{ $wishlistCount }}</p>
-                            </div>
-                        </div>
-                    </div>
+            <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div id="unlocked" class="lg:col-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><h2 class="font-bold text-slate-950">Recently unlocked rooms</h2><p class="mt-0.5 text-xs text-slate-500">Rooms whose owner contact you can access.</p></div><a href="{{ route('rooms.index') }}" class="text-sm font-bold text-indigo-600">Find more</a></div>
+                    @forelse($recentUnlocks as $unlock)
+                        @if($unlock->room)<div class="flex items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-0"><div class="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">@if($unlock->room->photo_url)<img src="{{ $unlock->room->photo_url }}" alt="" class="h-full w-full object-cover" onerror="this.style.display='none'">@else<div class="flex h-full items-center justify-center text-slate-300"><i class="fas fa-house"></i></div>@endif</div><div class="min-w-0 flex-1"><h3 class="truncate text-sm font-bold text-slate-900">{{ $unlock->room->title }}</h3><p class="mt-1 truncate text-xs text-slate-500"><i class="fas fa-location-dot mr-1 text-rose-400"></i>{{ $unlock->room->city }}</p><p class="mt-1 text-sm font-extrabold text-slate-900">₹{{ number_format($unlock->room->rent) }}<span class="text-xs font-normal text-slate-400">/month</span></p></div><a href="{{ route('rooms.show',$unlock->room) }}" class="rounded-xl bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700">View contact</a></div>@endif
+                    @empty<div class="px-6 py-14 text-center"><i class="fas fa-lock-open text-3xl text-slate-300"></i><h3 class="mt-3 font-bold text-slate-900">No rooms unlocked yet</h3><p class="mt-1 text-sm text-slate-500">Browse rooms and unlock the contacts you like.</p><a href="{{ route('rooms.index') }}" class="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Browse rooms</a></div>@endforelse
                 </div>
 
-                <!-- Main Menu Grid -->
-                <div class="lg:col-span-2 space-y-8">
-                    <!-- General Links -->
-                    <div>
-                        <h3 class="text-gray-900 font-black mb-4 flex items-center gap-2">
-                             <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
-                             General Management
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @php
-                                $generalLinks = [
-                                    ['label' => 'My Wishlist', 'desc' => 'Your saved room listings', 'icon' => 'fas fa-heart', 'color' => 'text-red-500', 'bg' => 'bg-red-50', 'href' => route('wishlist.index')],
-                                    ['label' => 'Refer & Earn', 'desc' => 'Invite friends and get rewards', 'icon' => 'fas fa-gift', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50', 'href' => route('referral.index')],
-                                    ['label' => 'Pricing Plans', 'desc' => 'View available membership plans', 'icon' => 'fas fa-tags', 'color' => 'text-indigo-500', 'bg' => 'bg-indigo-50', 'href' => route('plans')],
-                                    ['label' => 'Account Security', 'desc' => 'Manage password and privacy', 'icon' => 'fas fa-shield-alt', 'color' => 'text-blue-500', 'bg' => 'bg-blue-50', 'href' => route('profile.edit')],
-                                ];
-                            @endphp
-
-                            @foreach($generalLinks as $link)
-                            <a href="{{ $link['href'] }}" class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group flex items-start gap-4">
-                                <div class="w-12 h-12 {{ $link['bg'] }} {{ $link['color'] }} rounded-2xl flex-shrink-0 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                                    <i class="{{ $link['icon'] }}"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-gray-900 group-hover:text-indigo-600 transition">{{ $link['label'] }}</h4>
-                                    <p class="text-xs text-gray-500 mt-1">{{ $link['desc'] }}</p>
-                                </div>
-                                <i class="fas fa-chevron-right text-gray-200 group-hover:text-indigo-300 transition-colors mt-1"></i>
-                            </a>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- App Information -->
-                    <div>
-                        <h3 class="text-gray-900 font-black mb-4 flex items-center gap-2">
-                             <div class="w-2 h-6 bg-purple-500 rounded-full"></div>
-                             Support & Information
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @php
-                                $infoLinks = [
-                                    ['label' => 'Contact Us', 'desc' => 'Talk to our support team', 'icon' => 'fas fa-headset', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50', 'href' => route('pages.contact')],
-                                    ['label' => 'About Us', 'desc' => 'Learn more about RoomRental', 'icon' => 'fas fa-info-circle', 'color' => 'text-purple-600', 'bg' => 'bg-purple-50', 'href' => '#'],
-                                    ['label' => 'Privacy Policy', 'desc' => 'How we handle your data', 'icon' => 'fas fa-lock', 'color' => 'text-teal-600', 'bg' => 'bg-teal-50', 'href' => route('pages.privacy')],
-                                    ['label' => 'Terms of Service', 'desc' => 'Our legal agreement', 'icon' => 'fas fa-file-contract', 'color' => 'text-amber-600', 'bg' => 'bg-amber-50', 'href' => route('pages.terms')],
-                                ];
-                            @endphp
-
-                            @foreach($infoLinks as $link)
-                            <a href="{{ $link['href'] }}" class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group flex items-start gap-4">
-                                <div class="w-12 h-12 {{ $link['bg'] }} {{ $link['color'] }} rounded-2xl flex-shrink-0 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                                    <i class="{{ $link['icon'] }}"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-gray-900 group-hover:text-indigo-600 transition">{{ $link['label'] }}</h4>
-                                    <p class="text-xs text-gray-500 mt-1">{{ $link['desc'] }}</p>
-                                </div>
-                            </a>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Sign Out -->
-                    <div class="pt-4">
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition active:scale-95 shadow-sm shadow-red-100">
-                                <i class="fas fa-sign-out-alt"></i> Sign Out from Account
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center py-10 text-gray-400 text-[10px] font-bold uppercase tracking-widest px-6">
-            <p>© {{ date('Y') }} {{ \App\Models\Setting::get('website_name', 'RoomRental') }} • Standard License • v 1.0.0</p>
+                <aside class="space-y-5">
+                    <div class="user-quick-actions rounded-2xl p-5"><h2 class="font-bold">Quick actions</h2><div class="mt-4 space-y-2"><a href="{{ route('wishlist.index') }}" class="user-quick-primary flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold"><span><i class="fas fa-heart mr-2"></i>My Wishlist</span><i class="fas fa-arrow-right text-xs"></i></a><a href="{{ route('plans') }}" class="user-quick-secondary flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold"><span><i class="fas fa-tags mr-2"></i>Unlock Plans</span><i class="fas fa-arrow-right text-xs"></i></a><a href="{{ route('referral.index') }}" class="user-quick-secondary flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold"><span><i class="fas fa-gift mr-2"></i>Refer & Earn</span><i class="fas fa-arrow-right text-xs"></i></a></div></div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase tracking-wider text-slate-400">Account</p><div class="mt-3 flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-50 font-bold text-indigo-600">{{ strtoupper(substr($user->name,0,1)) }}</span><div class="min-w-0"><p class="truncate text-sm font-bold text-slate-900">{{ $user->name }}</p><p class="truncate text-xs text-slate-500">{{ $user->email }}</p></div></div><a href="{{ route('profile.edit') }}" class="mt-4 flex justify-center rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-700">Manage profile</a></div>
+                </aside>
+            </section>
         </div>
     </main>
 </div>

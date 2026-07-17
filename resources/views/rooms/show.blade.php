@@ -429,6 +429,17 @@
                         </div>
                          
                         <div class="p-4">
+                            @php
+                                $ownerPhoneRaw = trim((string) ($room->owner?->phone ?? ''));
+                                $ownerPhoneDigits = preg_replace('/\D+/', '', $ownerPhoneRaw);
+                                $localPhoneDigits = strlen($ownerPhoneDigits) === 12 && str_starts_with($ownerPhoneDigits, '91')
+                                    ? substr($ownerPhoneDigits, 2)
+                                    : $ownerPhoneDigits;
+                                $hasOwnerPhone = strlen($localPhoneDigits) >= 6;
+                                $maskedOwnerPhone = $hasOwnerPhone
+                                    ? substr($localPhoneDigits, 0, 2) . str_repeat('*', max(4, strlen($localPhoneDigits) - 4)) . substr($localPhoneDigits, -2)
+                                    : '98******42';
+                            @endphp
                             @if($isUnlocked)
                                 <div class="bg-green-50 border-2 border-green-300 rounded-lg p-3 mb-3">
                                     <p class="font-bold text-green-800 mb-2 text-sm"><i class="fas fa-unlock-alt mr-1"></i> {{ $room->listing_type === 'broker' ? 'Free Contact' : 'Unlocked' }}</p>
@@ -438,14 +449,22 @@
                                                 {{ $room->listing_type === 'broker' ? 'Broker Contact' : 'Direct Contact' }}
                                             </p>
                                             <div class="flex flex-col gap-2">
-                                                <a href="tel:{{ $room->owner?->phone ?? '#' }}" class="flex items-center justify-center bg-blue-600 text-white font-bold py-2.5 px-4 rounded-xl hover:bg-blue-700 transition shadow-md">
-                                                    <i class="fas fa-phone-alt mr-2"></i> {{ $room->listing_type === 'broker' ? 'Call Broker' : 'Call Owner' }}
-                                                </a>
-                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $room->owner?->phone ?? '') }}?text={{ rawurlencode('Hi, I am interested in your room: ' . $room->title . ' (' . route('rooms.show', $room->id) . ')') }}" 
+                                                @if($hasOwnerPhone)
+                                                    <a href="tel:{{ $ownerPhoneDigits }}" class="flex items-center justify-center bg-blue-600 text-white font-bold py-2.5 px-4 rounded-xl hover:bg-blue-700 transition shadow-md">
+                                                        <i class="fas fa-phone-alt mr-2"></i> {{ $room->listing_type === 'broker' ? 'Call Broker' : 'Call Owner' }}
+                                                    </a>
+                                                    <div class="rounded-xl border border-blue-200 bg-white px-4 py-3 text-center">
+                                                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ $room->listing_type === 'broker' ? 'Broker phone number' : 'Owner phone number' }}</p>
+                                                        <a href="tel:{{ $ownerPhoneDigits }}" class="mt-1 block text-lg font-extrabold tracking-wide text-blue-700">{{ $ownerPhoneRaw }}</a>
+                                                    </div>
+                                                <a href="https://wa.me/{{ $ownerPhoneDigits }}?text={{ rawurlencode('Hi, I am interested in your room: ' . $room->title . ' (' . route('rooms.show', $room->id) . ')') }}"
                                                    target="_blank"
                                                    class="flex items-center justify-center bg-green-500 text-white font-bold py-2.5 px-4 rounded-xl hover:bg-green-600 transition shadow-md">
                                                     <i class="fa-brands fa-whatsapp mr-2 text-lg"></i> WhatsApp Now
                                                 </a>
+                                                @else
+                                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800"><i class="fas fa-circle-exclamation mr-1"></i>Phone number not provided by owner</div>
+                                                @endif
                                             </div>
                                         </div>
                                         
@@ -465,12 +484,17 @@
                                     </div>
                                 </div>
                             @else
+                                <div class="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Owner mobile number</p>
+                                    <p class="mt-1 text-xl font-extrabold tracking-[.16em] text-slate-700">{{ $maskedOwnerPhone }}</p>
+                                    <p class="mt-1 text-[11px] text-slate-500"><i class="fas fa-lock mr-1"></i>Unlock to view the complete number</p>
+                                </div>
                                 @auth
                                     @php
-                                        $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())->where('status', 'active')->with('plan')->first();
+                                        $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())->where('status', 'active')->whereDate('end_date', '>=', today())->whereHas('plan', fn ($q) => $q->where('type', 'user')->where('is_active', true))->with('plan')->first();
                                         $subscriptionRemaining = 0;
                                         if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->type === 'user') {
-                                            $usedContacts = \App\Models\Enquiry::where('user_id', Auth::id())->where('unlocked', true)->whereNull('payment_id')->count();
+                                            $usedContacts = $activeSubscription->usages()->where('usage_type', 'contact')->count();
                                             $subscriptionRemaining = max(0, ($activeSubscription->plan->contacts_limit ?? 0) - $usedContacts);
                                         }
                                     @endphp
@@ -924,7 +948,7 @@ async function initiatePayment(paymentId, amount, type, referenceId) {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ amount }),
+            body: JSON.stringify({ payment_id: paymentId }),
             credentials: 'same-origin'
         });
         

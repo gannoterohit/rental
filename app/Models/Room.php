@@ -26,6 +26,7 @@ class Room extends Model
         'longitude',
         'availability_from',
         'status',
+        'listing_status',
         'video_url',
         'video',
         'photo',

@@ -563,7 +563,9 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view dynamic-theme-override">
-    @include('partials.offer-banner', ['placement' => 'top_nav'])
+    @unless(Route::currentRouteName() === 'plans')
+        @include('partials.offer-banner', ['placement' => 'top_nav'])
+    @endunless
     
     <!-- Mobile App Header - Enhanced App Style -->
     <div class="mobile-app-header lg:hidden">
@@ -645,13 +647,7 @@
                                 : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard'));
                         @endphp
                         <a href="{{ $accountHome }}" class="flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60" title="Open dashboard">
-                                @if(Auth::user()->avatar)
-                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
-                                @else
-                                    <div class="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </div>
-                                @endif
+                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('assets/images/default-avatar.svg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'" alt="{{ Auth::user()->name }} profile" class="w-7 h-7 rounded-full object-cover border border-slate-200 bg-indigo-50">
                                 <span class="hidden xl:inline text-xs font-semibold">{{ Str::limit(Auth::user()->name, 12) }}</span>
                                 <i class="fas fa-arrow-right text-[9px] text-slate-400"></i>
                         </a>
@@ -715,7 +711,7 @@
     </main>
 
     <!-- Stay Updated Banner Section -->
-    @if(!Route::is('home'))
+    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans'))
     <div class="hidden lg:block bg-indigo-50/70 border-t border-indigo-100 py-8">
         <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4">
@@ -740,7 +736,7 @@
     @endif
 
     <!-- Redesigned Footer Section -->
-    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t">
+    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t" @if(Route::is('owner.*') || Route::is('rooms.create', 'rooms.edit') || Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans')) style="display:none !important" @endif>
         <div class="container mx-auto px-6 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
                 <!-- Brand Info (Col span 3) -->
@@ -1030,7 +1026,9 @@
         @endif
     </script>
     @stack('scripts')
-    @include('partials.offer-banner', ['placement' => 'popup'])
+    @unless(Route::currentRouteName() === 'plans')
+        @include('partials.offer-banner', ['placement' => 'popup'])
+    @endunless
     {{-- Google Ads Signup Conversion --}}
     @if(session('signup_success') && app()->environment('production') && \App\Models\Setting::get('google_ads_enabled') == '1')
         @php

@@ -10,7 +10,7 @@
     .toast-warning { background-color: #f89406 !important; }
 </style>
 
-<div class="owner-workspace min-h-screen bg-gray-50 pb-20">
+<div class="owner-workspace min-h-screen bg-slate-50">
     <!-- Mobile App Header -->
     <div class="lg:hidden bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 border-b">
         <div class="flex items-center gap-3">
@@ -22,23 +22,23 @@
         <div class="w-8"></div> <!-- Spacer -->
     </div>
 
-    <div class="flex">
+    <div class="owner-form-shell">
         @include('owner.partials.sidebar', ['active' => 'create'])
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1">
             <!-- Desktop Header -->
-            <div class="owner-page-header hidden lg:block bg-indigo-600 text-white p-8">
-                <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="owner-page-header owner-form-page-header hidden lg:block bg-white border-b border-slate-200">
+                <div class="max-w-6xl mx-auto flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-black mb-2">List Your Property</h1>
-                        <p class="text-indigo-100 opacity-90">Fill in the details to reach thousands of potential tenants.</p>
+                        <h1 class="font-black text-slate-950">List Your Property</h1>
+                        <p class="text-slate-500">Fill in the details to reach thousands of potential tenants.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Form Content -->
-            <div class="max-w-6xl mx-auto p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-12 lg:pb-16">
                 <!-- Listing Information Alert -->
                 <div class="bg-amber-50 border border-amber-200 rounded-[2rem] p-6 mb-8 flex items-start gap-4">
                     <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
@@ -296,6 +296,13 @@
 const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';
 const razorpayKey = '{{ \App\Models\Setting::get("razorpay_key", "") }}';
 const googleMapsKey = '{{ trim(\App\Models\Setting::get("google_maps_api_key", "")) }}';
+
+window.gm_authFailure = function () {
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+        mapElement.innerHTML = '<div class="h-full min-h-[260px] flex flex-col items-center justify-center bg-slate-50 p-8 text-center"><span class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3"><i class="fas fa-map-location-dot"></i></span><p class="font-bold text-slate-800">Map is temporarily unavailable</p><p class="mt-1 text-xs text-slate-500">You can still search and enter the property address.</p></div>';
+    }
+};
 
 // Initialize Map
 let map;
@@ -601,7 +608,7 @@ async function initiatePayment(paymentId, amount, roomId) {
         const orderRes = await fetch('{{ route("razorpay.createOrder") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ amount })
+        body: JSON.stringify({ payment_id: paymentId })
     });
     const order = await orderRes.json();
     

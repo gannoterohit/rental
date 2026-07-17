@@ -30,6 +30,7 @@ class RazorpayController extends Controller
     // Create order on Razorpay then return order info to frontend
     public function createOrder(Request $request)
     {
+        $request->validate(['payment_id' => 'required|integer|exists:payments,id']);
         try {
             $key = trim(Setting::get('razorpay_key', ''));
             $secret = trim(Setting::get('razorpay_secret', ''));
@@ -46,7 +47,13 @@ class RazorpayController extends Controller
                 $this->api = new Api($key, $secret);
             }
 
-            $amount = (int) $request->amount; // in rupees
+            $payment = Payment::whereKey($request->payment_id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $amount = (int) $payment->amount;
             
             if ($amount <= 0) {
                 return response()->json([
@@ -58,11 +65,13 @@ class RazorpayController extends Controller
             $amount_paise = $amount * 100;
 
             $order = $this->api->order->create([
-                'receipt' => 'rcpt_' . time(),
+                'receipt' => 'payment_' . $payment->id,
                 'amount' => $amount_paise,
                 'currency' => 'INR',
                 'payment_capture' => 1
             ]);
+
+            $payment->update(['gateway_order_id' => $order->id]);
 
             return response()->json([
                 'success' => true,
@@ -85,6 +94,12 @@ class RazorpayController extends Controller
     // Verify payment signature after checkout (optional double-check)
     public function verifyPayment(Request $request)
     {
+        $request->validate([
+            'razorpay_order_id' => 'required|string',
+            'razorpay_payment_id' => 'required|string',
+            'razorpay_signature' => 'required|string',
+            'payment_id' => 'required|integer|exists:payments,id',
+        ]);
         Log::info('Hit verifyPayment: ' . $request->razorpay_payment_id);
         
         $key = trim(Setting::get('razorpay_key', ''));
@@ -107,10 +122,13 @@ class RazorpayController extends Controller
         
         // Use request inputs (from POST body OR Query Params for callback flow)
         $dbPaymentId = $request->input('payment_id');
-        $paymentType = $request->input('type') ?? 'booking';
-        $referenceId = $request->input('reference_id'); // booking_id or subscription_id
-        
-        Log::info("Verify Params - DB_Pay_ID: $dbPaymentId | Type: $paymentType | Ref: $referenceId");
+        $payment = Payment::whereKey($dbPaymentId)->firstOrFail();
+        $paymentType = $payment->type;
+        $referenceId = $payment->reference_id;
+
+        if ($payment->gateway_order_id !== $orderId) {
+            return response()->json(['status' => 'fail', 'message' => 'Payment order mismatch'], 400);
+        }
 
         // Verify signature before any session or DB changes
         try {
@@ -121,6 +139,12 @@ class RazorpayController extends Controller
             ];
 
             $this->api->utility->verifyPaymentSignature($attributes);
+            $gatewayPayment = $this->api->payment->fetch($paymentId);
+            if (($gatewayPayment['order_id'] ?? null) !== $payment->gateway_order_id
+                || (int) ($gatewayPayment['amount'] ?? 0) !== (int) round($payment->amount * 100)
+                || ($gatewayPayment['currency'] ?? null) !== 'INR') {
+                throw new \RuntimeException('Gateway payment details do not match the order');
+            }
         } catch (\Exception $e) {
             Log::error("Razorpay signature verification failed: " . $e->getMessage());
             Log::error("Data: " . json_encode($attributes ?? []));
@@ -146,12 +170,14 @@ class RazorpayController extends Controller
         \DB::beginTransaction();
         try {
             // Update payment record — order ID must match the pending record
-            $payment = Payment::where('id', $dbPaymentId)
-                ->where('status', 'pending')
-                ->firstOrFail();
+            $payment = Payment::where('id', $dbPaymentId)->lockForUpdate()->firstOrFail();
 
-            if ($payment->transaction_id && $payment->transaction_id !== $orderId) {
-                throw new \RuntimeException('Payment order mismatch');
+            if ($payment->status === 'completed') {
+                DB::commit();
+                return response()->json(['status' => 'success', 'message' => 'Payment already verified']);
+            }
+            if ($payment->status !== 'pending') {
+                throw new \RuntimeException('Payment is not pending');
             }
 
             if (Auth::check() && $payment->user_id !== Auth::id()) {
@@ -166,7 +192,7 @@ class RazorpayController extends Controller
             // Handle based on payment type
             if ($paymentType === 'listing' && $referenceId) {
             // Activate room after listing fee payment
-            $room = \App\Models\Room::find($referenceId);
+            $room = \App\Models\Room::whereKey($referenceId)->where('user_id', $payment->user_id)->first();
             if ($room) {
                 $room->update([
                     'listing_fee_paid' => true,
@@ -175,11 +201,12 @@ class RazorpayController extends Controller
             }
         } elseif ($paymentType === 'featured' && $referenceId) {
             // Make room featured
-            $room = \App\Models\Room::find($referenceId);
+            $room = \App\Models\Room::whereKey($referenceId)->where('user_id', $payment->user_id)->first();
             if ($room) {
                 $room->update(['is_featured' => true]);
             }
         } elseif ($paymentType === 'unlock' && $referenceId) {
+            $unlockRoom = \App\Models\Room::whereKey($referenceId)->where('status', 'active')->where('listing_status', 'approved')->where('listing_fee_paid', true)->firstOrFail();
             // Unlock contact details
             $enquiry = \App\Models\Enquiry::where('room_id', $referenceId)
                 ->where('user_id', $payment->user_id)
@@ -225,12 +252,12 @@ class RazorpayController extends Controller
                 }
             }
         } elseif ($paymentType === 'subscription' && $referenceId) {
-            $subscription = \App\Models\Subscription::find($referenceId);
+            $subscription = \App\Models\Subscription::whereKey($referenceId)->where('user_id', $payment->user_id)->first();
             if ($subscription) {
                 $subscription->update([
                     'status' => 'active',
                     'start_date' => now(),
-                    'end_date' => now()->addDays($subscription->plan->duration),
+                    'end_date' => now()->addDays($subscription->plan->duration_days),
                     'payment_id' => $payment->id
                 ]);
             }
@@ -324,11 +351,7 @@ class RazorpayController extends Controller
 
             // Find existing payment record
             $payment = Payment::where('transaction_id', $paymentId)
-                ->orWhere(function($q) use ($orderId) {
-                    if ($orderId) {
-                        $q->where('reference_id', $orderId);
-                    }
-                })
+                ->when($orderId, fn ($query) => $query->orWhere('gateway_order_id', $orderId))
                 ->first();
 
             if ($payment && $payment->status === 'pending') {

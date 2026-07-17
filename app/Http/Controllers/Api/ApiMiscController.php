@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Validator;
 
 class ApiMiscController extends BaseApiController
 {
+    public function offers(Request $request)
+    {
+        $audience = $request->user()?->role ?? 'user';
+        return $this->sendSuccess(\App\Models\Offer::active()->forAudience($audience)->latest()->get());
+    }
     /**
      * Get all blogs
      */

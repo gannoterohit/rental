@@ -21,15 +21,7 @@
         <div class="flex items-center gap-6 mb-6">
             <div class="relative group">
                 <div class="w-24 h-24 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-indigo-500 transition-colors bg-gray-50 flex items-center justify-center">
-                    @if($user->avatar)
-                        <img id="avatar_preview" src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
-                    @else
-                        <div id="avatar_placeholder" class="text-gray-400 flex flex-col items-center">
-                            <i class="fas fa-user text-2xl mb-1"></i>
-                            <span class="text-[10px] font-medium">No Image</span>
-                        </div>
-                        <img id="avatar_preview" src="#" alt="Avatar" class="w-full h-full object-cover hidden">
-                    @endif
+                    <img id="avatar_preview" src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('assets/images/default-avatar.svg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'" alt="{{ $user->name }} profile" class="w-full h-full object-cover">
                 </div>
                 <label for="avatar" class="absolute -bottom-2 -right-2 w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center cursor-pointer hover:bg-indigo-700 shadow-md transition-all group-hover:scale-110">
                     <i class="fas fa-camera text-xs"></i>

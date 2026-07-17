@@ -37,9 +37,7 @@ class ApiPaymentController extends BaseApiController
     public function createOrder(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'type' => 'required|in:listing,featured,unlock,subscription,booking',
-            'reference_id' => 'required'
+            'payment_record_id' => 'required|integer|exists:payments,id'
         ]);
 
         try {
@@ -48,30 +46,23 @@ class ApiPaymentController extends BaseApiController
                 return $this->sendError('Payment gateway is not configured. Please contact support.', [], 503);
             }
 
-            $amount_paise = (int) ($request->amount * 100);
+            $payment = Payment::whereKey($request->payment_record_id)
+                ->where('user_id', Auth::id())->where('status', 'pending')->firstOrFail();
+            $amount_paise = (int) round($payment->amount * 100);
 
             $order = $this->api->order->create([
-                'receipt' => 'rcpt_' . time(),
+                'receipt' => 'payment_' . $payment->id,
                 'amount' => $amount_paise,
                 'currency' => 'INR',
                 'payment_capture' => 1
             ]);
 
-            // Create a pending payment record
-            $payment = Payment::create([
-                'user_id' => Auth::id(),
-                'type' => $request->type,
-                'amount' => $request->amount,
-                'gateway' => 'razorpay',
-                'reference_id' => $request->reference_id,
-                'transaction_id' => $order->id, // Store order_id temporarily
-                'status' => 'pending'
-            ]);
+            $payment->update(['gateway_order_id' => $order->id]);
 
             return $this->sendSuccess([
                 'order_id' => $order->id,
                 'payment_id' => $payment->id,
-                'amount' => $request->amount,
+                'amount' => $payment->amount,
                 'key' => $key
             ], 'Order created successfully');
 
@@ -105,6 +96,7 @@ class ApiPaymentController extends BaseApiController
                 'razorpay_signature' => $request->razorpay_signature
             ];
             $api->utility->verifyPaymentSignature($attributes);
+            $gatewayPayment = $api->payment->fetch($request->razorpay_payment_id);
         } catch (\Exception $e) {
             return $this->sendError('Invalid signature');
         }
@@ -116,10 +108,15 @@ class ApiPaymentController extends BaseApiController
                 ->firstOrFail();
 
             if ($payment->status === 'completed') {
+                DB::commit();
                 return $this->sendSuccess([], 'Payment already verified');
             }
 
-            if ($payment->transaction_id && $payment->transaction_id !== $request->razorpay_order_id) {
+            if ($payment->gateway_order_id !== $request->razorpay_order_id
+                || ($gatewayPayment['order_id'] ?? null) !== $payment->gateway_order_id
+                || (int) ($gatewayPayment['amount'] ?? 0) !== (int) round($payment->amount * 100)
+                || ($gatewayPayment['currency'] ?? null) !== 'INR') {
+                DB::rollBack();
                 return $this->sendError('Payment order mismatch', [], 400);
             }
 

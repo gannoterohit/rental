@@ -6,6 +6,7 @@ use App\Models\Room;
 use App\Models\Enquiry;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\SubscriptionUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,10 @@ class UnlockController extends Controller
                 'success' => false,
                 'message' => 'Please login to unlock contact details'
             ], 401);
+        }
+
+        if ($room->status !== 'active' || $room->listing_status !== 'approved' || !$room->listing_fee_paid) {
+            return response()->json(['success' => false, 'message' => 'This room is not available for contact unlock.'], 422);
         }
 
         // Check if user is owner - owner can see their own room contact
@@ -50,15 +55,15 @@ class UnlockController extends Controller
             // Check subscription first - count based, not date based
             $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())
                 ->where('status', 'active')
+                ->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn ($query) => $query->where('type', 'user')->where('is_active', true))
+                ->lockForUpdate()
                 ->with('plan')
                 ->first();
             
             if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->type === 'user') {
                 // Check subscription usage - count all unlocked contacts (lifetime, count-based)
-                $usedContacts = \App\Models\Enquiry::where('user_id', Auth::id())
-                    ->where('unlocked', true)
-                    ->whereNull('payment_id') // Only count subscription unlocks (payment_id is null)
-                    ->count();
+                $usedContacts = $activeSubscription->usages()->where('usage_type', 'contact')->count();
                 
                 $totalContacts = $activeSubscription->plan->contacts_limit ?? 0;
                 
@@ -72,13 +77,14 @@ class UnlockController extends Controller
                 
                 if ($remaining > 0) {
                     // Unlock using subscription (no payment needed)
-                    $enquiry = Enquiry::create([
-                        'user_id' => Auth::id(),
-                        'room_id' => $room->id,
-                        'payment_id' => null, // null means unlocked via subscription
-                        'unlocked' => true,
-                        'unlocked_at' => now()
-                    ]);
+                    $enquiry = Enquiry::updateOrCreate(
+                        ['user_id' => Auth::id(), 'room_id' => $room->id],
+                        ['payment_id' => null, 'unlocked' => true, 'unlocked_at' => now()]
+                    );
+                    SubscriptionUsage::firstOrCreate(
+                        ['subscription_id' => $activeSubscription->id, 'usage_type' => 'contact', 'room_id' => $room->id],
+                        ['user_id' => Auth::id(), 'used_at' => now()]
+                    );
 
                     DB::commit();
 
@@ -132,6 +138,7 @@ class UnlockController extends Controller
                         'contact' => $room->owner->phone ?? $room->owner->email
                     ]);
                 } else {
+                    DB::rollBack();
                     return response()->json([
                         'success' => false,
                         'message' => 'Insufficient wallet balance'
@@ -180,12 +187,10 @@ class UnlockController extends Controller
             ]);
 
             // Create enquiry record
-            $enquiry = Enquiry::create([
-                'user_id' => Auth::id(),
-                'room_id' => $room->id,
-                'payment_id' => $payment->id,
-                'unlocked' => false
-            ]);
+            $enquiry = Enquiry::updateOrCreate(
+                ['user_id' => Auth::id(), 'room_id' => $room->id],
+                ['payment_id' => $payment->id, 'unlocked' => false]
+            );
 
             DB::commit();
 

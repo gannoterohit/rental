@@ -30,8 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payments/verify',       [ApiPaymentController::class, 'verifyPayment']);
 
     // ── Transactions ──────────────────────────
-    Route::get('/bookings',   [ApiBookingController::class, 'index']);
-    Route::post('/bookings',  [ApiBookingController::class, 'store'])->middleware('throttle:5,1');
+    // Phase 1 does not collect rent or create bookings/payouts.
     Route::post('/unlock/{room}', [ApiUnlockController::class, 'unlock']);
 
     // ── Wallet & Wishlist ─────────────────────

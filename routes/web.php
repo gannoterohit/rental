@@ -93,7 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/payment/razorpay/order', [RazorpayController::class,'createOrder'])->middleware('throttle:10,1')->name('razorpay.createOrder');
     
     // Other routes
-    Route::post('/book-room', [BookingController::class,'store'])->middleware('throttle:5,1')->name('book.room');
+    // Phase 1 is listing + room-contact unlock only. Rent booking/payment is intentionally disabled.
     Route::get('/plans', [PlanController::class,'index'])->name('plans');
     Route::post('/subscription/purchase', [\App\Http\Controllers\SubscriptionController::class, 'store'])->name('subscription.purchase');
     Route::post('/subscribe', [SubscriptionController::class,'store'])->name('subscribe');
@@ -223,6 +223,7 @@ Route::controller(PagesController::class)->group(function () {
 
 Route::middleware(['auth', 'role:owner'])->prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
+    Route::get('/rooms', [OwnerController::class, 'rooms'])->name('owner.rooms');
 });
 
 

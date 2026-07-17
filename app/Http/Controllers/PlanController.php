@@ -13,33 +13,35 @@ class PlanController extends Controller
         // For admin, show all plans
         if (Auth::check() && Auth::user()->role === 'admin') {
             $plans = Plan::all();
-            $contactPlans = Plan::where('type', 'user')->where('contacts_limit', '>', 0)->get();
-            $listingPlans = Plan::where('type', 'owner')->where('listing_limit', '>', 0)->get();
-            return view('plans.index', compact('plans', 'contactPlans', 'listingPlans'));
+            $contactPlans = Plan::where('type', 'user')->where(fn ($q) => $q->where('contacts_limit', '>', 0)->orWhere('contacts_limit', -1))->get();
+            $listingPlans = Plan::where('type', 'owner')->where(fn ($q) => $q->where('listing_limit', '>', 0)->orWhere('listing_limit', -1))->get();
+            return view('plans.admin-index', compact('plans', 'contactPlans', 'listingPlans'));
         }
         
         // Show contact subscription plans ONLY to users (ACTIVE ONLY)
         if (Auth::check() && Auth::user()->role === 'user') {
             $contactPlans = Plan::where('type', 'user')
-                ->where('contacts_limit', '>', 0)
+                ->where(fn ($q) => $q->where('contacts_limit', '>', 0)->orWhere('contacts_limit', -1))
                 ->where('is_active', true)
                 ->get();
-            return view('plans.index', compact('contactPlans'));
+            $activeSubscription = Auth::user()->subscriptions()->where('status', 'active')->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn ($q) => $q->where('type', 'user'))->with('plan')->latest()->first();
+            return view('plans.marketplace', ['plans' => $contactPlans, 'activeSubscription' => $activeSubscription]);
         }
         
         // Show room listing plans ONLY to owners (ACTIVE ONLY)
         if (Auth::check() && Auth::user()->role === 'owner') {
             $listingPlans = Plan::where('type', 'owner')
-                ->where('listing_limit', '>', 0)
+                ->where(fn ($q) => $q->where('listing_limit', '>', 0)->orWhere('listing_limit', -1))
                 ->where('is_active', true)
                 ->get();
-            return view('plans.index', compact('listingPlans'));
+            $activeSubscription = Auth::user()->subscriptions()->where('status', 'active')->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn ($q) => $q->where('type', 'owner'))->with('plan')->latest()->first();
+            return view('plans.marketplace', ['plans' => $listingPlans, 'activeSubscription' => $activeSubscription]);
         }
         
-        // Not logged in - show nothing or redirect to login
-        $contactPlans = collect([]);
-        $listingPlans = collect([]);
-        return view('plans.index', compact('contactPlans', 'listingPlans'));
+        // Plans are role-specific, so guests must sign in first.
+        return redirect()->route('login');
     }
 
     public function create()
@@ -51,11 +53,11 @@ class PlanController extends Controller
     {
         $data = $request->validate([
             'name' => 'required',
-            'price' => 'required|numeric',
-            'duration_days' => 'required|numeric',
-            'listing_limit' => 'nullable|numeric',
-            'contacts_limit' => 'nullable|numeric',
-            'type' => 'required',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
+            'listing_limit' => 'nullable|integer|min:-1',
+            'contacts_limit' => 'nullable|integer|min:-1',
+            'type' => 'required|in:owner,user',
             'benefits' => 'nullable|array',
             'benefits.*' => 'string'
         ]);
@@ -73,11 +75,11 @@ class PlanController extends Controller
     {
         $data = $request->validate([
             'name' => 'required',
-            'price' => 'required|numeric',
-            'duration_days' => 'required|numeric',
-            'listing_limit' => 'nullable|numeric',
-            'contacts_limit' => 'nullable|numeric',
-            'type' => 'required',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
+            'listing_limit' => 'nullable|integer|min:-1',
+            'contacts_limit' => 'nullable|integer|min:-1',
+            'type' => 'required|in:owner,user',
             'benefits' => 'nullable|array',
             'benefits.*' => 'string'
         ]);
@@ -99,4 +101,3 @@ class PlanController extends Controller
         return redirect()->route('admin.plans.index')->with('success', "Plan {$status} successfully!");
     }
 }
-

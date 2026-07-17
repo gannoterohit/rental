@@ -3,6 +3,7 @@
     $accountUser = Auth::user();
     $userItems = [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-chart-pie', 'href' => route('dashboard')],
+        ['key' => 'browse', 'label' => 'Browse Rooms', 'icon' => 'fa-magnifying-glass', 'href' => route('rooms.index')],
         ['key' => 'wallet', 'label' => 'My Wallet', 'icon' => 'fa-wallet', 'href' => route('wallet')],
         ['key' => 'wishlist', 'label' => 'Wishlist', 'icon' => 'fa-heart', 'href' => route('wishlist.index')],
         ['key' => 'referral', 'label' => 'Refer & Earn', 'icon' => 'fa-gift', 'href' => route('referral.index')],
@@ -14,8 +15,10 @@
 
 @once
 <style>
-    .user-workspace { background: #f8fafc; }
-    .user-workspace main { min-width: 0; }
+    .user-workspace { display: flex !important; width: 100%; min-width: 0; background: #f8fafc; }
+    .user-workspace > .user-sidebar { display: flex !important; position: fixed !important; top: 4rem !important; bottom: 0 !important; left: 0 !important; z-index: 35; width: 16rem !important; height: calc(100vh - 4rem) !important; overflow: hidden; }
+    .user-workspace > .user-sidebar nav { overflow: hidden !important; min-height: 0; }
+    .user-workspace > main { min-width: 0; width: calc(100% - 16rem); margin-left: 16rem !important; }
     .user-workspace .workspace-header {
         background: #fff !important;
         border-bottom: 1px solid #e2e8f0;
@@ -35,6 +38,9 @@
     .user-workspace textarea { border-radius: .75rem !important; border: 1px solid #e2e8f0 !important; }
     .user-workspace button[type="submit"] { border-radius: .75rem !important; }
     @media (max-width: 1023px) {
+        .user-workspace { display: block !important; }
+        .user-workspace > .user-sidebar { display: none !important; }
+        .user-workspace > main { width: 100% !important; margin-left: 0 !important; }
         .user-workspace .p-8,
         .user-workspace .lg\:p-8,
         .user-workspace .lg\:p-10 { padding: 1rem !important; }
@@ -42,7 +48,7 @@
 </style>
 @endonce
 
-<aside class="hidden lg:flex w-64 shrink-0 bg-white border-r border-slate-200 flex-col sticky top-16 h-[calc(100vh-4rem)]">
+<aside class="user-sidebar hidden lg:flex bg-white border-r border-slate-200 flex-col">
     <div class="px-5 py-5 border-b border-slate-100">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
             @if($accountLogo)
@@ -65,7 +71,7 @@
     </nav>
     <div class="p-3 border-t border-slate-100">
         <div class="flex items-center gap-3 px-3 py-2 mb-1">
-            <span class="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">{{ strtoupper(substr($accountUser?->name ?? 'U', 0, 1)) }}</span>
+            <img src="{{ $accountUser?->avatar ? asset('storage/'.$accountUser->avatar) : asset('assets/images/default-avatar.svg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'" alt="User profile" class="w-9 h-9 rounded-full border border-slate-200 bg-indigo-50 object-cover">
             <span class="min-w-0"><strong class="block text-xs text-slate-800 truncate">{{ $accountUser?->name }}</strong><small class="block text-[10px] text-slate-400 truncate">{{ $accountUser?->email }}</small></span>
         </div>
         <form method="POST" action="{{ route('logout') }}">@csrf

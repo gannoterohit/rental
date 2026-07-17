@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiRoomController;
 use App\Http\Controllers\Api\ApiMiscController;
 use App\Http\Controllers\Api\ApiSettingsController;
-use App\Http\Controllers\Api\ApiAdminController;
 use App\Http\Controllers\Api\ApiRoomOptionController;
 
 // ── App Settings ──────────────────────────
@@ -41,7 +40,7 @@ Route::post('/newsletter/subscribe', [ApiMiscController::class, 'subscribeNewsle
 Route::post('/contact',        [ApiMiscController::class, 'contactSubmit'])->middleware('throttle:public_form');
 
 // ── Active Offers ─────────────────────────
-Route::get('/offers',          [ApiAdminController::class, 'offers']);
+Route::get('/offers',          [ApiMiscController::class, 'offers']);
 
 // ── Referral Code Validation (mobile deep links) ──
 Route::get('/referral/{code}', [ApiMiscController::class, 'validateReferral']);

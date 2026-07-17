@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Payment;
 use App\Models\RoomOption;
 use App\Models\Setting;
+use App\Models\SubscriptionUsage;
 use App\Http\Resources\RoomResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -256,15 +257,21 @@ class ApiRoomController extends BaseApiController
             // Check Owner Subscription
             $activeSub = \App\Models\Subscription::where('user_id', Auth::id())
                 ->where('status', 'active')
-                ->whereHas('plan', fn($q) => $q->where('type', 'owner'))
+                ->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn($q) => $q->where('type', 'owner')->where('is_active', true))
+                ->lockForUpdate()
                 ->with('plan')
                 ->first();
 
             if ($activeSub) {
-                $used = Room::where('user_id', Auth::id())->where('listing_fee_paid', true)->whereNull('listing_payment_id')->count();
+                $used = $activeSub->usages()->where('usage_type', 'listing')->count();
                 $limit = $activeSub->plan->listing_limit;
                 if ($limit === -1 || $used < $limit) {
                     $room->update(['listing_fee_paid' => true, 'status' => 'active']);
+                    SubscriptionUsage::firstOrCreate(
+                        ['subscription_id' => $activeSub->id, 'usage_type' => 'listing', 'room_id' => $room->id],
+                        ['user_id' => Auth::id(), 'used_at' => now()]
+                    );
                     DB::commit();
                     return $this->sendSuccess(new RoomResource($room), 'Room listed successfully using subscription!');
                 }
@@ -289,13 +296,20 @@ class ApiRoomController extends BaseApiController
                     DB::commit();
                     return $this->sendSuccess(new RoomResource($room), 'Room listed successfully using wallet balance!');
                 } else {
+                    DB::rollBack();
                     return $this->sendError('Insufficient wallet balance', [], 400);
                 }
             }
 
+            $payment = Payment::create([
+                'user_id' => Auth::id(), 'type' => 'listing', 'amount' => $listingFee,
+                'gateway' => 'razorpay', 'reference_id' => $room->id, 'status' => 'pending'
+            ]);
+            $room->update(['listing_payment_id' => $payment->id]);
             DB::commit();
             return $this->sendSuccess([
                 'room' => new RoomResource($room),
+                'payment_record_id' => $payment->id,
                 'amount' => $listingFee,
                 'type' => 'listing'
             ], 'Room created. Please complete payment to activate.');

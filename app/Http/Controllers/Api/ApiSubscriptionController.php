@@ -19,7 +19,7 @@ class ApiSubscriptionController extends BaseApiController
      */
     public function plans()
     {
-        $plans = Plan::where('status', true)->get();
+        $plans = Plan::where('is_active', true)->get();
         return $this->sendSuccess(PlanResource::collection($plans));
     }
 
@@ -35,6 +35,9 @@ class ApiSubscriptionController extends BaseApiController
 
         $plan = Plan::findOrFail($request->plan_id);
         $user = Auth::user();
+        if (!$plan->is_active || $user->role !== $plan->type) {
+            return $this->sendError('This plan is not available for your account type', [], 403);
+        }
 
         // Check for active subscription of same type
         $activeSub = Subscription::where('user_id', $user->id)
@@ -42,6 +45,13 @@ class ApiSubscriptionController extends BaseApiController
             ->whereHas('plan', fn($q) => $q->where('type', $plan->type))
             ->first();
 
+        if ($activeSub) {
+            $usageType = $plan->type === 'owner' ? 'listing' : 'contact';
+            $limit = $plan->type === 'owner' ? $activeSub->plan->listing_limit : $activeSub->plan->contacts_limit;
+            $exhausted = $limit !== -1 && $activeSub->usages()->where('usage_type', $usageType)->count() >= (int) $limit;
+            $expired = $activeSub->end_date && $activeSub->end_date->endOfDay()->isPast();
+            if ($exhausted || $expired) { $activeSub->update(['status' => 'expired']); $activeSub = null; }
+        }
         if ($activeSub) {
             return $this->sendError('You already have an active ' . $plan->type . ' subscription', [], 400);
         }
@@ -59,7 +69,7 @@ class ApiSubscriptionController extends BaseApiController
                     'user_id' => $user->id,
                     'plan_id' => $plan->id,
                     'start_date' => now(),
-                    'end_date' => now()->addDays($plan->duration),
+                    'end_date' => now()->addDays($plan->duration_days),
                     'status' => 'active'
                 ]);
 
@@ -84,12 +94,18 @@ class ApiSubscriptionController extends BaseApiController
                 'user_id' => $user->id,
                 'plan_id' => $plan->id,
                 'start_date' => now(),
-                'end_date' => now()->addDays($plan->duration),
+                'end_date' => now()->addDays($plan->duration_days),
                 'status' => 'pending'
             ]);
 
+            $payment = Payment::create([
+                'user_id' => $user->id, 'type' => 'subscription', 'amount' => $plan->price,
+                'gateway' => 'razorpay', 'reference_id' => $subscription->id, 'status' => 'pending'
+            ]);
+            DB::commit();
             return $this->sendSuccess([
                 'subscription_id' => $subscription->id,
+                'payment_record_id' => $payment->id,
                 'amount' => (float) $plan->price,
                 'type' => 'subscription'
             ], 'Payment required to activate subscription');

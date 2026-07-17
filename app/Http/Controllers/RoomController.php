@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Enquiry;
 use App\Models\RoomOption;
 use App\Models\Setting;
+use App\Models\SubscriptionUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -325,16 +326,16 @@ class RoomController extends Controller {
             // Check owner subscription for room listing - count based, not date based
             $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())
                 ->where('status', 'active')
+                ->whereDate('end_date', '>=', today())
+                ->whereHas('plan', fn ($query) => $query->where('type', 'owner')->where('is_active', true))
+                ->lockForUpdate()
                 ->with('plan')
                 ->first();
             
             $useSubscription = false;
             if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->type === 'owner') {
                 // Count rooms listed using subscription (listing_fee_paid = true and listing_payment_id is null)
-                $usedListings = Room::where('user_id', Auth::id())
-                    ->where('listing_fee_paid', true)
-                    ->whereNull('listing_payment_id') // Subscription listings have null listing_payment_id
-                    ->count();
+                $usedListings = $activeSubscription->usages()->where('usage_type', 'listing')->count();
                 
                 $totalListings = $activeSubscription->plan->listing_limit ?? 0;
                 
@@ -353,6 +354,10 @@ class RoomController extends Controller {
                         'status' => 'active',
                         'listing_payment_id' => null // null means used subscription
                     ]);
+                    SubscriptionUsage::firstOrCreate(
+                        ['subscription_id' => $activeSubscription->id, 'usage_type' => 'listing', 'room_id' => $room->id],
+                        ['user_id' => Auth::id(), 'used_at' => now()]
+                    );
                     $useSubscription = true;
                 }
             }
@@ -396,6 +401,7 @@ class RoomController extends Controller {
                             'message' => 'Room listed successfully using wallet balance!'
                         ]);
                     } else {
+                        DB::rollBack();
                         return response()->json([
                             'success' => false,
                             'message' => 'Insufficient wallet balance'
@@ -496,15 +502,14 @@ class RoomController extends Controller {
                 // Check subscription first - count based, not date based
                 $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())
                     ->where('status', 'active')
+                    ->whereDate('end_date', '>=', today())
+                    ->whereHas('plan', fn ($query) => $query->where('type', 'user')->where('is_active', true))
                     ->with('plan')
                     ->first();
                 
                 if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->type === 'user') {
                     // Check subscription usage - count only subscription unlocks (payment_id is null)
-                    $usedContacts = \App\Models\Enquiry::where('user_id', Auth::id())
-                        ->where('unlocked', true)
-                        ->whereNull('payment_id') // Only count subscription unlocks
-                        ->count();
+                    $usedContacts = $activeSubscription->usages()->where('usage_type', 'contact')->count();
                     
                     $totalContacts = $activeSubscription->plan->contacts_limit ?? 0;
                     
@@ -640,6 +645,9 @@ class RoomController extends Controller {
             }
 
             $data = $this->mapRoomOptionData($data);
+
+            // Any owner edit requires moderation again before public display.
+            $data['listing_status'] = 'pending';
 
             $room->update($data);
             \Illuminate\Support\Facades\Cache::forget('public_cities_list');
@@ -797,7 +805,14 @@ class RoomController extends Controller {
             ], 403);
         }
 
-        $room->update(['status' => 'booked']);
+        // A booked room is removed from public inventory. Its previous listing
+        // entitlement is released; publishing it again must pass the current
+        // subscription/payment checks in markAvailable().
+        $room->update([
+            'status' => 'booked',
+            'listing_fee_paid' => false,
+            'listing_payment_id' => null,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -820,6 +835,8 @@ class RoomController extends Controller {
                 // Check owner subscription for room listing - count based, not date based
                 $activeSubscription = \App\Models\Subscription::where('user_id', Auth::id())
                     ->where('status', 'active')
+                    ->whereDate('end_date', '>=', today())
+                    ->whereHas('plan', fn ($query) => $query->where('type', 'owner')->where('is_active', true))
                     ->with('plan')
                     ->first();
                 
@@ -889,6 +906,7 @@ class RoomController extends Controller {
                                 'message' => 'Room made available successfully using wallet balance!'
                             ]);
                         } else {
+                            DB::rollBack();
                             return response()->json([
                                 'success' => false,
                                 'message' => 'Insufficient wallet balance'
