@@ -9,7 +9,7 @@ class PageController extends Controller
 {
     public function about()
     {
-        $content = Setting::get('about_content', '<p>We help tenants find trusted rooms and property owners connect with genuine renters. Our goal is to make renting simple, transparent and accessible.</p><p>Browse verified listings, compare options and connect with owners from one convenient platform.</p>');
+        $content = Setting::get('about_content', config('cms.defaults.about_content'));
         $title = 'About Us';
 
         return view('pages.show', compact('content', 'title'));
@@ -25,30 +25,44 @@ class PageController extends Controller
 
     public function howItWorks()
     {
-        $content = Setting::get('how_it_works_content', '<h2>Find a room</h2><p>Search by city, budget, room type, furnishing and preferred tenant.</p><h2>Review the details</h2><p>Compare rent, amenities, photos, location and owner information.</p><h2>Connect securely</h2><p>Contact the owner and finalize your stay after verifying the property details.</p><h2>List a property</h2><p>Owners can create a listing, add photos and details, and manage enquiries from their dashboard.</p>');
+        $content = Setting::get('how_it_works_content', config('cms.defaults.how_it_works_content'));
         $title = 'How It Works';
 
-        return view('pages.show', compact('content', 'title'));
+        return view('pages.how-it-works', compact('content', 'title'));
     }
 
     public function safetyTips()
     {
-        $content = Setting::get('safety_tips_content', '<h2>Visit before paying</h2><p>Inspect the property and confirm its condition before making a payment.</p><h2>Verify the owner</h2><p>Check the identity and ownership or authorization documents of the person listing the property.</p><h2>Use written agreements</h2><p>Record rent, deposit, notice period and included facilities in a signed rental agreement.</p><h2>Protect personal information</h2><p>Do not share OTPs, passwords or unnecessary financial information with anyone.</p>');
+        $content = Setting::get('safety_tips_content', config('cms.defaults.safety_tips_content'));
         $title = 'Safety Tips';
 
         return view('pages.show', compact('content', 'title'));
     }
 
+    public function ownerGuidelines()
+    {
+        $content = Setting::get('owner_guidelines_content', config('cms.defaults.owner_guidelines_content'));
+        $title = 'Owner Guidelines';
+        return view('pages.show', compact('content', 'title'));
+    }
+
+    public function userGuidelines()
+    {
+        $content = Setting::get('user_guidelines_content', config('cms.defaults.user_guidelines_content'));
+        $title = 'User Guidelines';
+        return view('pages.show', compact('content', 'title'));
+    }
+
     public function terms()
     {
-        $content = Setting::get('terms_content', 'Terms and Conditions content not set.');
+        $content = Setting::get('terms_content', config('cms.defaults.terms_content'));
         $title = 'Terms & Conditions';
         return view('pages.show', compact('content', 'title'));
     }
 
     public function privacy()
     {
-        $content = Setting::get('privacy_content', 'Privacy Policy content not set.');
+        $content = Setting::get('privacy_content', config('cms.defaults.privacy_content'));
         $title = 'Privacy Policy';
         return view('pages.show', compact('content', 'title'));
     }

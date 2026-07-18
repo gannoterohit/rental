@@ -90,6 +90,9 @@
                     <a href="{{ route('referral.index') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-emerald-50 transition text-gray-700 font-bold">
                         <i class="fas fa-gift w-5 text-emerald-500"></i> Refer & Earn
                     </a>
+                    <a href="{{ route('complaints.index') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-red-50 transition text-gray-700 font-bold">
+                        <i class="fas fa-shield-halved w-5 text-red-500"></i> My Complaints
+                    </a>
                 @else
                     <a href="{{ route('login') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                         <i class="fas fa-sign-in-alt w-5 text-indigo-500"></i> Login
@@ -113,6 +116,12 @@
                 </a>
                 <a href="{{ route('pages.contact') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-headset w-5 text-blue-500"></i> Support Center
+                </a>
+                <a href="{{ route('pages.owner-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                    <i class="fas fa-house-user w-5 text-indigo-500"></i> Owner Guidelines
+                </a>
+                <a href="{{ route('pages.user-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                    <i class="fas fa-person-circle-check w-5 text-indigo-500"></i> User Guidelines
                 </a>
                 <a href="{{ route('pages.privacy') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-shield-alt w-5 text-teal-500"></i> Privacy Policy

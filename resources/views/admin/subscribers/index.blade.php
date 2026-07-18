@@ -1,57 +1,11 @@
 @extends('layouts.admin')
-
+@section('title','Newsletter Subscribers')
+@push('sweetalert')<script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>@endpush
+@push('styles')<style>.subscriber-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.subscriber-filter{display:grid!important;grid-template-columns:minmax(260px,1fr) 160px 160px auto!important;gap:8px}.subscriber-table{min-width:760px;width:100%;table-layout:fixed}.subscriber-table th,.subscriber-table td{text-align:left!important;vertical-align:middle!important}.subscriber-table th:last-child,.subscriber-table td:last-child{text-align:right!important}@media(max-width:767px){.subscriber-stats,.subscriber-filter{grid-template-columns:1fr!important}}</style>@endpush
 @section('admin-content')
-<div class="bg-white rounded-lg shadow-sm border border-gray-100">
-    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-        <div>
-            <h2 class="text-xl font-bold text-gray-800">Newsletter Subscribers</h2>
-            <p class="text-sm text-gray-500 mt-1">Manage email subscriptions from the blog.</p>
-        </div>
-        <button onclick="window.print()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-            <i class="fas fa-print mr-2"></i> Print List
-        </button>
-    </div>
-    
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
-                    <th class="p-4 font-semibold border-b border-gray-100">Email Address</th>
-                    <th class="p-4 font-semibold border-b border-gray-100">Subscribed At</th>
-                    <th class="p-4 font-semibold border-b border-gray-100 text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-                @forelse($subscribers as $subscriber)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="p-4 text-gray-800 font-medium">{{ $subscriber->email }}</td>
-                        <td class="p-4 text-gray-500">{{ $subscriber->created_at->format('M d, Y h:i A') }}</td>
-                        <td class="p-4 text-right">
-                            <form action="{{ route('admin.subscribers.destroy', $subscriber->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to remove this subscriber?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 w-8 h-8 rounded-full flex items-center justify-center transition">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="3" class="p-8 text-center text-gray-400">
-                            <i class="far fa-envelope-open text-3xl mb-3 block"></i>
-                            No subscribers found yet.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    @if($subscribers->hasPages())
-        <div class="p-4 border-t border-gray-100">
-            {{ $subscribers->links() }}
-        </div>
-    @endif
-</div>
+<div class="space-y-5 p-5 lg:p-6"><header class="flex items-end justify-between"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-600">Audience growth</p><h1 class="mt-1 text-2xl font-extrabold">Newsletter Subscribers</h1><p class="text-sm text-slate-500">Manage people subscribed to room updates and blog content.</p></div><button onclick="window.print()" class="rounded-xl border bg-white px-4 py-2.5 text-xs font-bold"><i class="fas fa-print mr-2"></i>Print current list</button></header>@if(session('success'))<div class="rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{{ session('success') }}</div>@endif
+<section class="subscriber-stats">@foreach([['Total subscribers',$subscriberStats['total'],'fa-users','text-indigo-600'],['Joined this month',$subscriberStats['month'],'fa-calendar','text-blue-600'],['Joined today',$subscriberStats['today'],'fa-user-plus','text-emerald-600']] as [$label,$value,$icon,$tone])<div class="rounded-2xl border bg-white p-4"><div class="flex justify-between"><div><p class="text-[10px] font-bold uppercase text-slate-400">{{ $label }}</p><p class="mt-2 text-2xl font-extrabold">{{ $value }}</p></div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 {{ $tone }}"><i class="fas {{ $icon }}"></i></span></div></div>@endforeach</section>
+<form class="subscriber-filter rounded-2xl border bg-white p-4"><input name="search" value="{{ request('search') }}" placeholder="Search email address" class="h-10 rounded-xl text-xs"><input type="date" name="from" value="{{ request('from') }}" class="h-10 rounded-xl text-xs"><input type="date" name="to" value="{{ request('to') }}" class="h-10 rounded-xl text-xs"><div class="flex gap-2"><button class="rounded-xl bg-slate-900 px-4 text-xs font-bold text-white">Filter</button><a href="{{ route('admin.subscribers.index') }}" class="flex h-10 items-center rounded-xl border px-3 text-xs font-bold">Reset</a></div></form>
+<section class="overflow-hidden rounded-2xl border bg-white"><div class="flex justify-between border-b px-5 py-4"><div><h2 class="text-sm font-extrabold">Subscriber directory</h2><p class="text-xs text-slate-500">{{ $subscribers->total() }} matching email addresses</p></div><span class="text-xs font-bold text-slate-500">Page {{ $subscribers->currentPage() }} of {{ $subscribers->lastPage() }}</span></div><div class="overflow-x-auto"><table class="subscriber-table"><thead><tr><th>Email address</th><th>Subscribed date</th><th>Source</th><th>Action</th></tr></thead><tbody class="divide-y">@forelse($subscribers as $subscriber)<tr><td class="px-5"><div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fas fa-envelope text-xs"></i></span><strong class="text-sm">{{ $subscriber->email }}</strong></div></td><td class="px-5"><p class="text-xs font-semibold">{{ $subscriber->created_at->format('d M Y') }}</p><p class="text-[10px] text-slate-400">{{ $subscriber->created_at->format('h:i A') }}</p></td><td class="px-5"><span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">Website newsletter</span></td><td class="px-5"><form action="{{ route('admin.subscribers.destroy',$subscriber) }}" method="POST" class="confirm-remove">@csrf @method('DELETE')<button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700"><i class="fas fa-trash mr-1"></i>Remove</button></form></td></tr>@empty<tr><td colspan="4" class="p-12 text-center text-sm text-slate-500">No newsletter subscribers found.</td></tr>@endforelse</tbody></table></div>@if($subscribers->hasPages())<div class="border-t p-4">{{ $subscribers->links() }}</div>@endif</section></div>
 @endsection
+@push('scripts')<script>document.querySelectorAll('.confirm-remove').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const r=await Swal.fire({title:'Remove subscriber?',text:'This email will stop receiving newsletter updates.',icon:'warning',showCancelButton:true,confirmButtonText:'Yes, remove',confirmButtonColor:'#dc2626'});if(r.isConfirmed)f.submit()}));</script>@endpush

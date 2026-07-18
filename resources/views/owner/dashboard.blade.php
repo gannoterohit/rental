@@ -73,6 +73,7 @@
         </header>
 
         <div class="owner-dashboard-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            @include('partials.offer-banner', ['placement' => 'dashboard'])
             <section class="owner-dashboard-stats" aria-label="Dashboard statistics">
                 @foreach([
                     ['Total rooms', $rooms ?? 0, 'fa-building', 'bg-indigo-50 text-indigo-600'],

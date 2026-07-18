@@ -1,117 +1,16 @@
 @extends('layouts.admin')
-
+@section('title','Search Analytics')
+@push('sweetalert')<script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>@endpush
+@push('styles')<style>.analytics-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.analytics-table{min-width:960px;width:100%}.analytics-table th,.analytics-table td{text-align:left!important;vertical-align:middle!important}.analytics-table th:last-child,.analytics-table td:last-child{text-align:right!important}@media(max-width:767px){.analytics-list{grid-template-columns:1fr}}</style>@endpush
 @section('admin-content')
-<div class="flex min-h-0">
-    <div class="flex-1 min-w-0 flex flex-col">
-        <div class="container-fluid px-4 py-6 overflow-y-auto">
-            <h1 class="text-2xl font-bold text-slate-800 mb-6">User Search Analytics</h1>
+@php $tab=request('tab','demand'); @endphp
+<div class="space-y-5 p-5 lg:p-6"><header class="flex flex-wrap items-end justify-between gap-3"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-600">Demand intelligence</p><h1 class="mt-1 text-2xl font-extrabold">Search Analytics</h1><p class="text-sm text-slate-500">Demand, listing supply and raw search activity.</p></div><div class="rounded-xl bg-indigo-600 px-5 py-3 text-white"><p class="text-[9px] font-bold uppercase text-indigo-100">Tracked searches</p><p class="text-xl font-extrabold">{{ \App\Models\SearchLog::count() }}</p></div></header>
+@if(session('success'))<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{{ session('success') }}</div>@endif
+<nav class="flex gap-2 overflow-x-auto rounded-2xl border bg-white p-2">@foreach([['demand','Search Demand','fa-chart-line'],['supply','Listing Supply','fa-building'],['logs','Search Logs','fa-clock-rotate-left']] as [$key,$label,$icon])<a href="{{ route('admin.analytics',['tab'=>$key]) }}" class="inline-flex min-w-max items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold {{ $tab===$key?'bg-indigo-600 text-white':'text-slate-600 hover:bg-slate-50' }}"><i class="fas {{ $icon }}"></i>{{ $label }}</a>@endforeach</nav>
 
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Top Cities Card -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-lg font-semibold text-slate-700 mb-4 border-b pb-2">Top Active Cities (Traffic & Searches)</h2>
-                    <div class="space-y-3">
-                        @forelse($topCities as $cityStat)
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-700 font-medium">{{ $cityStat->city }}</span>
-                                <div class="flex items-center">
-                                    <div class="w-32 bg-gray-200 rounded-full h-2.5 mr-3">
-                                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ ($cityStat->total / $topCities->first()->total) * 100 }}%"></div>
-                                    </div>
-                                    <span class="text-sm font-bold text-indigo-600">{{ $cityStat->total }}</span>
-                                </div>
-                            </div>
-                        @empty
-                            <p class="text-gray-500 italic">No searches recorded yet.</p>
-                        @endforelse
-                    </div>
-                </div>
-
-                <!-- Top Listings Card -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-lg font-semibold text-slate-700 mb-4 border-b pb-2">Top Cities (Owner Listings)</h2>
-                    <div class="space-y-3">
-                        @forelse($topListingCities as $cityStat)
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-700 font-medium">{{ $cityStat->city }}</span>
-                                <div class="flex items-center">
-                                    <div class="w-32 bg-gray-200 rounded-full h-2.5 mr-3">
-                                        <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ ($cityStat->total / $topListingCities->first()->total) * 100 }}%"></div>
-                                    </div>
-                                    <span class="text-sm font-bold text-green-600">{{ $cityStat->total }}</span>
-                                </div>
-                            </div>
-                        @empty
-                            <p class="text-gray-500 italic">No listings yet.</p>
-                        @endforelse
-                    </div>
-                </div>
-
-                <!-- Info Card -->
-                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow p-6 text-white">
-                    <h2 class="text-lg font-semibold mb-2">Marketing Insights</h2>
-                    <p class="mb-4 text-indigo-100">
-                        Use this data to understand where demand is highest. Focus your marketing efforts (ads, recruitment) in cities with high search volume.
-                    </p>
-                    <div class="bg-white/10 rounded p-4">
-                        <p class="text-3xl font-bold">{{ $recentLogs->total() }}</p>
-                        <p class="text-sm opacity-80">Total Searches Tracked</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Logs Table -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-slate-700">Recent Search Logs</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filters</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($recentLogs as $log)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $log->created_at->diffForHumans() }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $log->city ?? 'All Cities' }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $log->user ? $log->user->name : 'Guest' }}
-                                        <span class="text-xs text-gray-400 block">{{ $log->ip_address }}</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        @if(!empty($log->filters))
-                                            @foreach($log->filters as $key => $val)
-                                                @if($val)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                                        {{ str_replace('_', ' ', ucfirst($key)) }}: {{ $val }}
-                                                    </span>
-                                                @endif
-                                            @endforeach
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
-                    {{ $recentLogs->links() }}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@if($tab==='demand' || $tab==='supply')@php $records=$tab==='demand'?$topCities:$topListingCities;$maximum=max(1,(int)($records->first()?->total??1));$unit=$tab==='demand'?'searches':'listings'; @endphp<section class="rounded-2xl border bg-white p-5"><div><h2 class="text-sm font-extrabold">{{ $tab==='demand'?'Highest search demand':'Largest listing supply' }}</h2><p class="text-xs text-slate-500">Cities ranked by {{ $unit }}</p></div><div class="analytics-list mt-5">@forelse($records as $index=>$record)<div class="rounded-xl border p-4"><div class="flex items-center justify-between"><div><span class="text-[10px] font-bold text-slate-400">RANK {{ $index+1 }}</span><p class="mt-1 text-sm font-extrabold">{{ $record->city }}</p></div><strong class="text-xl {{ $tab==='demand'?'text-indigo-600':'text-emerald-600' }}">{{ $record->total }}</strong></div><div class="mt-3 h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full {{ $tab==='demand'?'bg-indigo-600':'bg-emerald-500' }}" style="width:{{ ($record->total/$maximum)*100 }}%"></div></div><p class="mt-2 text-[10px] text-slate-400">{{ $record->total }} {{ $unit }}</p></div>@empty<p class="p-10 text-sm text-slate-500">No data available.</p>@endforelse</div></section>
+@else
+<section class="space-y-4"><div class="rounded-2xl border bg-white p-4"><div class="flex flex-wrap items-end justify-between gap-4"><form method="GET" class="flex flex-wrap items-end gap-2"><input type="hidden" name="tab" value="logs"><div><label class="mb-1 block text-[10px] font-bold uppercase text-slate-400">From</label><input type="date" name="from" value="{{ request('from') }}" class="h-10 rounded-lg text-xs"></div><div><label class="mb-1 block text-[10px] font-bold uppercase text-slate-400">To</label><input type="date" name="to" value="{{ request('to') }}" class="h-10 rounded-lg text-xs"></div><div><label class="mb-1 block text-[10px] font-bold uppercase text-slate-400">City</label><input name="city" value="{{ request('city') }}" placeholder="Filter city" class="h-10 rounded-lg text-xs"></div><button class="h-10 rounded-lg bg-slate-900 px-4 text-xs font-bold text-white">Apply filters</button><a href="{{ route('admin.analytics',['tab'=>'logs']) }}" class="flex h-10 items-center rounded-lg border px-3 text-xs font-bold">Reset</a></form><div class="flex gap-2"><form method="POST" action="{{ route('admin.analytics.logs.range') }}" class="confirm-range">@csrf @method('DELETE')<input type="hidden" name="from" value="{{ request('from') }}"><input type="hidden" name="to" value="{{ request('to') }}"><button @disabled(!request('from')||!request('to')) class="h-10 rounded-lg bg-amber-50 px-4 text-xs font-bold text-amber-700 disabled:opacity-40">Delete date range</button></form><form method="POST" action="{{ route('admin.analytics.logs.all') }}" class="confirm-all">@csrf @method('DELETE')<button class="h-10 rounded-lg bg-red-600 px-4 text-xs font-bold text-white">Delete all logs</button></form></div></div></div>
+<div class="overflow-hidden rounded-2xl border bg-white"><div class="flex justify-between border-b px-5 py-4"><div><h2 class="text-sm font-extrabold">Search log history</h2><p class="text-xs text-slate-500">{{ $recentLogs->total() }} matching records</p></div><span class="text-xs font-bold text-slate-500">Page {{ $recentLogs->currentPage() }} of {{ $recentLogs->lastPage() }}</span></div><div class="overflow-x-auto"><table class="analytics-table"><thead><tr><th>Date & time</th><th>City / query</th><th>Visitor</th><th>Applied filters</th><th>Action</th></tr></thead><tbody class="divide-y">@forelse($recentLogs as $log)<tr><td class="px-5"><p class="text-xs font-bold">{{ $log->created_at->format('d M Y') }}</p><p class="text-[10px] text-slate-400">{{ $log->created_at->format('h:i A') }}</p></td><td class="px-5"><strong class="text-xs">{{ $log->city?:'All cities' }}</strong><p class="text-[10px] text-slate-400">{{ $log->search_term?:'Auto-detected' }}</p></td><td class="px-5"><p class="text-xs font-semibold">{{ $log->user?->name?:'Guest visitor' }}</p><p class="text-[10px] text-slate-400">{{ $log->ip_address }}</p></td><td class="px-5"><div class="flex max-w-lg flex-wrap gap-1">@forelse(collect($log->filters)->filter() as $key=>$value)<span class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-semibold">{{ ucfirst(str_replace('_',' ',$key)) }}: {{ is_array($value)?implode(', ',$value):$value }}</span>@empty<span class="text-xs text-slate-400">No filters</span>@endforelse</div></td><td class="px-5"><form method="POST" action="{{ route('admin.analytics.logs.destroy',$log) }}" class="confirm-one">@csrf @method('DELETE')<button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700"><i class="fas fa-trash"></i></button></form></td></tr>@empty<tr><td colspan="5" class="p-12 text-center text-sm text-slate-500">No search logs found.</td></tr>@endforelse</tbody></table></div>@if($recentLogs->hasPages())<div class="border-t p-4">{{ $recentLogs->withQueryString()->links() }}</div>@endif</div></section>@endif</div>
 @endsection
+@push('scripts')<script>const confirmDelete=(selector,title,text)=>document.querySelectorAll(selector).forEach(form=>form.addEventListener('submit',async e=>{e.preventDefault();const result=await Swal.fire({title,text,icon:'warning',showCancelButton:true,confirmButtonText:'Yes, delete',confirmButtonColor:'#dc2626'});if(result.isConfirmed)form.submit()}));confirmDelete('.confirm-one','Delete this search log?','This record will be permanently removed.');confirmDelete('.confirm-range','Delete logs in selected date range?','Every matching search record will be permanently removed.');confirmDelete('.confirm-all','Delete ALL search logs?','This will permanently remove the complete search history and cannot be undone.');</script>@endpush

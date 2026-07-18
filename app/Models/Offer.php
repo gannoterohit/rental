@@ -7,6 +7,14 @@ use Carbon\Carbon;
 
 class Offer extends Model
 {
+    public const PLACEMENTS = [
+        'top_nav' => 'Top announcement bar',
+        'home_hero' => 'Home page promotion',
+        'dashboard' => 'User / owner dashboard',
+        'sidebar' => 'Room and blog sidebar',
+        'mobile_feed' => 'Mobile listing feed',
+        'popup' => 'Timed public-page popup',
+    ];
     protected $fillable = [
         'title',
         'description',
@@ -57,7 +65,7 @@ class Offer extends Model
             return false;
         }
 
-        if ($this->end_date && $now->gt($this->end_date)) {
+        if ($this->end_date && $now->gt($this->end_date->copy()->endOfDay())) {
             return false;
         }
 
@@ -72,11 +80,11 @@ class Offer extends Model
         return $query->where('is_active', true)
             ->where(function($q) {
                 $q->whereNull('start_date')
-                  ->orWhere('start_date', '<=', Carbon::now());
+                  ->orWhereDate('start_date', '<=', today());
             })
             ->where(function($q) {
                 $q->whereNull('end_date')
-                  ->orWhere('end_date', '>=', Carbon::now());
+                  ->orWhereDate('end_date', '>=', today());
             });
     }
 

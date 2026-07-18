@@ -59,6 +59,26 @@ class PagesController extends Controller
         return $this->saveEditor($request, 'safety_tips_content', 'Safety Tips');
     }
 
+    public function ownerGuidelines()
+    {
+        return $this->showEditor('owner_guidelines_content', 'Owner Guidelines', 'admin.pages.owner-guidelines.update');
+    }
+
+    public function updateOwnerGuidelines(Request $request)
+    {
+        return $this->saveEditor($request, 'owner_guidelines_content', 'Owner Guidelines');
+    }
+
+    public function userGuidelines()
+    {
+        return $this->showEditor('user_guidelines_content', 'User Guidelines', 'admin.pages.user-guidelines.update');
+    }
+
+    public function updateUserGuidelines(Request $request)
+    {
+        return $this->saveEditor($request, 'user_guidelines_content', 'User Guidelines');
+    }
+
     /**
      * Show the form for editing the Terms page.
      */
@@ -191,6 +211,9 @@ class PagesController extends Controller
     private function showEditor(string $key, string $pageTitle, string $routeName)
     {
         $setting = Setting::where('key', $key)->first();
+        if (!$setting) {
+            $setting = new Setting(['key' => $key, 'value' => config("cms.defaults.{$key}", '')]);
+        }
         $route = route($routeName);
 
         return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));

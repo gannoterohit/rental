@@ -1,116 +1,115 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage Offers')
+@section('title', 'Offer Management')
+
+@push('styles')
+<style>
+    .offer-overview { display:grid!important; grid-template-columns:minmax(0,1fr) 300px!important; gap:16px; align-items:stretch; }
+    .offer-placement-grid { display:grid!important; grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:10px; }
+    .offer-filter-grid { display:grid!important; grid-template-columns:minmax(210px,1fr) 170px 140px 130px auto!important; gap:8px; align-items:center; width:min(100%,850px); }
+    .offer-table { min-width:1100px; width:100%; table-layout:fixed; }
+    .offer-table th,.offer-table td { text-align:left!important; vertical-align:middle!important; }
+    .offer-table th:nth-child(1),.offer-table td:nth-child(1){width:34%}.offer-table th:nth-child(2),.offer-table td:nth-child(2){width:16%}.offer-table th:nth-child(3),.offer-table td:nth-child(3){width:10%}.offer-table th:nth-child(4),.offer-table td:nth-child(4){width:18%}.offer-table th:nth-child(5),.offer-table td:nth-child(5){width:10%}.offer-table th:nth-child(6),.offer-table td:nth-child(6){width:12%;text-align:right!important}
+    @media(max-width:1199px){.offer-overview{grid-template-columns:1fr!important}.offer-filter-grid{grid-template-columns:1fr 1fr!important;width:100%}.offer-placement-grid{grid-template-columns:repeat(3,1fr)!important}}
+    @media(max-width:639px){.offer-filter-grid,.offer-placement-grid{grid-template-columns:1fr!important}}
+</style>
+@endpush
 
 @section('admin-content')
-<div class="py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">Promotional Offers</h1>
-            <a href="{{ route('admin.offers.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition">
-                <i class="fas fa-plus mr-2"></i>Create New Offer
-            </a>
+@php
+    $placementMeta = [
+        'top_nav' => ['Top announcement', 'Public website header', 'fa-window-maximize'],
+        'home_hero' => ['Home promotion', 'Below homepage hero', 'fa-house'],
+        'dashboard' => ['Dashboard banner', 'User and owner dashboards', 'fa-chart-pie'],
+        'sidebar' => ['Sidebar banner', 'Rooms and blog desktop sidebar', 'fa-table-columns'],
+        'mobile_feed' => ['Mobile feed', 'Rooms and blog mobile feed', 'fa-mobile-screen'],
+        'popup' => ['Popup modal', 'Public pages only', 'fa-clone'],
+    ];
+@endphp
+
+<div class="space-y-6 p-5 lg:p-7">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-indigo-600">Marketing</p>
+            <h1 class="mt-1 text-2xl font-extrabold text-slate-950">Offer Banner Management</h1>
+            <p class="mt-1 text-sm text-slate-500">Create, schedule and place promotions across the website.</p>
+        </div>
+        <a href="{{ route('admin.offers.create') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700">
+            <i class="fas fa-plus"></i>Create Offer
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700"><i class="fas fa-circle-check mr-2"></i>{{ session('success') }}</div>
+    @endif
+    @if(isset($errors) && $errors->any())
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{{ $errors->first() }}</div>
+    @endif
+
+    <section class="offer-overview">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-4 flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fas fa-map-location-dot"></i></span>
+                <div><h2 class="font-bold text-slate-900">Website placements</h2><p class="text-xs text-slate-500">Active and scheduled offers by location</p></div>
+            </div>
+            <div class="offer-placement-grid">
+                @foreach($placementMeta as $key => $meta)
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                        <div class="flex items-start justify-between gap-3"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm"><i class="fas {{ $meta[2] }} text-xs"></i></span><span class="rounded-full bg-white px-2 py-1 text-xs font-extrabold text-slate-700">{{ $placementCounts[$key] ?? 0 }}</span></div>
+                        <p class="mt-3 text-sm font-bold text-slate-900">{{ $meta[0] }}</p><p class="mt-0.5 text-[11px] text-slate-500">{{ $meta[1] }}</p>
+                    </div>
+                @endforeach
+            </div>
         </div>
 
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
-        @endif
+        <form action="{{ route('admin.offers.display-settings') }}" method="POST" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            @csrf
+            <div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><i class="fas fa-clock"></i></span><div><h2 class="font-bold text-slate-900">Popup behaviour</h2><p class="text-xs text-slate-500">Applies to active popup offers</p></div></div>
+            <label for="popup_delay" class="mt-5 block text-sm font-bold text-slate-700">Popup delay (seconds)</label>
+            <input id="popup_delay" type="number" name="popup_delay" min="0" max="300" value="{{ old('popup_delay', \App\Models\Setting::get('popup_delay', 5)) }}" class="mt-2 w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-indigo-500 focus:ring-indigo-500/20">
+            <p class="mt-2 text-xs leading-5 text-slate-500">Use 0 for immediate display. Popup is shown once per browser session and never inside admin/account workspaces.</p>
+            <button class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800"><i class="fas fa-floppy-disk"></i>Save popup setting</button>
+        </form>
+    </section>
 
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preview / Title</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placement</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div><h2 class="font-bold text-slate-900">All offers</h2><p class="text-xs text-slate-500">{{ $offers->total() }} promotion{{ $offers->total() === 1 ? '' : 's' }} found</p></div>
+                <form method="GET" action="{{ route('admin.offers.index') }}" class="offer-filter-grid">
+                    <div class="relative"><i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i><input name="search" value="{{ request('search') }}" placeholder="Search offers..." class="h-10 w-full rounded-xl border-slate-200 pl-9 pr-3 text-xs font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"></div>
+                    <select name="placement" class="h-10 rounded-xl border-slate-200 text-xs font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"><option value="">All placements</option>@foreach(\App\Models\Offer::PLACEMENTS as $key => $label)<option value="{{ $key }}" @selected(request('placement') === $key)>{{ $label }}</option>@endforeach</select>
+                    <select name="audience" class="h-10 rounded-xl border-slate-200 text-xs font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"><option value="">All audiences</option><option value="both" @selected(request('audience') === 'both')>Both</option><option value="user" @selected(request('audience') === 'user')>Users</option><option value="owner" @selected(request('audience') === 'owner')>Owners</option></select>
+                    <select name="status" class="h-10 rounded-xl border-slate-200 text-xs font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"><option value="">Any status</option><option value="active" @selected(request('status') === 'active')>Active</option><option value="inactive" @selected(request('status') === 'inactive')>Inactive</option></select>
+                    <div class="flex gap-2"><button class="h-10 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-indigo-700">Filter</button>@if(request()->hasAny(['search','placement','audience','status']))<a href="{{ route('admin.offers.index') }}" title="Clear filters" class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50"><i class="fas fa-rotate-left text-xs"></i></a>@endif</div>
+                </form>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="offer-table divide-y divide-slate-200">
+                <thead class="bg-slate-50"><tr>@foreach(['Offer','Placement','Audience','Schedule','Status','Actions'] as $heading)<th class="px-5 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{{ $heading }}</th>@endforeach</tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                @forelse($offers as $offer)
+                    @php
+                        $now = now();
+                        $status = !$offer->is_active ? 'Inactive' : ($offer->start_date && $offer->start_date->startOfDay()->gt($now) ? 'Scheduled' : ($offer->end_date && $offer->end_date->endOfDay()->lt($now) ? 'Expired' : 'Live'));
+                        $statusClass = ['Live'=>'bg-emerald-50 text-emerald-700','Scheduled'=>'bg-blue-50 text-blue-700','Expired'=>'bg-amber-50 text-amber-700','Inactive'=>'bg-slate-100 text-slate-600'][$status];
+                    @endphp
+                    <tr class="hover:bg-slate-50/60">
+                        <td class="px-5 py-4"><div class="flex min-w-[210px] items-center gap-3">@if($offer->image_path)<img src="{{ $offer->image_url }}" alt="" class="h-12 w-16 rounded-xl border border-slate-200 object-cover">@else<div class="flex h-12 w-16 items-center justify-center rounded-xl text-xs font-black text-white" style="background:{{ $offer->banner_color }}">{{ $offer->discount_text ?: 'OFFER' }}</div>@endif<div><p class="text-sm font-bold text-slate-900">{{ $offer->title }}</p><p class="mt-0.5 text-[11px] font-semibold uppercase text-slate-400">{{ str_replace('_', ' ', $offer->type) }}</p></div></div></td>
+                        <td class="whitespace-nowrap px-5 py-4 text-sm font-semibold text-slate-700">{{ $placementMeta[$offer->placement][0] ?? str($offer->placement)->replace('_',' ')->title() }}</td>
+                        <td class="px-5 py-4"><span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">{{ ucfirst($offer->target_audience) }}</span></td>
+                        <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500">{{ $offer->start_date?->format('d M Y') ?? 'Now' }}<span class="mx-1">–</span>{{ $offer->end_date?->format('d M Y') ?? 'No end' }}</td>
+                        <td class="px-5 py-4"><span class="rounded-full px-2.5 py-1 text-xs font-bold {{ $statusClass }}">{{ $status }}</span></td>
+                        <td class="px-5 py-4"><div class="flex items-center gap-1.5"><a href="{{ route('admin.offers.edit', $offer) }}" title="Edit offer" class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"><i class="fas fa-pen text-xs"></i></a><form action="{{ route('admin.offers.toggleActive', $offer) }}" method="POST">@csrf<button title="{{ $offer->is_active ? 'Deactivate' : 'Activate' }}" class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100"><i class="fas fa-{{ $offer->is_active ? 'pause' : 'play' }} text-xs"></i></button></form><form action="{{ route('admin.offers.destroy', $offer) }}" method="POST" onsubmit="return confirm('Delete this offer permanently?')">@csrf @method('DELETE')<button title="Delete offer" class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 text-red-500 hover:bg-red-50"><i class="fas fa-trash text-xs"></i></button></form></div></td>
                     </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($offers as $offer)
-                        <tr>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    @if($offer->image_path)
-                                        <img src="{{ $offer->image_url }}" alt="" class="w-12 h-12 rounded object-cover mr-3 border">
-                                    @else
-                                        <div class="w-12 h-12 rounded mr-3 flex items-center justify-center text-white font-bold" style="background-color: {{ $offer->banner_color }}">
-                                            {{ substr($offer->discount_text ?? $offer->title, 0, 2) }}
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-900">{{ $offer->title }}</div>
-                                        <div class="text-xs text-indigo-600 font-semibold">{{ strtoupper($offer->type) }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                    {{ str_replace('_', ' ', ucfirst($offer->placement)) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $offer->target_audience === 'user' ? 'bg-blue-100 text-blue-800' : '' }}
-                                    {{ $offer->target_audience === 'owner' ? 'bg-green-100 text-green-800' : '' }}
-                                    {{ $offer->target_audience === 'both' ? 'bg-purple-100 text-purple-800' : '' }}">
-                                    {{ ucfirst($offer->target_audience) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                @if($offer->start_date)
-                                    {{ $offer->start_date->format('M d') }}
-                                @else
-                                    -
-                                @endif
-                                to
-                                @if($offer->end_date)
-                                    {{ $offer->end_date->format('M d, Y') }}
-                                @else
-                                    ∞
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $offer->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $offer->is_active ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex gap-2">
-                                    <a href="{{ route('admin.offers.edit', $offer) }}" class="text-indigo-600 hover:text-indigo-900">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.offers.toggleActive', $offer) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="text-{{ $offer->is_active ? 'orange' : 'green' }}-600 hover:text-{{ $offer->is_active ? 'orange' : 'green' }}-900">
-                                            <i class="fas fa-{{ $offer->is_active ? 'ban' : 'check' }}"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('admin.offers.destroy', $offer) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-2"></i>
-                                <p>No offers created yet.</p>
-                            </td>
-                        </tr>
-                    @endforelse
+                @empty
+                    <tr><td colspan="6" class="px-6 py-14 text-center"><span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><i class="fas fa-tags"></i></span><p class="mt-3 font-bold text-slate-800">No offers created yet</p><p class="mt-1 text-sm text-slate-500">Create your first promotion and choose where it should appear.</p></td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
+        @if($offers->hasPages())<div class="border-t border-slate-200 px-5 py-4">{{ $offers->links() }}</div>@endif
+    </section>
 </div>
 @endsection

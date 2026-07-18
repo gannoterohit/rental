@@ -37,12 +37,16 @@ class Room extends Model
         'listing_payment_id',
         'listing_type',
         'broker_fee',
+        'moderation_status',
+        'moderation_note',
+        'expires_at',
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
         'listing_fee_paid' => 'boolean',
         'photos' => 'array',
+        'expires_at' => 'datetime',
         'amenities' => 'array',
         'landmarks' => 'array',
     ];
@@ -134,6 +138,10 @@ class Room extends Model
 
     public function bookings() {
         return $this->hasMany(Booking::class);
+    }
+
+    public function complaints() {
+        return $this->hasMany(Complaint::class);
     }
     
     public function rejectionReasons()

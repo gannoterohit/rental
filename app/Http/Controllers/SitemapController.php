@@ -19,6 +19,15 @@ class SitemapController extends Controller
             'priority' => '1.0'
         ];
 
+        foreach (['pages.about', 'pages.how-it-works', 'pages.owner-guidelines', 'pages.user-guidelines', 'pages.safety-tips', 'pages.terms', 'pages.privacy', 'pages.contact', 'pages.faq'] as $routeName) {
+            $urls[] = [
+                'loc' => route($routeName),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'monthly',
+                'priority' => '0.5',
+            ];
+        }
+
         $urls[] = [
             'loc' => route('rooms.index'),
             'lastmod' => now()->toAtomString(),
@@ -46,6 +55,7 @@ class SitemapController extends Controller
         $content .= "Disallow: /admin/\n";
         $content .= "Disallow: /owner/\n";
         $content .= "Disallow: /profile/\n";
+        $content .= "Disallow: /complaints\n";
         $content .= "Disallow: /api/\n\n";
         $content .= "Sitemap: " . route('sitemap') . "\n";
 

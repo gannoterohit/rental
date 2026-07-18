@@ -225,6 +225,87 @@
         .footer-brand-logo {
             margin-bottom: 0.875rem;
         }
+
+        /* Keep the desktop navbar identical for guests and signed-in users. */
+        .desktop-navbar-inner {
+            width: 100%;
+            padding-inline: 3rem;
+        }
+
+        .desktop-navbar-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            height: 4rem;
+        }
+
+        .desktop-navbar-logo {
+            justify-self: start;
+        }
+
+        .desktop-navbar-menu {
+            justify-self: center;
+        }
+
+        .desktop-navbar-actions {
+            justify-self: end;
+        }
+
+        .complaint-page-main {
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+            min-height: calc(100vh - 4rem);
+            padding-bottom: 3rem;
+            background: #f8fafc;
+        }
+
+        .complaint-page-content {
+            width: 100%;
+            max-width: 80rem;
+            margin-inline: auto;
+            padding: 1.5rem;
+        }
+
+        .complaint-detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 20rem;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .complaint-detail-grid > section,
+        .complaint-detail-grid > aside,
+        .complaint-detail-grid > section > *,
+        .complaint-detail-grid > aside > * {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .complaint-detail-grid p,
+        .complaint-detail-grid dd,
+        .complaint-detail-grid a {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        @media (max-width: 1279px) {
+            .complaint-detail-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 639px) {
+            .complaint-page-content {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 1279px) {
+            .desktop-navbar-inner {
+                padding-inline: 1.5rem;
+            }
+        }
         /* App-like Bottom Navigation */
         .bottom-nav {
             position: fixed;
@@ -563,7 +644,7 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view dynamic-theme-override">
-    @unless(Route::currentRouteName() === 'plans')
+    @unless(request()->routeIs('admin.*', 'owner.*', 'dashboard', 'profile.*', 'wallet', 'referral.*', 'wishlist.*', 'complaints.*', 'plans'))
         @include('partials.offer-banner', ['placement' => 'top_nav'])
     @endunless
     
@@ -601,10 +682,10 @@
     <!-- Compact Desktop Navigation -->
     <!-- Desktop Navigation (Redesigned) -->
     <nav class="hidden md:block bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
-        <div class="container mx-auto px-6">
-            <div class="flex justify-between items-center h-16 py-2">
+        <div class="desktop-navbar-inner">
+            <div class="desktop-navbar-row">
                 <!-- Logo -->
-                <a href="{{ route('home') }}" class="flex items-center gap-2 overflow-visible">
+                <a href="{{ route('home') }}" class="desktop-navbar-logo flex items-center gap-2 overflow-visible">
                     @php
                         $navbarLogo = \App\Models\Setting::get('navbar_logo');
                     @endphp
@@ -623,7 +704,7 @@
                 </a>
                 
                 <!-- Center Links -->
-                <div class="hidden lg:flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-xl p-1">
+                <div class="desktop-navbar-menu hidden lg:flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-xl p-1">
                     <a href="{{ route('home') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Home</a>
                     <a href="{{ route('rooms.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Browse Rooms</a>
                     <a href="{{ route('pages.how-it-works') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">How It Works</a>
@@ -633,9 +714,9 @@
                 </div>
                 
                 <!-- Right Side Actions -->
-                <div class="flex items-center gap-4">
+                <div class="desktop-navbar-actions flex items-center justify-end gap-3 h-10">
                     <!-- Wishlist Icon (Heart) -->
-                    <a href="{{ route('wishlist.index') }}" class="text-slate-600 hover:text-red-500 transition-colors p-2 relative" title="My Wishlist">
+                    <a href="{{ route('wishlist.index') }}" class="h-10 w-10 shrink-0 inline-flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors relative" title="My Wishlist">
                         <i class="far fa-heart text-lg"></i>
                     </a>
                     
@@ -646,7 +727,7 @@
                                 ? route('owner.dashboard')
                                 : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard'));
                         @endphp
-                        <a href="{{ $accountHome }}" class="flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60" title="Open dashboard">
+                        <a href="{{ $accountHome }}" class="h-10 flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 rounded-xl border border-slate-200/60 whitespace-nowrap" title="Open dashboard">
                                 <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('assets/images/default-avatar.svg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'" alt="{{ Auth::user()->name }} profile" class="w-7 h-7 rounded-full object-cover border border-slate-200 bg-indigo-50">
                                 <span class="hidden xl:inline text-xs font-semibold">{{ Str::limit(Auth::user()->name, 12) }}</span>
                                 <i class="fas fa-arrow-right text-[9px] text-slate-400"></i>
@@ -655,22 +736,22 @@
                         <!-- Post Property Button for Logged In -->
                         @if(Auth::user()->role === 'owner')
                             <a href="{{ route('rooms.create') }}"
-                               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/10 flex items-center gap-1.5">
+                               class="h-10 bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/10 flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fas fa-plus text-xs"></i> Post Property
                             </a>
                         @endif
                     @else
                         <!-- Guest Actions -->
                         <a href="{{ route('login') }}" 
-                           class="text-slate-700 hover:text-indigo-600 font-bold transition-colors duration-200 text-sm px-2">
+                           class="h-10 inline-flex items-center text-slate-700 hover:text-indigo-600 font-bold transition-colors duration-200 text-sm px-3 whitespace-nowrap">
                             Login
                         </a>
                         <a href="{{ route('register') }}"
-                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/15">
+                           class="h-10 inline-flex items-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-xl text-sm font-bold transition-all duration-200 shadow-md shadow-indigo-600/15 whitespace-nowrap">
                             Sign Up
                         </a>
                         <a href="{{ route('register') }}?role=owner"
-                           class="border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200">
+                           class="h-10 inline-flex items-center border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap">
                             Post Property
                         </a>
                     @endauth
@@ -711,7 +792,7 @@
     </main>
 
     <!-- Stay Updated Banner Section -->
-    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans'))
+    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('complaints.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans'))
     <div class="hidden lg:block bg-indigo-50/70 border-t border-indigo-100 py-8">
         <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4">
@@ -736,7 +817,7 @@
     @endif
 
     <!-- Redesigned Footer Section -->
-    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t" @if(Route::is('owner.*') || Route::is('rooms.create', 'rooms.edit') || Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans')) style="display:none !important" @endif>
+    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t" @if(Route::is('owner.*') || Route::is('complaints.*') || Route::is('rooms.create', 'rooms.edit') || Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans')) style="display:none !important" @endif>
         <div class="container mx-auto px-6 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
                 <!-- Brand Info (Col span 3) -->
@@ -796,6 +877,8 @@
                         <li><a href="{{ route('pages.careers') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>
                         <li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white transition-all">Terms of Service</a></li>
                         <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white transition-all">Privacy Policy</a></li>
+                        <li><a href="{{ route('pages.owner-guidelines') }}" class="text-slate-400 hover:text-white transition-all">Owner Guidelines</a></li>
+                        <li><a href="{{ route('pages.user-guidelines') }}" class="text-slate-400 hover:text-white transition-all">User Guidelines</a></li>
                         <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Contact Us</a></li>
                     </ul>
                 </div>
@@ -807,7 +890,7 @@
                         <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Help Center</a></li>
                         <li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
                         <li><a href="{{ route('pages.safety-tips') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>
-                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Report an Issue</a></li>
+                        <li><a href="{{ Auth::check() ? route('complaints.create') : route('login') }}" class="text-slate-400 hover:text-white transition-all">Report an Issue</a></li>
                         <li><a href="{{ route('sitemap') }}" class="text-slate-400 hover:text-white transition-all">Sitemap</a></li>
                     </ul>
                 </div>
@@ -1026,7 +1109,7 @@
         @endif
     </script>
     @stack('scripts')
-    @unless(Route::currentRouteName() === 'plans')
+    @unless(request()->routeIs('admin.*', 'owner.*', 'dashboard', 'profile.*', 'wallet', 'referral.*', 'wishlist.*', 'complaints.*', 'plans'))
         @include('partials.offer-banner', ['placement' => 'popup'])
     @endunless
     {{-- Google Ads Signup Conversion --}}

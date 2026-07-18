@@ -1,90 +1,11 @@
 @extends('layouts.admin')
-
-@section('title', 'City Alert Subscriptions - Admin')
-
+@section('title','City Alerts')
+@push('sweetalert')<script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>@endpush
+@push('styles')<style>.city-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.city-filter{display:grid!important;grid-template-columns:minmax(240px,1fr) 180px 150px 150px auto!important;gap:8px}.city-table{min-width:850px;width:100%;table-layout:fixed}.city-table th,.city-table td{text-align:left!important;vertical-align:middle!important}.city-table th:last-child,.city-table td:last-child{text-align:right!important}@media(max-width:1023px){.city-stats{grid-template-columns:repeat(2,1fr)}.city-filter{grid-template-columns:1fr 1fr!important}}@media(max-width:639px){.city-stats,.city-filter{grid-template-columns:1fr!important}}</style>@endpush
 @section('admin-content')
-<div class="min-h-screen bg-gray-50 pb-12">
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 shadow-lg">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-bold flex items-center gap-3">
-                    <i class="fas fa-bell"></i>
-                    City Alert Subscriptions
-                </h1>
-                <p class="text-indigo-100 mt-1">Manage users who want to be notified about new rooms in specific cities.</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="px-4 py-2 bg-white/20 backdrop-blur-md rounded-lg text-sm font-medium">
-                    Total Subscriptions: {{ $alerts->total() }}
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto p-4 md:p-8">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100">
-                            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">User</th>
-                            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">City Requested</th>
-                            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Subscribed Date</th>
-                            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($alerts as $alert)
-                        <tr class="hover:bg-indigo-50/30 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
-                                        {{ substr($alert->user->name ?? 'U', 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-gray-900">{{ $alert->user->name ?? 'Unknown User' }}</p>
-                                        <p class="text-xs text-gray-500">{{ $alert->user->email ?? 'No Email' }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-tight">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> {{ $alert->city }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600 font-medium">
-                                {{ $alert->created_at->format('M d, Y') }}
-                                <p class="text-[10px] text-gray-400">{{ $alert->created_at->diffForHumans() }}</p>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <form action="{{ route('admin.city-alerts.destroy', $alert->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this subscription?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-12 text-center">
-                                <div class="flex flex-col items-center gap-3">
-                                    <i class="fas fa-bell-slash text-4xl text-gray-200"></i>
-                                    <p class="text-gray-500 font-medium">No city alert subscriptions found.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            @if($alerts->hasPages())
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                {{ $alerts->links() }}
-            </div>
-            @endif
-        </div>
-    </div>
-</div>
+<div class="space-y-5 p-5 lg:p-6"><header><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-600">Audience notifications</p><h1 class="mt-1 text-2xl font-extrabold">City Alert Subscriptions</h1><p class="text-sm text-slate-500">Users waiting for new rooms in their preferred cities.</p></header>@if(session('success'))<div class="rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{{ session('success') }}</div>@endif
+<section class="city-stats">@forelse($cityStats as $stat)<div class="rounded-2xl border bg-white p-4"><div class="flex justify-between"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fas fa-location-dot"></i></span><strong class="text-2xl">{{ $stat->total }}</strong></div><p class="mt-3 truncate text-xs font-bold">{{ $stat->city?:'Unknown city' }}</p><p class="text-[10px] text-slate-400">active alerts</p></div>@empty<div class="col-span-4 rounded-2xl border bg-white p-5 text-sm text-slate-500">No city alerts yet.</div>@endforelse</section>
+<form class="city-filter rounded-2xl border bg-white p-4"><input name="search" value="{{ request('search') }}" placeholder="Search user, email or city" class="h-10 rounded-xl text-xs"><select name="city" class="h-10 rounded-xl text-xs"><option value="">All cities</option>@foreach($cities as $city)<option value="{{ $city }}" @selected(request('city')===$city)>{{ $city }}</option>@endforeach</select><input type="date" name="from" value="{{ request('from') }}" class="h-10 rounded-xl text-xs"><input type="date" name="to" value="{{ request('to') }}" class="h-10 rounded-xl text-xs"><div class="flex gap-2"><button class="rounded-xl bg-slate-900 px-4 text-xs font-bold text-white">Filter</button><a href="{{ route('admin.city-alerts.index') }}" class="flex h-10 items-center rounded-xl border px-3 text-xs font-bold">Reset</a></div></form>
+<section class="overflow-hidden rounded-2xl border bg-white"><div class="flex justify-between border-b px-5 py-4"><div><h2 class="text-sm font-extrabold">Alert directory</h2><p class="text-xs text-slate-500">{{ $alerts->total() }} matching subscriptions</p></div><span class="text-xs font-bold text-slate-500">Page {{ $alerts->currentPage() }} of {{ $alerts->lastPage() }}</span></div><div class="overflow-x-auto"><table class="city-table"><thead><tr><th>User</th><th>Requested city</th><th>Subscribed</th><th>Action</th></tr></thead><tbody class="divide-y">@forelse($alerts as $alert)<tr><td class="px-5"><div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-xs font-bold text-indigo-600">{{ strtoupper(substr($alert->user?->name??'U',0,1)) }}</span><div><strong class="block text-xs">{{ $alert->user?->name??'Deleted user' }}</strong><small class="text-[10px] text-slate-400">{{ $alert->user?->email??'Account unavailable' }}</small></div></div></td><td class="px-5"><span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700"><i class="fas fa-location-dot mr-1"></i>{{ $alert->city }}</span></td><td class="px-5"><p class="text-xs font-semibold">{{ $alert->created_at->format('d M Y') }}</p><p class="text-[10px] text-slate-400">{{ $alert->created_at->diffForHumans() }}</p></td><td class="px-5"><form action="{{ route('admin.city-alerts.destroy',$alert) }}" method="POST" class="confirm-remove">@csrf @method('DELETE')<button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700"><i class="fas fa-trash mr-1"></i>Remove</button></form></td></tr>@empty<tr><td colspan="4" class="p-12 text-center text-sm text-slate-500">No city alert subscriptions found.</td></tr>@endforelse</tbody></table></div>@if($alerts->hasPages())<div class="border-t p-4">{{ $alerts->links() }}</div>@endif</section></div>
 @endsection
+@push('scripts')<script>document.querySelectorAll('.confirm-remove').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const r=await Swal.fire({title:'Remove city alert?',text:'The user will stop receiving notifications for this city.',icon:'warning',showCancelButton:true,confirmButtonText:'Yes, remove',confirmButtonColor:'#dc2626'});if(r.isConfirmed)f.submit()}));</script>@endpush

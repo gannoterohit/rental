@@ -14,7 +14,7 @@
     body > main { padding-top: 0 !important; }
     .admin-shell { min-height: 100vh; display: flex; background: #f4f6f9; }
     .admin-main { min-width: 0; flex: 1; min-height:100vh; overflow:visible; }
-    #adminSidebar { display:flex; flex-direction:column; flex:0 0 250px; overflow:hidden; min-height:100vh; max-height:100vh; }
+    #adminSidebar { display:flex; flex-direction:column; flex:0 0 280px; width:280px; overflow:hidden; min-height:100vh; max-height:100vh; }
     #adminSidebar > nav { padding-bottom:120px !important; }
     #adminSidebarFooter { position:absolute; left:0; right:0; bottom:0; z-index:5; padding-bottom:max(.625rem, env(safe-area-inset-bottom)); }
     .admin-topbar { height: 64px; background: rgba(255,255,255,.96); border-bottom: 1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:30; backdrop-filter:blur(10px); }
@@ -121,11 +121,11 @@
     .admin-content button[class*="hover:scale"], .admin-content a[class*="hover:scale"] { transform:none !important; }
     @media (min-width: 1024px) {
         #adminSidebar { position:fixed !important; left:0; top:0; bottom:0; height:auto !important; min-height:0 !important; max-height:none !important; transform:translateX(0) !important; visibility:visible !important; }
-        .admin-main { margin-left:250px; width:calc(100% - 250px); }
+        .admin-main { margin-left:280px; width:calc(100% - 280px); max-width:calc(100% - 280px); }
         #adminSidebarOpen, #adminSidebarBackdrop { display:none !important; }
     }
     @media (max-width: 1023px) {
-        #adminSidebar { position:fixed !important; top:0; left:0; flex-basis:250px; }
+        #adminSidebar { position:fixed !important; top:0; left:0; flex-basis:280px; width:280px; }
         .admin-main { margin-left:0; width:100%; }
         .admin-content { padding:16px; }
         .admin-topbar { padding:0 16px 0 64px; }
@@ -159,6 +159,24 @@
                 </div>
             </div>
         </header>
+        @php
+            $maintenanceActive = filter_var(\App\Models\Setting::get('maintenance_mode', '0'), FILTER_VALIDATE_BOOLEAN);
+            $pausedModules = collect([
+                'Registration' => 'registration_enabled',
+                'New listings' => 'new_listings_enabled',
+                'Payments & unlocks' => 'payments_enabled',
+                'Owner panel' => 'owner_panel_enabled',
+                'User panel' => 'user_panel_enabled',
+            ])->filter(fn ($key) => !filter_var(\App\Models\Setting::get($key, '1'), FILTER_VALIDATE_BOOLEAN))->keys();
+        @endphp
+        @if($maintenanceActive || $pausedModules->isNotEmpty())
+            <div class="border-b {{ $maintenanceActive ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800' }} px-5 py-2.5 text-xs font-semibold">
+                <div class="mx-auto flex max-w-[1680px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span><i class="fas fa-triangle-exclamation mr-2"></i>{{ $maintenanceActive ? 'Global maintenance mode is ON.' : 'Temporarily paused: '.$pausedModules->join(', ').'.' }}</span>
+                    <a href="{{ route('admin.maintenance') }}" class="font-extrabold underline underline-offset-2">Manage availability</a>
+                </div>
+            </div>
+        @endif
         <div class="admin-content">
             @yield('admin-content')
         </div>

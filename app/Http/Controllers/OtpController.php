@@ -117,6 +117,9 @@ class OtpController extends Controller
 
         // Log in the user
         auth()->login($user);
+        if ($user->role === 'admin') {
+            $user->forceFill(['last_admin_login_at' => now()])->save();
+        }
         
         return response()->json([
             'success' => true,

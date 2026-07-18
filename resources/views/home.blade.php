@@ -155,6 +155,42 @@
         .why-card, .category-card, .trust-tile, .step-item, .testimonial-card, .app-download-card, .owner-cta,
         .why-card > div:first-child, .category-card .category-icon { transition:none !important; transform:none !important; }
     }
+    .landing-hero { background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+    .landing-hero-shell { position:relative; min-height:500px; border-radius:24px; overflow:hidden; background:#0f172a; box-shadow:0 24px 60px -32px rgba(15,23,42,.48); }
+    .landing-hero-photo { position:absolute; inset:0 0 0 43%; background-position:center; background-size:cover; }
+    .landing-hero-photo:after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,#0f172a 0%,rgba(15,23,42,.72) 25%,rgba(15,23,42,.08) 68%,rgba(15,23,42,.18) 100%); }
+    .landing-hero-copy { position:relative; z-index:2; width:57%; padding:52px 48px 124px; color:#fff; }
+    .landing-search-panel { position:absolute; z-index:4; left:40px; right:40px; bottom:32px; padding:16px; border-radius:18px; background:rgba(255,255,255,.97); box-shadow:0 18px 45px -25px rgba(15,23,42,.55); border:1px solid rgba(255,255,255,.65); }
+    .landing-search-grid { display:grid; grid-template-columns:1.25fr 1fr 1fr 1fr auto; gap:10px; align-items:end; }
+    .landing-search-panel input,.landing-search-panel select { height:44px; width:100%; border:1px solid #e2e8f0 !important; border-radius:10px !important; background:#f8fafc !important; font-size:12px; font-weight:600; color:#334155; }
+    .landing-search-panel label { display:block; margin-bottom:6px; font-size:9px; line-height:1; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#64748b; }
+    .landing-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border:1px solid #e2e8f0; border-radius:18px; background:#fff; box-shadow:0 10px 35px -28px rgba(15,23,42,.5); }
+    .landing-stat { display:flex; align-items:center; justify-content:center; gap:12px; min-height:84px; padding:16px; border-right:1px solid #e2e8f0; }
+    .landing-stat:last-child { border-right:0; }
+    @media(max-width:1023px){.landing-hero-copy{width:68%;padding-left:32px}.landing-hero-photo{left:35%}.landing-search-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.landing-search-panel{position:relative;left:auto;right:auto;bottom:auto;margin:0 24px 24px}.landing-hero-copy{padding-bottom:36px}.landing-hero-shell{min-height:auto}.landing-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.landing-stat:nth-child(2){border-right:0}.landing-stat:nth-child(-n+2){border-bottom:1px solid #e2e8f0}}
+    /* Compact, market-ready landing page rhythm */
+    @media (min-width:1280px) {
+        main > section .container,
+        main > div .container { width:calc(100% - 48px) !important; max-width:1600px !important; padding-left:0 !important; padding-right:0 !important; }
+    }
+    main > section:not(.landing-hero) { padding-top:40px !important; padding-bottom:40px !important; }
+    main > div.bg-white.py-16 { padding-top:40px !important; padding-bottom:40px !important; }
+    main > section .container > .text-center.mb-12 { margin-bottom:28px !important; }
+    main > section .mb-8, main > div .mb-8 { margin-bottom:24px !important; }
+    main > section .gap-12 { gap:28px !important; }
+    main > section .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top:20px !important; }
+    main > section h2 { font-size:1.65rem !important; line-height:2rem !important; }
+    .why-card { padding:20px !important; }
+    .why-card > div:first-child { width:42px !important; height:42px !important; margin-bottom:12px !important; }
+    .category-card { padding:16px !important; }
+    .popular-area-card { transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+    .popular-area-card:hover { transform:translateY(-3px); border-color:#a5b4fc; box-shadow:0 14px 30px -24px rgba(15,23,42,.55); }
+    .reveal.in-view .why-card,.reveal.in-view .category-card,.reveal.in-view .popular-area-card { animation:landingCardIn .5s ease both; }
+    .reveal.in-view .why-card:nth-child(2),.reveal.in-view .category-card:nth-child(2),.reveal.in-view .popular-area-card:nth-child(2){animation-delay:.06s}
+    .reveal.in-view .why-card:nth-child(3),.reveal.in-view .category-card:nth-child(3),.reveal.in-view .popular-area-card:nth-child(3){animation-delay:.12s}
+    .reveal.in-view .why-card:nth-child(4),.reveal.in-view .category-card:nth-child(4),.reveal.in-view .popular-area-card:nth-child(4){animation-delay:.18s}
+    @keyframes landingCardIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    @media(max-width:767px){main > section:not(.landing-hero){padding-top:30px !important;padding-bottom:30px !important}main > div.bg-white.py-16{padding-top:30px !important;padding-bottom:30px !important}main > section h2{font-size:1.4rem !important}.landing-card-animation{animation:none!important}}
 </style>
 @endpush
 
@@ -164,8 +200,39 @@
     @include('partials.mobile-search')
 </div>
 
+<section class="hidden md:block landing-hero py-8">
+    <div class="container mx-auto px-6">
+        <div class="landing-hero-shell">
+            <div class="landing-hero-photo" style="background-image:url('{{ $heroRoom?->photo_url ?: asset('assets/images/hero-bg-desktop.webp') }}')"></div>
+            <div class="landing-hero-copy">
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-100"><i class="fas fa-circle-check text-emerald-400"></i>{{ $homeText('home_hero_eyebrow','Verified rooms · Direct owner contact') }}</span>
+                <h1 class="mt-5 text-4xl lg:text-5xl font-black leading-[1.08] tracking-tight">{{ $homeText('home_hero_title','Find Verified Rooms') }}<br><span class="text-orange-400">in {{ $homeCity ?: $homeText('home_hero_highlight','Your City') }}</span></h1>
+                <p class="mt-4 max-w-lg text-sm leading-6 text-slate-300">{{ $homeText('home_hero_description','Explore verified rooms, PGs and apartments. Unlock owner contact and connect directly—without brokerage.') }}</p>
+                <div class="mt-6 flex flex-wrap gap-3 text-xs font-semibold text-slate-200"><span><i class="fas fa-ban mr-1.5 text-orange-400"></i>No brokerage</span><span><i class="fas fa-user-check mr-1.5 text-emerald-400"></i>Verified owners</span><span><i class="fas fa-shield-halved mr-1.5 text-sky-400"></i>Secure payments</span></div>
+            </div>
+            <form action="{{ route('rooms.index') }}" method="GET" class="landing-search-panel">
+                <div class="landing-search-grid">
+                    <div><label>Location</label><input type="text" name="city" id="hero-city-input" value="{{ request('city') ?? session('user_city') }}" placeholder="Enter city"></div>
+                    <div><label>Property type</label><select name="room_type"><option value="">Any type</option>@foreach($roomCategories as $cat)<option value="{{ $cat->room_type_option_id }}">{{ $cat->label }}</option>@endforeach</select></div>
+                    <div><label>Minimum rent</label><input type="number" name="min_rent" value="{{ request('min_rent') }}" placeholder="₹ Minimum"></div>
+                    <div><label>Maximum rent</label><input type="number" name="max_rent" value="{{ request('max_rent') }}" placeholder="₹ Maximum"></div>
+                    <button type="submit" class="h-11 rounded-xl bg-indigo-600 px-7 text-sm font-extrabold text-white hover:bg-indigo-700"><i class="fas fa-search mr-2"></i>Search</button>
+                </div>
+                @if($popularAreas->count())<div class="mt-3 flex items-center gap-2 overflow-hidden"><span class="shrink-0 text-[10px] font-bold text-slate-400">Popular:</span>@foreach($popularAreas->take(6) as $area)<a href="{{ route('rooms.index',['city'=>$homeCity,'area'=>$area->area_name]) }}" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">{{ $area->area_name }}</a>@endforeach</div>@endif
+            </form>
+        </div>
+        @include('partials.offer-banner', ['placement' => 'home_hero'])
+
+        <div class="landing-stats mt-5">
+            @foreach([['fa-house-circle-check',number_format($totalRooms).'+','Verified rooms','bg-indigo-50 text-indigo-600'],['fa-user-check',number_format($totalOwners).'+','Property owners','bg-orange-50 text-orange-600'],['fa-location-dot',number_format($totalAreas).'+','Cities & areas','bg-emerald-50 text-emerald-600'],['fa-star','4.8/5','Average rating','bg-amber-50 text-amber-600']] as $stat)
+                <div class="landing-stat"><span class="flex h-11 w-11 items-center justify-center rounded-xl {{ $stat[3] }}"><i class="fas {{ $stat[0] }}"></i></span><div><strong class="block text-lg text-slate-950">{{ $stat[1] }}</strong><small class="text-xs font-semibold text-slate-500">{{ $stat[2] }}</small></div></div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
 <!-- ===== DESKTOP HERO ===== -->
-<div class="hidden md:block hero-mesh-bg pt-8 pb-16 overflow-hidden relative">
+<div class="hidden hero-mesh-bg pt-8 pb-16 overflow-hidden relative">
     <!-- Decorative orbs -->
     <div class="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-indigo-100/30 blur-[120px] pointer-events-none -translate-y-1/4 translate-x-1/4"></div>
     <div class="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-orange-100/40 blur-[100px] pointer-events-none translate-y-1/4 -translate-x-1/4"></div>
@@ -241,7 +308,7 @@
                                 </label>
                                 <div class="relative">
                                     <i class="fas fa-map-pin absolute left-2.5 top-1/2 -translate-y-1/2 text-orange-400 text-[10px]"></i>
-                                    <input type="text" name="city" id="hero-city-input"
+                                    <input type="text" name="city" id="hero-city-input-legacy"
                                            value="{{ request('city') ?? session('user_city') }}"
                                            placeholder="{{ $homeCity ?? 'City...' }}"
                                            class="w-full py-2.5 pl-7 pr-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 focus:bg-white outline-none transition-all">
@@ -387,6 +454,26 @@
         </div>
     </div>
 </section>
+
+
+@if($popularAreas->count())
+<section class="bg-white reveal border-b border-slate-100">
+    <div class="container mx-auto px-6">
+        <div class="flex items-end justify-between gap-4 mb-6">
+            <div><span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600">Explore locally</span><h2 class="mt-1 font-black text-slate-950">Popular areas in {{ $homeCity ?: 'your city' }}</h2><p class="mt-1 text-sm text-slate-500">Start with neighbourhoods renters search most often.</p></div>
+            <a href="{{ route('rooms.index',['city'=>$homeCity]) }}" class="hidden sm:inline-flex text-xs font-bold text-indigo-600">View all areas <i class="fas fa-arrow-right ml-2"></i></a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            @foreach($popularAreas->take(8) as $area)
+                <a href="{{ route('rooms.index',['city'=>$homeCity,'area'=>$area->area_name]) }}" class="popular-area-card rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
+                    <span class="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm"><i class="fas fa-location-dot"></i></span>
+                    <strong class="mt-2 block truncate text-xs text-slate-900">{{ $area->area_name }}</strong><small class="mt-0.5 block text-[10px] font-semibold text-slate-400">{{ $area->total }} rooms · from ₹{{ number_format($area->min_rent) }}</small>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 
 
@@ -634,10 +721,10 @@
                 <h3 class="text-2xl lg:text-3xl font-black text-white font-heading">{{ $homeText('home_owner_title', 'Own a Property?') }}</h3>
                 <p class="text-slate-400 text-sm font-medium">{{ $homeText('home_owner_description', 'List your property and connect with genuine tenants.') }}</p>
                 <div class="grid grid-cols-2 gap-3 text-xs font-bold text-slate-300">
-                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> 100% Free Listing</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Flexible Listing Plans</span>
                     <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Zero Brokerage</span>
                     <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Verified Tenants</span>
-                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Quick Payments</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-check text-emerald-500"></i> Direct Tenant Contact</span>
                 </div>
             </div>
             
@@ -742,11 +829,11 @@
                     <?php
                         $faqs = json_decode(\App\Models\Setting::get('faq_content', '[]'), true);
                         if (!is_array($faqs) || count($faqs) === 0) $faqs = [
-                            ['q' => 'How do I book a room?', 'a' => 'Search for your preferred room by location and filters. Once you find a suitable listing, click "View Details", verify the info, and click on "Book Room" or unlock details to connect directly with the owner.'],
+                            ['q' => 'How do I contact a room owner?', 'a' => 'Open a room, review its details and unlock the owner contact using a contact credit or single unlock. You can then call or message the owner directly.'],
                             ['q' => 'Is there any brokerage charge?', 'a' => 'No! ApnaNest connects owners and tenants directly. There are no brokerage charges or hidden fees involved.'],
                             ['q' => 'How can I contact the owner?', 'a' => 'You can view the owner\'s verified contact details after unlocking the contact section on the stay details page.'],
                             ['q' => 'Is my payment information secure?', 'a' => 'Yes, absolutely. All payments on ApnaNest are processed via Razorpay secure gateways. We do not store any card or credential details.'],
-                            ['q' => 'Can I visit the property before booking?', 'a' => 'Yes, we recommend contacting the owner using their unlocked contact details to schedule a physical visit before confirming your stay.']
+                            ['q' => 'Can I visit the property before finalizing?', 'a' => 'Yes. Unlock the owner contact and schedule a physical visit. ApnaNest provides the listing and contact service; you and the owner finalize independently.']
                         ];
                     ?>
                     @foreach($faqs as $i => $faq)

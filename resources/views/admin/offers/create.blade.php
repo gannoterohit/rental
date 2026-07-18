@@ -3,142 +3,47 @@
 @section('title', 'Create Offer')
 
 @section('admin-content')
-<div class="py-8">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-6">
-            <a href="{{ route('admin.offers.index') }}" class="text-indigo-600 hover:text-indigo-800">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Offers
-            </a>
+<div class="p-5 lg:p-7" x-data="{ type: '{{ old('type', 'both') }}', placement: '{{ old('placement', 'home_hero') }}', title: @js(old('title', 'Special Offer')), discount: @js(old('discount_text', 'SAVE 20%')), color: '{{ old('banner_color', \App\Models\Setting::get('primary_color', '#4F46E5')) }}', imageName: '' }">
+    <div class="mx-auto max-w-7xl">
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><a href="{{ route('admin.offers.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600"><i class="fas fa-arrow-left"></i>Offer management</a><h1 class="mt-2 text-2xl font-extrabold text-slate-950">Create promotional offer</h1><p class="mt-1 text-sm text-slate-500">Set the content, website location and publishing schedule.</p></div>
+            <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700"><i class="fas fa-circle-info mr-2"></i>Required fields are marked with *</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-8">
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">Create New Offer</h1>
+        @if($errors->any())<div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><p class="font-bold">Please correct the following:</p><ul class="mt-1 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-            <form action="{{ route('admin.offers.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-
-                <div class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Offer Type</label>
-                            <select name="type" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                <option value="text_only" {{ old('type') == 'text_only' ? 'selected' : '' }}>Text Only (Classic Banner)</option>
-                                <option value="image_only" {{ old('type') == 'image_only' ? 'selected' : '' }}>Image Only (Graphic Banner)</option>
-                                <option value="both" {{ old('type') == 'both' ? 'selected' : '' }}>Both (Image + Text Overlay)</option>
-                            </select>
-                            @error('type')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Placement Location</label>
-                            <select name="placement" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                <option value="dashboard" {{ old('placement') == 'dashboard' ? 'selected' : '' }}>Dashboard (User/Owner Home)</option>
-                                <option value="top_nav" {{ old('placement') == 'top_nav' ? 'selected' : '' }}>Top Navigation (Announcement Bar)</option>
-                                <option value="home_hero" {{ old('placement') == 'home_hero' ? 'selected' : '' }}>Home Page Hero (Main Carousel)</option>
-                                <option value="sidebar" {{ old('placement') == 'sidebar' ? 'selected' : '' }}>Sidebar (Room Listings)</option>
-                                <option value="popup" {{ old('placement') == 'popup' ? 'selected' : '' }}>Popup Modal (Timed Promotion)</option>
-                            </select>
-                            @error('placement')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
+        <form id="offer-create-form" action="{{ route('admin.offers.store') }}" method="POST" enctype="multipart/form-data" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            @csrf
+            <div class="space-y-5">
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div class="mb-5 flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><i class="fas fa-pen-to-square"></i></span><div><h2 class="font-bold text-slate-900">Offer content</h2><p class="text-xs text-slate-500">What visitors will see</p></div></div>
+                    <div class="space-y-5">
+                        <div><label class="mb-2 block text-sm font-bold text-slate-700">Offer title *</label><input type="text" name="title" x-model="title" value="{{ old('title') }}" maxlength="255" required placeholder="Summer room booking offer" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20"></div>
+                        <div><div class="mb-2 flex items-center justify-between"><label class="text-sm font-bold text-slate-700">Description *</label><span class="text-[11px] text-slate-400">Keep it short and clear</span></div><textarea name="description" rows="4" required placeholder="Explain the benefit, eligibility and important condition..." class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20">{{ old('description') }}</textarea></div>
+                        <div class="grid gap-5 sm:grid-cols-2"><div><label class="mb-2 block text-sm font-bold text-slate-700">Discount badge</label><input type="text" name="discount_text" x-model="discount" value="{{ old('discount_text') }}" maxlength="50" placeholder="20% OFF" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20"></div><div><label class="mb-2 block text-sm font-bold text-slate-700">Click-through URL</label><input type="url" name="link_url" value="{{ old('link_url') }}" placeholder="https://example.com/offer" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20"><p class="mt-1.5 text-[11px] text-slate-500">Leave blank if banner should not open a page.</p></div></div>
                     </div>
+                </section>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-                        <input type="text" name="title" value="{{ old('title') }}" required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                               placeholder="🎉 New Year Special - 50% OFF!">
-                        @error('title')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                    </div>
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div class="mb-5 flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><i class="fas fa-display"></i></span><div><h2 class="font-bold text-slate-900">Design and placement</h2><p class="text-xs text-slate-500">Choose format and website location</p></div></div>
+                    <div class="grid gap-5 sm:grid-cols-2"><div><label class="mb-2 block text-sm font-bold text-slate-700">Offer type *</label><select name="type" x-model="type" required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"><option value="text_only">Text and color</option><option value="image_only">Image only</option><option value="both">Image with text</option></select></div><div><label class="mb-2 block text-sm font-bold text-slate-700">Website placement *</label><select name="placement" x-model="placement" required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-indigo-500 focus:ring-indigo-500/20">@foreach(\App\Models\Offer::PLACEMENTS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></div></div>
+                    <div class="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_120px]"><div><label class="mb-2 block text-sm font-bold text-slate-700">Banner image <span x-show="type !== 'text_only'" class="text-red-500">*</span></label><label class="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 hover:border-indigo-400 hover:bg-indigo-50/40"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm"><i class="fas fa-cloud-arrow-up"></i></span><span class="min-w-0"><span class="block truncate text-sm font-bold text-slate-700" x-text="imageName || 'Choose banner image'"></span><span class="text-[11px] text-slate-500">JPG, PNG or WebP · max 2 MB</span></span><input type="file" name="image" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="imageName = $event.target.files[0]?.name || ''"></label></div><div><label class="mb-2 block text-sm font-bold text-slate-700">Brand color *</label><input type="color" name="banner_color" x-model="color" required class="h-[74px] w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-2"></div></div>
+                    <div class="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600"><i class="fas fa-ruler-combined mr-2 text-indigo-500"></i><span x-show="placement === 'top_nav'">Top bar: image is optional; use a short title and badge.</span><span x-show="placement === 'home_hero'">Recommended image: 1200 × 400 px.</span><span x-show="placement === 'dashboard'">Recommended image: 1200 × 420 px.</span><span x-show="placement === 'sidebar'">Recommended image: 800 × 600 px.</span><span x-show="placement === 'mobile_feed'">Recommended image: 900 × 600 px.</span><span x-show="placement === 'popup'">Recommended image: 900 × 600 px.</span></div>
+                </section>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                        <textarea name="description" rows="3" required
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                  placeholder="Describe the offer details...">{{ old('description') }}</textarea>
-                        @error('description')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                    </div>
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div class="mb-5 flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fas fa-calendar-check"></i></span><div><h2 class="font-bold text-slate-900">Audience and schedule</h2><p class="text-xs text-slate-500">Control who sees it and when</p></div></div>
+                    <div class="grid gap-5 md:grid-cols-3"><div><label class="mb-2 block text-sm font-bold text-slate-700">Target audience *</label><select name="target_audience" required class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-indigo-500 focus:ring-indigo-500/20"><option value="both" @selected(old('target_audience', 'both') === 'both')>Users and owners</option><option value="user" @selected(old('target_audience') === 'user')>Users only</option><option value="owner" @selected(old('target_audience') === 'owner')>Owners only</option></select></div><div><label class="mb-2 block text-sm font-bold text-slate-700">Start date</label><input type="date" name="start_date" value="{{ old('start_date') }}" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:ring-indigo-500/20"></div><div><label class="mb-2 block text-sm font-bold text-slate-700">End date</label><input type="date" name="end_date" value="{{ old('end_date') }}" class="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-500 focus:ring-indigo-500/20"></div></div>
+                    <label class="mt-5 flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span><span class="block text-sm font-bold text-slate-800">Publish as active</span><span class="text-xs text-slate-500">It will follow the selected start and end dates.</span></span><input type="checkbox" name="is_active" value="1" @checked(old('is_active', '1')) class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"></label>
+                </section>
+            </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Banner Image</label>
-                            <input type="file" name="image" accept="image/*"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <p class="text-xs text-gray-500 mt-1">Recommended: 1200x400 for Hero, 400x600 for Sidebar</p>
-                            @error('image')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Redirect URL (Optional)</label>
-                            <input type="url" name="link_url" value="{{ old('link_url') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                   placeholder="https://example.com/promo">
-                            @error('link_url')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Discount Text</label>
-                            <input type="text" name="discount_text" value="{{ old('discount_text') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                   placeholder="50% OFF">
-                            @error('discount_text')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Banner Color</label>
-                            <input type="color" name="banner_color" value="{{ old('banner_color', \App\Models\Setting::get('primary_color', '#4F46E5')) }}" required
-                                   class="w-full h-12 border border-gray-300 rounded-lg cursor-pointer">
-                            @error('banner_color')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Target Audience</label>
-                        <select name="target_audience" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <option value="both" {{ old('target_audience') == 'both' ? 'selected' : '' }}>Both (Users & Owners)</option>
-                            <option value="user" {{ old('target_audience') == 'user' ? 'selected' : '' }}>Users Only</option>
-                            <option value="owner" {{ old('target_audience') == 'owner' ? 'selected' : '' }}>Owners Only</option>
-                        </select>
-                        @error('target_audience')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Start Date (Optional)</label>
-                            <input type="date" name="start_date" value="{{ old('start_date') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            @error('start_date')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">End Date (Optional)</label>
-                            <input type="date" name="end_date" value="{{ old('end_date') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            @error('end_date')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-                        </div>
-                    </div>
-
-                    <div class="flex items-center">
-                        <input type="checkbox" name="is_active" id="is_active" checked
-                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <label for="is_active" class="ml-2 text-sm font-medium text-gray-700">Active</label>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition">
-                            <i class="fas fa-save mr-2"></i>Create Offer
-                        </button>
-                        <a href="{{ route('admin.offers.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition">
-                            Cancel
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+            <aside class="space-y-5 xl:sticky xl:top-24 xl:self-start">
+                <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-200 px-5 py-4"><h2 class="font-bold text-slate-900">Live preview</h2><p class="text-xs text-slate-500">Approximate banner appearance</p></div><div class="p-5"><div class="relative min-h-[210px] overflow-hidden rounded-2xl p-6 text-white shadow-lg" :style="`background: linear-gradient(135deg, ${color}, ${color}cc)`"><div class="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div><div class="relative flex min-h-[160px] flex-col justify-center"><span x-show="discount" class="mb-3 w-fit rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider" x-text="discount"></span><h3 class="text-2xl font-black leading-tight" x-text="title || 'Offer title'"></h3><p class="mt-3 text-xs font-medium text-white/80" x-text="placement.replaceAll('_', ' ') + ' · ' + type.replaceAll('_', ' ')"></p><span class="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-slate-900">View offer <i class="fas fa-arrow-right"></i></span></div></div></div></section>
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3 class="font-bold text-slate-900">Before publishing</h3><ul class="mt-3 space-y-3 text-xs leading-5 text-slate-600"><li class="flex gap-2"><i class="fas fa-circle-check mt-1 text-emerald-500"></i><span>Use one clear benefit in the title.</span></li><li class="flex gap-2"><i class="fas fa-circle-check mt-1 text-emerald-500"></i><span>Link to the exact relevant page, not always the homepage.</span></li><li class="flex gap-2"><i class="fas fa-circle-check mt-1 text-emerald-500"></i><span>Avoid running multiple popups for the same audience.</span></li></ul></section>
+                <div class="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><a href="{{ route('admin.offers.index') }}" class="flex flex-1 items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">Cancel</a><button type="submit" class="flex flex-[1.4] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700"><i class="fas fa-floppy-disk"></i>Create offer</button></div>
+            </aside>
+        </form>
     </div>
 </div>
 @endsection

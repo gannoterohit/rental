@@ -1,142 +1,30 @@
 @extends('layouts.admin')
-
-@section('title', 'All Owners - Admin')
-
+@section('title','Property Owners')
+@push('sweetalert')<script src="{{ asset('assets/js/sweetalert2.min.js') }}"></script>@endpush
+@push('styles')
+<style>
+    .admin-content > .space-y-5 > form.grid { display:grid!important; grid-template-columns:minmax(280px,1fr) 190px 170px auto!important; gap:12px; align-items:center; }
+    .admin-content table { min-width:980px; }
+    .admin-content table { table-layout:fixed; width:100%; }
+    .admin-content table th, .admin-content table td { text-align:left!important; vertical-align:middle!important; box-sizing:border-box; }
+    .admin-content table th:nth-child(1), .admin-content table td:nth-child(1) { width:28%; }
+    .admin-content table th:nth-child(2), .admin-content table td:nth-child(2) { width:10%; }
+    .admin-content table th:nth-child(3), .admin-content table td:nth-child(3) { width:14%; }
+    .admin-content table th:nth-child(4), .admin-content table td:nth-child(4) { width:17%; }
+    .admin-content table th:nth-child(5), .admin-content table td:nth-child(5) { width:13%; }
+    .admin-content table th:nth-child(6), .admin-content table td:nth-child(6) { width:18%; text-align:right!important; }
+    .admin-content table th { padding-left:1.25rem!important; padding-right:1.25rem!important; }
+    .admin-content table td { padding-top:.9rem!important; padding-bottom:.9rem!important; }
+    @media(max-width:1023px){ .admin-content > .space-y-5 > form.grid { grid-template-columns:1fr 1fr!important; } }
+    @media(max-width:639px){ .admin-content > .space-y-5 > form.grid { grid-template-columns:1fr!important; } }
+</style>
+@endpush
 @section('admin-content')
-<div class="min-h-screen bg-gray-50">
-    <div class="flex">
-        <!-- Sidebar -->
-        <!-- Main Content -->
-        <div class="flex-1 min-w-0 p-4 md:p-6">
-        <div class="container mx-auto px-6 py-8">
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-800">
-                        <i class="fas fa-user-tie text-yellow-600 mr-2"></i>All Owners
-                    </h1>
-                    <p class="text-gray-600 mt-1">Total: {{ $owners->total() }} owners</p>
-                </div>
-                <div class="flex gap-3">
-                    <a href="{{ route('admin.owners.create') }}" 
-                       class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">
-                        <i class="fas fa-plus mr-2"></i>Add New Owner
-                    </a>
-                    <a href="{{ route('admin.dashboard') }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Back
-                    </a>
-                </div>
-            </div>
-
-            <!-- Search -->
-            <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
-                <form method="GET" action="{{ route('admin.owners') }}">
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Search by name or email..."
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500">
-                </form>
-            </div>
-
-            <!-- Owners Table -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Rooms</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Joined</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @forelse($owners as $owner)
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-user-tie text-yellow-500 mr-2"></i>
-                                            <a href="{{ route('admin.owners.detail', $owner->id) }}" 
-                                               class="font-medium text-blue-600 hover:text-blue-800">
-                                                {{ $owner->name }}
-                                            </a>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $owner->email }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $owner->phone ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
-                                            {{ $owner->rooms_count ?? 0 }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        @if($owner->trashed())
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-600 text-white">
-                                                Deleted
-                                            </span>
-                                        @else
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                                @if(!$owner->is_blocked) bg-green-100 text-green-800
-                                                @else bg-red-100 text-red-800
-                                                @endif">
-                                                {{ !$owner->is_blocked ? 'Active' : 'Blocked' }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-500">
-                                        {{ $owner->created_at->format('d M Y') }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center gap-2">
-                                            <a href="{{ route('admin.owners.detail', $owner->id) }}" 
-                                               class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition">
-                                                <i class="fas fa-eye mr-1"></i>View
-                                            </a>
-                                            <form action="{{ route('admin.owners.toggleBlock', $owner->id) }}" 
-                                                  method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" 
-                                                        class="px-3 py-1 rounded text-xs transition
-                                                        @if(!$owner->is_blocked) bg-red-600 hover:bg-red-700 text-white
-                                                        @else bg-green-600 hover:bg-green-700 text-white
-                                                        @endif">
-                                                    <i class="fas {{ !$owner->is_blocked ? 'fa-ban' : 'fa-check' }} mr-1"></i>
-                                                    {{ !$owner->is_blocked ? 'Block' : 'Unblock' }}
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
-                                        <i class="fas fa-user-tie text-4xl mb-2"></i>
-                                        <p>No owners found</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                @if($owners->hasPages())
-                <div class="px-4 py-4 border-t bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-600">
-                            Showing {{ $owners->firstItem() }} to {{ $owners->lastItem() }} of {{ $owners->total() }} owners
-                        </div>
-                        <div>
-                            {{ $owners->links() }}
-                        </div>
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
+<div class="space-y-5 p-5 lg:p-6">
+    <div class="flex flex-wrap items-end justify-between gap-3"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-600">People management</p><h1 class="mt-1 text-2xl font-extrabold text-slate-900">Property Owners</h1><p class="text-sm text-slate-500">Review KYC, listings and account access from one place.</p></div><a href="{{ route('admin.owners.create') }}" class="inline-flex h-11 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-sm"><i class="fas fa-user-plus"></i>Add owner</a></div>
+    @if(session('success'))<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">{{ session('success') }}</div>@endif
+    <form class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_190px_170px_auto]"><div class="relative"><i class="fas fa-search absolute left-3 top-3.5 text-xs text-slate-400"></i><input name="search" value="{{ request('search') }}" placeholder="Search name or email" class="h-11 w-full rounded-xl border-slate-200 pl-9 text-sm"></div><select name="verification_status" class="h-11 rounded-xl border-slate-200 text-sm"><option value="">All KYC states</option>@foreach(['pending','under_review','verified','rejected'] as $v)<option value="{{ $v }}" @selected(request('verification_status')===$v)>{{ ucfirst(str_replace('_',' ',$v)) }}</option>@endforeach</select><select name="status" class="h-11 rounded-xl border-slate-200 text-sm"><option value="">All accounts</option><option value="blocked" @selected(request('status')==='blocked')>Blocked</option><option value="deleted" @selected(request('status')==='deleted')>Deleted</option></select><div class="flex gap-2"><button class="rounded-xl bg-slate-900 px-5 text-sm font-bold text-white">Apply</button><a href="{{ route('admin.owners') }}" class="inline-flex h-11 items-center rounded-xl border px-4 text-sm font-bold text-slate-600">Reset</a></div></form>
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="flex items-center justify-between border-b px-5 py-4"><div><h2 class="text-sm font-extrabold">Owner directory</h2><p class="text-xs text-slate-500">{{ $owners->total() }} owner accounts</p></div><span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">Page {{ $owners->currentPage() }} of {{ $owners->lastPage() }}</span></div><div class="overflow-x-auto"><table class="w-full"><thead><tr><th>Owner</th><th>Listings</th><th>KYC status</th><th>Account</th><th>Joined</th><th class="text-right">Actions</th></tr></thead><tbody class="divide-y">@forelse($owners as $owner)<tr class="hover:bg-slate-50/70"><td class="px-5"><div class="flex min-w-[220px] items-center gap-3"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 font-extrabold text-indigo-600">{{ strtoupper(substr($owner->name,0,1)) }}</div><div>@if(!$owner->trashed())<a href="{{ route('admin.owners.detail',$owner) }}" class="text-sm font-bold text-slate-900 hover:text-indigo-600">{{ $owner->name }}</a>@else<p class="text-sm font-bold">{{ $owner->name }}</p>@endif<p class="text-xs text-slate-400">{{ $owner->email }}</p></div></div></td><td class="px-5"><strong class="text-sm">{{ $owner->rooms_count }}</strong><p class="text-[10px] text-slate-400">properties</p></td><td class="px-5">@php $kycTone=match($owner->verification_status){'verified'=>'bg-emerald-50 text-emerald-700','rejected'=>'bg-red-50 text-red-700','under_review'=>'bg-blue-50 text-blue-700',default=>'bg-amber-50 text-amber-700'}; @endphp<span class="rounded-full px-2.5 py-1 text-[10px] font-bold {{ $kycTone }}">{{ ucfirst(str_replace('_',' ',$owner->verification_status)) }}</span></td><td class="px-5"><span class="inline-flex items-center gap-1.5 text-xs font-bold {{ $owner->trashed()||$owner->is_blocked?'text-red-600':'text-emerald-600' }}"><i class="fas fa-circle text-[6px]"></i>{{ $owner->trashed()?'Deleted':($owner->is_blocked?'Blocked':'Active') }}</span>@if($owner->is_blocked&&$owner->block_reason)<p class="mt-1 max-w-[180px] truncate text-[10px] text-slate-400" title="{{ $owner->block_reason }}">{{ $owner->block_reason }}</p>@endif</td><td class="px-5 text-xs text-slate-500">{{ $owner->created_at->format('d M Y') }}</td><td class="px-5"><div class="flex justify-end gap-2">@if($owner->trashed())<form method="POST" action="{{ route('admin.members.restore',$owner->id) }}">@csrf<button class="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Restore</button></form>@else<a href="{{ route('admin.owners.detail',$owner) }}" class="rounded-lg border px-3 py-2 text-xs font-bold text-slate-700">View</a><form method="POST" action="{{ route('admin.owners.toggleBlock',$owner) }}" class="owner-block-form" data-blocked="{{ $owner->is_blocked?'1':'0' }}" data-owner="{{ $owner->name }}">@csrf<input type="hidden" name="block_reason"><button type="submit" class="rounded-lg px-3 py-2 text-xs font-bold {{ $owner->is_blocked?'bg-emerald-50 text-emerald-700':'bg-red-50 text-red-700' }}">{{ $owner->is_blocked?'Unblock':'Block' }}</button></form>@endif</div></td></tr>@empty<tr><td colspan="6" class="p-14 text-center"><i class="fas fa-users-slash text-2xl text-slate-300"></i><p class="mt-2 text-sm font-bold">No owners found</p><p class="text-xs text-slate-400">Try changing your filters.</p></td></tr>@endforelse</tbody></table></div>@if($owners->hasPages())<div class="border-t p-4">{{ $owners->withQueryString()->links() }}</div>@endif</div>
 </div>
 @endsection
-
+@push('scripts')<script>document.querySelectorAll('.owner-block-form').forEach(form=>form.addEventListener('submit',async e=>{e.preventDefault();const blocked=form.dataset.blocked==='1';if(blocked){const result=await Swal.fire({title:'Unblock owner?',text:`${form.dataset.owner} will regain account access.`,icon:'question',showCancelButton:true,confirmButtonText:'Yes, unblock',confirmButtonColor:'#059669'});if(result.isConfirmed)form.submit();return;}const result=await Swal.fire({title:'Block owner account',html:`<p style="font-size:13px;color:#64748b;margin-bottom:12px">Enter a clear internal reason for blocking <b>${form.dataset.owner}</b>.</p>`,input:'textarea',inputPlaceholder:'Example: KYC documents could not be verified',inputAttributes:{maxlength:'255'},showCancelButton:true,confirmButtonText:'Block owner',confirmButtonColor:'#dc2626',inputValidator:value=>!value?.trim()?'Block reason is required.':undefined});if(result.isConfirmed){form.querySelector('[name=block_reason]').value=result.value.trim();form.submit();}}));</script>@endpush

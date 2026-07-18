@@ -19,6 +19,9 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/admin-login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'adminAccess'])
+    ->name('admin.login-access');
+
 Route::get('/', [LandingPageController::class,'index'])->name('home');
 Route::get('/set-city', [RoomController::class, 'setCity'])->name('set-city');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -71,6 +74,8 @@ Route::controller(\App\Http\Controllers\PageController::class)->group(function (
     Route::get('/careers', 'careers')->name('pages.careers');
     Route::get('/how-it-works', 'howItWorks')->name('pages.how-it-works');
     Route::get('/safety-tips', 'safetyTips')->name('pages.safety-tips');
+    Route::get('/owner-guidelines', 'ownerGuidelines')->name('pages.owner-guidelines');
+    Route::get('/user-guidelines', 'userGuidelines')->name('pages.user-guidelines');
     Route::get('/terms-and-conditions', 'terms')->name('pages.terms');
     Route::get('/privacy-policy', 'privacy')->name('pages.privacy');
     Route::get('/condition-policy', 'condition')->name('pages.condition');
@@ -87,6 +92,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/otp-delete', [ProfileController::class, 'sendDeleteOtp'])->name('profile.send-delete-otp');
+
+    Route::get('/complaints', [\App\Http\Controllers\ComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/complaints/create', [\App\Http\Controllers\ComplaintController::class, 'create'])->name('complaints.create');
+    Route::post('/complaints', [\App\Http\Controllers\ComplaintController::class, 'store'])->middleware('throttle:public_form')->name('complaints.store');
+    Route::get('/complaints/{complaint}', [\App\Http\Controllers\ComplaintController::class, 'show'])->name('complaints.show');
+    Route::post('/complaints/{complaint}/reply', [\App\Http\Controllers\ComplaintController::class, 'reply'])->middleware('throttle:public_form')->name('complaints.reply');
+    Route::get('/complaints/{complaint}/evidence', [\App\Http\Controllers\ComplaintController::class, 'evidence'])->name('complaints.evidence');
+    Route::get('/complaints/{complaint}/attachments/{reply}', [\App\Http\Controllers\ComplaintController::class, 'attachment'])->name('complaints.attachment');
     
     
     // Payment routes
@@ -118,13 +131,24 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/webhook/razorpay', [RazorpayController::class,'webhook'])->name('razorpay.webhook');
 
-Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth','role:admin','admin.permission','admin.activity'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/staff', [\App\Http\Controllers\Admin\AdminStaffController::class, 'index'])->name('staff.index');
+    Route::post('/staff', [\App\Http\Controllers\Admin\AdminStaffController::class, 'store'])->name('staff.store');
+    Route::put('/staff/{staff}', [\App\Http\Controllers\Admin\AdminStaffController::class, 'update'])->name('staff.update');
+    Route::post('/staff/{staff}/toggle', [\App\Http\Controllers\Admin\AdminStaffController::class, 'toggle'])->name('staff.toggle');
+    Route::get('/roles', [\App\Http\Controllers\Admin\AdminRoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [\App\Http\Controllers\Admin\AdminRoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles', [\App\Http\Controllers\Admin\AdminRoleController::class, 'store'])->name('roles.store');
+    Route::put('/roles/{role}', [\App\Http\Controllers\Admin\AdminRoleController::class, 'update'])->name('roles.update');
+    Route::get('/activity-logs', [\App\Http\Controllers\Admin\AdminActivityController::class, 'index'])->name('activity.index');
     
     // Blog Management
     Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
 
     Route::get('/settings', [BusinessSettingsController::class, 'index'])->name('settings');
+    Route::get('/maintenance', [BusinessSettingsController::class, 'maintenance'])->name('maintenance');
+    Route::post('/maintenance', [BusinessSettingsController::class, 'updateMaintenance'])->name('maintenance.update');
     Route::get('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'index'])->name('home-page.index');
     Route::put('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'update'])->name('home-page.update');
     Route::post('/settings', [BusinessSettingsController::class, 'update'])->name('settings.update');
@@ -136,13 +160,17 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     Route::post('/plans/{plan}/toggle-active', [PlanController::class, 'toggleActive'])->name('plans.toggleActive');
     
     // Offers Management
+    Route::get('/offerses', fn () => redirect()->route('admin.offers.index'))->name('offers.legacy');
     Route::resource('offers', \App\Http\Controllers\Admin\OfferController::class);
     Route::post('/offers/{offer}/toggle-active', [\App\Http\Controllers\Admin\OfferController::class, 'toggleActive'])->name('offers.toggleActive');
+    Route::post('/offers/display-settings', [\App\Http\Controllers\Admin\OfferController::class, 'updateDisplaySettings'])->name('offers.display-settings');
     
     // Users Management
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/users/{user}', [AdminController::class, 'userDetail'])->name('users.detail');
     Route::post('/users/{user}/toggle-block', [AdminController::class, 'toggleBlock'])->name('users.toggleBlock');
+    Route::put('/members/{user}/notes', [AdminController::class, 'updateMemberNotes'])->name('members.notes');
+    Route::post('/members/{user}/restore', [AdminController::class, 'restoreMember'])->name('members.restore');
     
     // Owners Management
     Route::get('/owners', [AdminController::class, 'owners'])->name('owners');
@@ -173,6 +201,12 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     Route::post('/contact-messages/{id}/read', [AdminController::class, 'markMessageAsRead'])->name('contact-messages.read');
     Route::delete('/contact-messages/{id}', [AdminController::class, 'deleteContactMessage'])->name('contact-messages.destroy');
 
+    Route::get('/complaints', [\App\Http\Controllers\Admin\ComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/complaints/{complaint}', [\App\Http\Controllers\Admin\ComplaintController::class, 'show'])->name('complaints.show');
+    Route::put('/complaints/{complaint}', [\App\Http\Controllers\Admin\ComplaintController::class, 'update'])->name('complaints.update');
+    Route::post('/complaints/{complaint}/reply', [\App\Http\Controllers\Admin\ComplaintController::class, 'reply'])->name('complaints.reply');
+    Route::post('/complaints/{complaint}/reopen', [\App\Http\Controllers\Admin\ComplaintController::class, 'reopen'])->name('complaints.reopen');
+
 
 Route::get('rejection-reasons', [RejectionReasonController::class, 'index'])->name('rejection-reasons.index');
 Route::post('rejection-reasons', [RejectionReasonController::class, 'store'])->name('rejection-reasons.store');
@@ -186,11 +220,15 @@ Route::get('rooms/{room}', [AdminController::class, 'showRoom'])->name('rooms.sh
 Route::get('rooms/{room}/edit', [AdminController::class, 'editRoom'])->name('rooms.edit');
 Route::put('rooms/{room}/update', [AdminController::class, 'updateRoom'])->name('rooms.update');
 Route::post('rooms/{room}/approve', [AdminController::class, 'approveRoom'])->name('rooms.approve');
-Route::post('rooms/{room}/reject', [AdminController::class, 'rejectRoom'])->name('rooms.reject');
+    Route::post('rooms/{room}/reject', [AdminController::class, 'rejectRoom'])->name('rooms.reject');
+Route::post('rooms/bulk-action', [AdminController::class, 'bulkRooms'])->name('rooms.bulk');
 Route::delete('rooms/{room}', [AdminController::class, 'deleteRoom'])->name('rooms.destroy');
 
     // Search Analytics
     Route::get('/analytics', [\App\Http\Controllers\Admin\SearchAnalyticsController::class, 'index'])->name('analytics');
+    Route::delete('/analytics/logs/all', [\App\Http\Controllers\Admin\SearchAnalyticsController::class, 'destroyAll'])->name('analytics.logs.all');
+    Route::delete('/analytics/logs/range', [\App\Http\Controllers\Admin\SearchAnalyticsController::class, 'destroyRange'])->name('analytics.logs.range');
+    Route::delete('/analytics/logs/{searchLog}', [\App\Http\Controllers\Admin\SearchAnalyticsController::class, 'destroy'])->name('analytics.logs.destroy');
 
 
 Route::controller(PagesController::class)->group(function () {
@@ -203,6 +241,10 @@ Route::controller(PagesController::class)->group(function () {
     Route::put('/pages/how-it-works', 'updateHowItWorks')->name('pages.how-it-works.update');
     Route::get('/pages/safety-tips', 'safetyTips')->name('pages.safety-tips');
     Route::put('/pages/safety-tips', 'updateSafetyTips')->name('pages.safety-tips.update');
+    Route::get('/pages/owner-guidelines', 'ownerGuidelines')->name('pages.owner-guidelines');
+    Route::put('/pages/owner-guidelines', 'updateOwnerGuidelines')->name('pages.owner-guidelines.update');
+    Route::get('/pages/user-guidelines', 'userGuidelines')->name('pages.user-guidelines');
+    Route::put('/pages/user-guidelines', 'updateUserGuidelines')->name('pages.user-guidelines.update');
 
     Route::get('/pages/terms', 'terms')->name('pages.terms');
     Route::put('/pages/terms', 'updateTerms')->name('pages.terms.update');

@@ -42,7 +42,13 @@ class AdminController extends Controller
         $rejectedRooms = Room::where('listing_status', 'rejected')->count();
     
         // Earnings
-        $totalEarnings = Payment::where('status', 'completed')->sum('amount');
+        // Direct-contact platform revenue; legacy booking payments are intentionally excluded.
+        $totalEarnings = Payment::where('status', 'completed')
+            ->whereIn('type', ['listing', 'featured', 'unlock', 'subscription'])
+            ->sum('amount');
+        $todayEarnings = Payment::where('status', 'completed')
+            ->whereIn('type', ['listing', 'featured', 'unlock', 'subscription'])
+            ->whereDate('created_at', today())->sum('amount');
     
         $listingEarnings = Payment::where('status', 'completed')
             ->where('type', 'listing')
@@ -67,6 +73,7 @@ class AdminController extends Controller
         // Monthly revenue graph
         $monthlyRevenue = Payment::selectRaw('MONTH(created_at) as month, SUM(amount) as total')
             ->where('status', 'completed')
+            ->whereIn('type', ['listing', 'featured', 'unlock', 'subscription'])
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->pluck('total', 'month');
@@ -81,10 +88,12 @@ class AdminController extends Controller
         $lastMonth = now()->subMonth()->month;
         
         $currentMonthEarnings = Payment::where('status', 'completed')
+            ->whereIn('type', ['listing', 'featured', 'unlock', 'subscription'])
             ->whereMonth('created_at', $currentMonth)
             ->sum('amount');
             
         $lastMonthEarnings = Payment::where('status', 'completed')
+            ->whereIn('type', ['listing', 'featured', 'unlock', 'subscription'])
             ->whereMonth('created_at', $lastMonth)
             ->sum('amount');
             
@@ -97,24 +106,53 @@ class AdminController extends Controller
         $recentPayments = Payment::with('user')->latest()->limit(5)->get();
         $recentUsers = User::where('role', 'user')->latest()->limit(5)->get();
         $recentOwners = User::where('role', 'owner')->withCount('rooms')->latest()->limit(5)->get();
+
+        $actionQueues = [
+            ['label'=>'Pending room approvals','count'=>Room::where('listing_status','pending')->count(),'route'=>route('admin.all-rooms',['listing_status'=>'pending']),'icon'=>'fa-house-circle-exclamation','tone'=>'amber'],
+            ['label'=>'Pending KYC','count'=>User::where('role','owner')->where('verification_status','pending')->count(),'route'=>route('admin.owners',['verification_status'=>'pending']),'icon'=>'fa-id-card','tone'=>'blue'],
+            ['label'=>'Unresolved complaints','count'=>\App\Models\Complaint::whereNotIn('status',['resolved','rejected','closed'])->count(),'route'=>route('admin.complaints.index',['status'=>'open']),'icon'=>'fa-shield-halved','tone'=>'red'],
+            ['label'=>'Failed / pending payments','count'=>Payment::whereIn('status',['failed','pending'])->count(),'route'=>route('admin.payments.index',['status'=>'pending']),'icon'=>'fa-credit-card','tone'=>'red'],
+            ['label'=>'Subscriptions expiring in 7 days','count'=>Subscription::where('status','active')->whereBetween('end_date',[today(),today()->addDays(7)])->count(),'route'=>route('admin.reports'),'icon'=>'fa-hourglass-half','tone'=>'amber'],
+            ['label'=>'Unread contact enquiries','count'=>\App\Models\ContactMessage::where('is_read',false)->count(),'route'=>route('admin.contact-messages.index'),'icon'=>'fa-envelope','tone'=>'blue'],
+            ['label'=>"Today's contact unlocks",'count'=>\App\Models\Enquiry::where('unlocked',true)->whereDate('unlocked_at',today())->count(),'route'=>route('admin.reports'),'icon'=>'fa-lock-open','tone'=>'green'],
+        ];
     
         return view('admin.dashboard', compact(
             'rooms','users','owners','activeRooms',
             'approvedRooms','pendingRooms','rejectedRooms',
-            'totalEarnings','listingEarnings','unlockEarnings','featuredEarnings','bookingEarnings','subscriptionEarnings',
+            'totalEarnings','todayEarnings','listingEarnings','unlockEarnings','featuredEarnings','bookingEarnings','subscriptionEarnings',
             'revenueData',
             'currentMonthEarnings','lastMonthEarnings','percentageChange',
-            'recentRooms','recentPayments','recentUsers','recentOwners'
+            'recentRooms','recentPayments','recentUsers','recentOwners','actionQueues'
         ));
     }
     
     
-    public function Rooms()
+    public function Rooms(Request $request)
     {
-        $allrooms = Room::with('owner')->latest()->paginate(10);
+        $query = Room::with(['owner','roomTypeOption'])->whereHas('owner');
+        if ($request->filled('search')) $query->where(fn($q)=>$q->where('title','like','%'.$request->search.'%')->orWhere('city','like','%'.$request->search.'%'));
+        if ($request->filled('listing_status')) $request->listing_status === 'expired' ? $query->where('expires_at','<',now()) : $query->where('listing_status',$request->listing_status);
+        if ($request->filled('moderation_status')) $query->where('moderation_status',$request->moderation_status);
+        if ($request->filled('status')) $query->where('status',$request->status);
+        if ($request->filled('city')) $query->where('city',$request->city);
+        if ($request->filled('room_type')) $query->where('room_type_option_id',$request->room_type);
+        if ($request->filled('kyc')) $query->whereHas('owner',fn($q)=>$q->where('verification_status',$request->kyc));
+        $perPage = in_array((int) $request->input('per_page', 10), [10, 25, 50], true)
+            ? (int) $request->input('per_page', 10)
+            : 10;
+        $allrooms = $query->latest()->paginate($perPage)->withQueryString();
         $rejectionReasons = RejectionReason::where('is_active', true)->get();
+        $cities=Room::whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
+        return view('admin.all-room', compact('allrooms', 'rejectionReasons','cities'));
+    }
 
-        return view('admin.all-room', compact('allrooms', 'rejectionReasons'));
+    public function bulkRooms(Request $request)
+    {
+        $data=$request->validate(['room_ids'=>'required|array|min:1','room_ids.*'=>'exists:rooms,id','action'=>'required|in:approve,suspend,activate,mark_reported']);
+        $updates=match($data['action']) {'approve'=>['listing_status'=>'approved','moderation_status'=>'normal'],'suspend'=>['moderation_status'=>'suspended'],'activate'=>['moderation_status'=>'normal','status'=>'active'],'mark_reported'=>['moderation_status'=>'reported']};
+        Room::whereIn('id',$data['room_ids'])->update($updates);
+        return back()->with('success',count($data['room_ids']).' listings updated.');
     }
 
     public function approveRoom(Room $room)
@@ -152,7 +190,8 @@ class AdminController extends Controller
     {
         try {
             $request->validate([
-                'reasons' => 'array',
+                'reasons' => 'required|array|min:1',
+                'reasons.*' => 'exists:rejection_reasons,id',
                 'customReason' => 'nullable|string|max:500'
             ]);
 
@@ -162,7 +201,7 @@ class AdminController extends Controller
 
             // Save rejection reasons
             if (!empty($request->reasons)) {
-                $room->rejectionReasons()->attach($request->reasons);
+                $room->rejectionReasons()->sync($request->reasons);
             }
 
             // Get all rejection reasons for email
@@ -180,9 +219,13 @@ class AdminController extends Controller
 
             // Send email to owner
             $owner = $room->owner;
-            Mail::to($owner->email)->send(new RoomRejectedMail($room, $owner, $reasons));
+            try {
+                if ($owner?->email) Mail::to($owner->email)->send(new RoomRejectedMail($room, $owner, $reasons));
+            } catch (\Exception $mailError) {
+                \Log::warning('Room rejection email failed: '.$mailError->getMessage());
+            }
 
-            return response()->json(['success' => true, 'message' => 'Room rejected and email sent to owner']);
+            return response()->json(['success' => true, 'message' => 'Room rejected successfully']);
         } catch (\Exception $e) {
             \Log::error('Room rejection error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Error rejecting room: ' . $e->getMessage()], 500);
@@ -192,6 +235,13 @@ class AdminController extends Controller
     public function deleteRoom(Room $room)
     {
         try {
+            foreach (($room->photos ?? []) as $photo) {
+                if ($photo && !str_starts_with($photo, 'http')) Storage::disk('public')->delete($photo);
+            }
+            if ($room->photo && !str_starts_with($room->photo, 'http') && !in_array($room->photo, $room->photos ?? [], true)) {
+                Storage::disk('public')->delete($room->photo);
+            }
+            if ($room->video && !str_starts_with($room->video, 'http')) Storage::disk('public')->delete($room->video);
             $room->delete();
             
             return response()->json(['success' => true]);
@@ -201,18 +251,20 @@ class AdminController extends Controller
         }
     }
 
-    public function reports()
+    public function reports(Request $request)
     {
-        $bookings = Booking::with(['user', 'room'])
-            ->latest()
-            ->paginate(20);
-
-        $payments = Payment::with('user')
-            ->where('status', 'completed')
-            ->latest()
-            ->paginate(20);
-
-        return view('admin.reports', compact('bookings', 'payments'));
+        $from=$request->date('from') ?? now()->startOfMonth(); $to=$request->date('to') ?? now()->endOfDay();
+        $paymentsBase=Payment::whereBetween('created_at',[$from->startOfDay(),$to->endOfDay()]);
+        $revenueByType=(clone $paymentsBase)->where('status','completed')->selectRaw('type, SUM(amount) total')->groupBy('type')->pluck('total','type');
+        $dailyCollections=(clone $paymentsBase)->where('status','completed')->selectRaw('DATE(created_at) day, SUM(amount) total')->groupBy('day')->orderBy('day')->get();
+        $failedPayments=(clone $paymentsBase)->where('status','failed')->count();
+        $totalUsers=User::where('role','user')->whereBetween('created_at',[$from,$to])->count();
+        $unlocks=\App\Models\Enquiry::where('unlocked',true)->whereBetween('unlocked_at',[$from,$to])->count();
+        $cityDemand=\App\Models\Enquiry::join('rooms','rooms.id','=','enquiries.room_id')->whereBetween('enquiries.created_at',[$from,$to])->selectRaw('rooms.city, COUNT(*) total')->groupBy('rooms.city')->orderByDesc('total')->limit(10)->get();
+        $ownerGrowth=User::where('role','owner')->whereBetween('created_at',[$from,$to])->count();
+        $listingGrowth=Room::whereBetween('created_at',[$from,$to])->count();
+        $resolutionHours=\App\Models\Complaint::whereNotNull('closed_at')->whereBetween('closed_at',[$from,$to])->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, closed_at)) avg_hours')->value('avg_hours');
+        return view('admin.reports',compact('from','to','revenueByType','dailyCollections','failedPayments','totalUsers','unlocks','cityDemand','ownerGrowth','listingGrowth','resolutionHours'));
     }
 
     public function payouts()
@@ -254,6 +306,9 @@ class AdminController extends Controller
                   ->orWhere('email', 'like', '%' . $request->search . '%');
             });
         }
+        if ($request->status === 'blocked') $query->where('is_blocked',true);
+        if ($request->status === 'active') $query->where('is_blocked',false)->whereNull('deleted_at');
+        if ($request->status === 'deleted') $query->onlyTrashed();
         
         $users = $query->latest()->paginate(10);
         return view('admin.users', compact('users'));
@@ -269,6 +324,9 @@ class AdminController extends Controller
                   ->orWhere('email', 'like', '%' . $request->search . '%');
             });
         }
+        if ($request->filled('verification_status')) $query->where('verification_status',$request->verification_status);
+        if ($request->status === 'blocked') $query->where('is_blocked',true);
+        if ($request->status === 'deleted') $query->onlyTrashed();
         
         $owners = $query->latest()->paginate(10);
         return view('admin.owners', compact('owners'));
@@ -276,32 +334,54 @@ class AdminController extends Controller
 
     public function userDetail(User $user)
     {
-        $user->load(['bookings', 'rooms']);
+        $user->load(['payments','subscriptions.plan','complaints','enquiries.room','adminActivities.actor']);
         return view('admin.user-detail', compact('user'));
     }
 
     public function ownerDetail(User $owner)
     {
-        $owner->load(['rooms', 'bookings']);
+        $owner->load(['rooms','payments','subscriptions.plan','complaints','adminActivities.actor']);
         $rooms = $owner->rooms()->latest()->paginate(10);
         return view('admin.owner-detail', compact('owner', 'rooms'));
     }
 
     public function toggleBlock(Request $request, User $user)
     {
+        $request->validate(['block_reason'=>'nullable|string|max:255']);
+        $blocking=!$user->is_blocked;
         $user->update([
-            'is_blocked' => !$user->is_blocked
+            'is_blocked' => $blocking,
+            'block_reason' => $blocking ? ($request->block_reason ?: 'Blocked by administrator') : null,
         ]);
 
         $status = $user->is_blocked ? 'blocked' : 'unblocked';
         return back()->with('success', "User {$status} successfully!");
     }
 
-
-    public function cityAlerts()
+    public function updateMemberNotes(Request $request, User $user)
     {
-        $alerts = \App\Models\CityAlert::with('user')->latest()->paginate(20);
-        return view('admin.city-alerts.index', compact('alerts'));
+        $data=$request->validate(['admin_notes'=>'nullable|string|max:5000','verification_status'=>'required|in:pending,under_review,verified,rejected']);
+        $data['is_verified']=$data['verification_status']==='verified'; $data['verified_at']=$data['is_verified']?now():null; $user->update($data);
+        return back()->with('success','Member notes and verification updated.');
+    }
+
+    public function restoreMember(int $user)
+    {
+        $member=User::withTrashed()->findOrFail($user); $member->restore(); return back()->with('success','Account restored.');
+    }
+
+
+    public function cityAlerts(Request $request)
+    {
+        $query=\App\Models\CityAlert::with('user');
+        if($request->filled('search')){$term=trim($request->search);$query->where(fn($q)=>$q->where('city','like',"%{$term}%")->orWhereHas('user',fn($u)=>$u->where('name','like',"%{$term}%")->orWhere('email','like',"%{$term}%")));}
+        if($request->filled('city'))$query->where('city',$request->city);
+        if($request->filled('from'))$query->whereDate('created_at','>=',$request->date('from'));
+        if($request->filled('to'))$query->whereDate('created_at','<=',$request->date('to'));
+        $alerts=$query->latest()->paginate(15)->withQueryString();
+        $cities=\App\Models\CityAlert::whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
+        $cityStats=\App\Models\CityAlert::selectRaw('city,COUNT(*) total')->groupBy('city')->orderByDesc('total')->limit(4)->get();
+        return view('admin.city-alerts.index',compact('alerts','cities','cityStats'));
     }
 
     public function deleteCityAlert($id)
@@ -364,7 +444,7 @@ class AdminController extends Controller
             'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
             'amenities' => 'nullable|array',
             'landmarks' => 'nullable|array',
-            'photos.*' => 'image|max:2048',
+            'photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
             'photos' => 'required|array|min:1|max:5',
             'video' => 'nullable|mimes:mp4,avi,mov,wmv|max:10240',
             'video_url' => 'nullable|url|max:255',
@@ -456,20 +536,11 @@ class AdminController extends Controller
             $data['longitude'] = null;
         }
 
+        $oldPhotosToDelete = [];
         if ($request->hasFile('photos')) {
-            // Delete old photos
-            if ($room->photos) {
-                $oldPhotos = $room->photos;
-                if (is_string($oldPhotos)) {
-                    $oldPhotos = json_decode($oldPhotos, true);
-                }
-                if ($oldPhotos && is_array($oldPhotos)) {
-                    foreach ($oldPhotos as $oldPhoto) {
-                        Storage::disk('public')->delete($oldPhoto);
-                    }
-                }
-            }
-
+            // Store the replacement first. Old media is removed only after the DB update succeeds.
+            $oldPhotosToDelete = is_array($room->photos) ? $room->photos : (json_decode($room->photos ?: '[]', true) ?: []);
+            if ($room->photo && !in_array($room->photo, $oldPhotosToDelete, true)) $oldPhotosToDelete[] = $room->photo;
             $photos = [];
             foreach ($request->file('photos') as $photo) {
                 $photos[] = $photo->store('rooms', 'public');
@@ -491,7 +562,13 @@ class AdminController extends Controller
 
         $room->update($data);
 
-        return redirect()->route('admin.all-rooms')->with('success', 'Room updated successfully by Admin!');
+        foreach ($oldPhotosToDelete as $oldPhoto) {
+            if ($oldPhoto && !str_starts_with($oldPhoto, 'http') && !in_array($oldPhoto, $data['photos'] ?? [], true)) {
+                Storage::disk('public')->delete($oldPhoto);
+            }
+        }
+
+        return redirect()->route('admin.rooms.edit', $room->fresh())->with('success', 'Room details and media updated successfully.');
     }
 
     public function showRoom(Room $room)
@@ -507,13 +584,31 @@ class AdminController extends Controller
     public function paymentsindex(Request $request)
     {
         $query = Payment::with('user');
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->filled('search')) {
+            $term=trim($request->search);
+            $query->where(fn($q)=>$q->where('transaction_id','like',"%{$term}%")
+                ->orWhere('gateway_order_id','like',"%{$term}%")->orWhere('reference_id','like',"%{$term}%")
+                ->orWhereHas('user',fn($u)=>$u->where('name','like',"%{$term}%")->orWhere('email','like',"%{$term}%")));
         }
-
-        $payments = $query->latest()->paginate(20);
-        return view('admin.payments.index', compact('payments'));
+        if ($request->filled('status')) $query->where('status',$request->status);
+        if ($request->filled('type')) $query->where('type',$request->type);
+        if ($request->filled('gateway')) $query->where('gateway',$request->gateway);
+        if ($request->filled('from')) $query->whereDate('created_at','>=',$request->date('from'));
+        if ($request->filled('to')) $query->whereDate('created_at','<=',$request->date('to'));
+        if ($request->filled('min_amount')) $query->where('amount','>=',(float)$request->min_amount);
+        if ($request->filled('max_amount')) $query->where('amount','<=',(float)$request->max_amount);
+        $filtered=(clone $query);
+        $paymentStats=[
+            'total'=>$filtered->count(),
+            'collected'=>(clone $filtered)->where('status','completed')->sum('amount'),
+            'completed'=>(clone $filtered)->where('status','completed')->count(),
+            'pending'=>(clone $filtered)->where('status','pending')->count(),
+            'failed'=>(clone $filtered)->where('status','failed')->count(),
+        ];
+        $payments=$query->latest()->paginate(20)->withQueryString();
+        $types=Payment::whereNotNull('type')->distinct()->orderBy('type')->pluck('type');
+        $gateways=Payment::whereNotNull('gateway')->distinct()->orderBy('gateway')->pluck('gateway');
+        return view('admin.payments.index',compact('payments','paymentStats','types','gateways'));
     }
 
     public function contactMessages()

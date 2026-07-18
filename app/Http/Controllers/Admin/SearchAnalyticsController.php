@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class SearchAnalyticsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Top 10 searched cities
         // Exclude null or empty city searches
@@ -33,10 +33,32 @@ class SearchAnalyticsController extends Controller
 
 
         // Recent Logs
-        $recentLogs = SearchLog::with('user') // Showing user if logged in
-            ->orderByDesc('created_at')
+        $logsQuery = SearchLog::with('user');
+        if ($request->filled('from')) $logsQuery->whereDate('created_at', '>=', $request->date('from'));
+        if ($request->filled('to')) $logsQuery->whereDate('created_at', '<=', $request->date('to'));
+        if ($request->filled('city')) $logsQuery->where('city', 'like', '%'.$request->city.'%');
+        $recentLogs = $logsQuery->orderByDesc('created_at')
             ->paginate(20);
 
         return view('admin.search_logs.index', compact('topCities', 'recentLogs', 'topListingCities'));
+    }
+
+    public function destroy(SearchLog $searchLog)
+    {
+        $searchLog->delete();
+        return back()->with('success', 'Search log deleted.');
+    }
+
+    public function destroyRange(Request $request)
+    {
+        $data = $request->validate(['from' => 'required|date', 'to' => 'required|date|after_or_equal:from']);
+        $count = SearchLog::whereDate('created_at', '>=', $data['from'])->whereDate('created_at', '<=', $data['to'])->delete();
+        return redirect()->route('admin.analytics', ['tab' => 'logs'])->with('success', $count.' search logs deleted.');
+    }
+
+    public function destroyAll()
+    {
+        $count = SearchLog::query()->delete();
+        return redirect()->route('admin.analytics', ['tab' => 'logs'])->with('success', $count.' search logs deleted.');
     }
 }

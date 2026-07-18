@@ -35,12 +35,9 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Placement Location</label>
                             <select name="placement" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                <option value="dashboard" {{ old('placement', $offer->placement) == 'dashboard' ? 'selected' : '' }}>Dashboard (User/Owner Home)</option>
-                                <option value="top_nav" {{ old('placement', $offer->placement) == 'top_nav' ? 'selected' : '' }}>Top Navigation (Announcement Bar)</option>
-                                <option value="home_hero" {{ old('placement', $offer->placement) == 'home_hero' ? 'selected' : '' }}>Home Page Hero (Main Carousel)</option>
-                                <option value="sidebar" {{ old('placement', $offer->placement) == 'sidebar' ? 'selected' : '' }}>Sidebar (Room Listings)</option>
-                                <option value="popup" {{ old('placement', $offer->placement) == 'popup' ? 'selected' : '' }}>Popup Modal (Timed Promotion)</option>
+                                @foreach(\App\Models\Offer::PLACEMENTS as $value => $label)<option value="{{ $value }}" @selected(old('placement', $offer->placement) === $value)>{{ $label }}</option>@endforeach
                             </select>
+                            <p class="mt-1 text-xs text-gray-500">Choose where this offer should appear. Only matching active offers are rendered.</p>
                             @error('placement')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -70,7 +67,7 @@
                             @endif
                             <input type="file" name="image" accept="image/*"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <p class="text-xs text-gray-500 mt-1">Recommended: 1200x400 for Hero, 400x600 for Sidebar</p>
+                            <p class="text-xs text-gray-500 mt-1">Hero: 1200×400, sidebar: 800×600, popup/mobile: 900×600. WebP recommended.</p>
                             @error('image')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>
 

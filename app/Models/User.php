@@ -26,10 +26,17 @@ class User extends Authenticatable
         'password',
         'phone',
         'role',
+        'admin_role_id',
+        'is_staff_active',
+        'last_admin_login_at',
         'wallet',
         'wallet_balance',
         'is_verified',
+        'verification_status',
+        'verified_at',
         'is_blocked',
+        'block_reason',
+        'admin_notes',
         'referral_code',
         'referred_by_id',
     ];
@@ -83,6 +90,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'is_blocked' => 'boolean',
             'wallet_balance' => 'decimal:2',
+            'is_staff_active' => 'boolean',
+            'last_admin_login_at' => 'datetime',
+            'verified_at' => 'datetime',
         ];
     }
 
@@ -95,6 +105,8 @@ class User extends Authenticatable
     public function subscriptions() {
         return $this->hasMany(Subscription::class);
     }
+    public function payments() { return $this->hasMany(Payment::class); }
+    public function enquiries() { return $this->hasMany(Enquiry::class); }
 
     public function wishlists()
     {
@@ -105,6 +117,29 @@ class User extends Authenticatable
     public function cityAlerts()
     {
         return $this->hasMany(CityAlert::class);
+    }
+
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    public function adminRole()
+    {
+        return $this->belongsTo(AdminRole::class);
+    }
+
+    public function adminActivities()
+    {
+        return $this->hasMany(AdminActivityLog::class, 'actor_id');
+    }
+
+    public function hasAdminPermission(string $permission): bool
+    {
+        if ($this->role !== 'admin' || !$this->is_staff_active) return false;
+        if (!$this->admin_role_id) return true; // Existing administrators remain safe super admins.
+        $permissions = $this->adminRole?->permissions ?? [];
+        return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
     }
 
     public function hasInWishlist($roomId)

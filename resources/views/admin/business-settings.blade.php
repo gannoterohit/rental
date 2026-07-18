@@ -28,105 +28,35 @@
                         <i class="fas fa-satellite-dish mr-2"></i> Ping Search Engines
                     </button>
                 </form>
-                <button form="settings-form" type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-medium shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
-                    <i class="fas fa-save mr-2"></i> Save Changes
-                </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Horizontal Settings Navigation -->
+    <div class="sticky top-16 z-20 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:px-6">
+        <div class="mx-auto flex max-w-7xl gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Business settings sections">
+            @foreach([
+                ['general', 'fa-sliders-h', 'General & Fees'],
+                ['commission', 'fa-percentage', 'Commission'],
+                ['appearance', 'fa-paint-brush', 'Appearance'],
+                ['payment', 'fa-credit-card', 'Payment'],
+                ['integrations', 'fa-plug', 'Integrations'],
+                ['seo', 'fa-search', 'SEO & Analytics'],
+                ['mail', 'fa-envelope', 'Mail Server'],
+                ['referral', 'fa-share-alt', 'Referral'],
+            ] as [$tabKey, $tabIcon, $tabLabel])
+                <button type="button" @click="activeTab = '{{ $tabKey }}'" :class="activeTab === '{{ $tabKey }}' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 text-xs font-bold transition" role="tab" :aria-selected="activeTab === '{{ $tabKey }}'">
+                    <i class="fas {{ $tabIcon }} text-[11px]"></i><span>{{ $tabLabel }}</span>
+                </button>
+            @endforeach
         </div>
     </div>
 
     <!-- Layout Container -->
     <div class="flex flex-1 items-start">
-        
-        <!-- Sidebar Navigation -->
-        <div class="w-72 bg-white border-r border-gray-200 flex-shrink-0 py-6 px-4 hidden md:block md:sticky md:top-[80px]">
-            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Configuration Modules</p>
-            <nav class="space-y-1">
-                <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'general' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-sliders-h w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    General & Fees
-                </button>
-                
-                <button @click="activeTab = 'commission'" :class="activeTab === 'commission' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'commission' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-percentage w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Commission
-                </button>
-
-                 <button @click="activeTab = 'appearance'" :class="activeTab === 'appearance' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'appearance' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-paint-brush w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Appearance
-                </button>
-                
-                <button @click="activeTab = 'payment'" :class="activeTab === 'payment' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'payment' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-credit-card w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Payment Gateway
-                </button>
-                
-                <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'integrations' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-plug w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Integrations (Maps)
-                </button>
-                
-                <button @click="activeTab = 'seo'" :class="activeTab === 'seo' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'seo' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                         <i class="fas fa-search w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    SEO & Analytics
-                </button>
-                
-                 <button @click="activeTab = 'mail'" :class="activeTab === 'mail' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'mail' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                     <i class="fas fa-envelope w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Mail Server
-                </button>
-
-                <button @click="activeTab = 'referral'" :class="activeTab === 'referral' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 group">
-                    <span :class="activeTab === 'referral' ? 'bg-indigo-200 text-indigo-700' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-indigo-500'" class="p-2 rounded-md mr-3 transition-colors">
-                        <i class="fas fa-share-alt w-4 h-4 flex items-center justify-center"></i>
-                    </span>
-                    Referral System
-                </button>
-            </nav>
-            
-            <div class="mt-8 px-4">
-                 <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg">
-                    <p class="text-xs font-semibold uppercase opacity-75 mb-1">System Status</p>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
-                        <span class="text-sm font-bold">Operational</span>
-                    </div>
-                    <p class="text-xs opacity-90">Secure & Protected</p>
-                 </div>
-            </div>
-        </div>
 
         <!-- Main Content Area -->
         <div class="flex-1 min-w-0 bg-gray-50 p-4 md:p-6 flex flex-col items-center">
-            <!-- Mobile Menu -->
-            <div class="md:hidden mb-6 overflow-x-auto pb-2 w-full">
-                <div class="flex space-x-2">
-                     <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">General</button>
-                    <button @click="activeTab = 'commission'" :class="activeTab === 'commission' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Commission</button>
-                    <button @click="activeTab = 'appearance'" :class="activeTab === 'appearance' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Appearance</button>
-                    <button @click="activeTab = 'payment'" :class="activeTab === 'payment' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Payment</button>
-                    <button @click="activeTab = 'integrations'" :class="activeTab === 'integrations' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Integrations</button>
-                    <button @click="activeTab = 'seo'" :class="activeTab === 'seo' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">SEO</button>
-                    <button @click="activeTab = 'mail'" :class="activeTab === 'mail' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Mail</button>
-                    <button @click="activeTab = 'referral'" :class="activeTab === 'referral' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-sm transition-colors">Referral</button>
-                    <!-- Add other mobile tabs as needed -->
-                </div>
-            </div>
 
             <form id="settings-form" action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="w-full max-w-5xl space-y-8 pb-12">
                 @csrf
@@ -179,30 +109,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                        <div class="flex items-center mb-6 pb-4 border-b border-gray-100">
-                             <div class="h-10 w-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-4">
-                                <i class="fas fa-magic text-xl"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800">Promotional Settings</h2>
-                                <p class="text-sm text-gray-500">Configure how offers interact with users</p>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Popup Banner Delay (Seconds)</label>
-                                <div class="relative rounded-lg shadow-sm group transition-all focus-within:ring-2 ring-indigo-500/20">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-clock text-gray-400"></i>
-                                    </div>
-                                    <input type="number" name="popup_delay" value="{{ \App\Models\Setting::get('popup_delay', 5) }}" min="0" class="block w-full pl-10 pr-3 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-medium text-gray-900" placeholder="5">
-                                </div>
-                                <p class="mt-2 text-xs text-gray-500">How many seconds to wait before showing the popup modal</p>
-                            </div>
-                        </div>
-                    </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'general'])
                 </div>
                 
                  <!-- Commission Section -->
@@ -238,6 +145,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'commission'])
                 </div>
 
                 <!-- Appearance Section -->
@@ -402,6 +310,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'appearance'])
                 </div>
                 
                 <!-- Mail Section -->
@@ -442,6 +351,7 @@
                              <p class="text-sm text-indigo-800">You may need to clear cache after updating mail settings.</p>
                          </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'mail'])
                 </div>
 
                 <!-- Referral Section -->
@@ -481,6 +391,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'referral'])
                 </div>
 
                 <!-- Payment Section -->
@@ -511,6 +422,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'payment'])
                 </div>
                 
                  <!-- Integrations (Maps) Section -->
@@ -530,6 +442,7 @@
                             <input type="text" name="google_maps_api_key" value="{{ \App\Models\Setting::get('google_maps_api_key') }}" class="block w-full px-4 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-mono">
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'integrations'])
                 </div>
 
                 <!-- SEO Section -->
@@ -666,6 +579,7 @@
 
                         </div>
                     </div>
+                    @include('admin.partials.settings-save-button', ['tab' => 'seo'])
                 </div>
             </form>
         </div>

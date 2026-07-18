@@ -32,20 +32,20 @@
 
 @if($offers->count() > 0)
     @if($placement === 'top_nav')
+        @php($topOffer = $offers->first())
         <!-- Top Navigation Strip -->
         <div id="topOfferStrip" class="relative z-[60]">
-            @foreach($offers as $offer)
                 <div class="py-1.5 md:py-2.5 text-center text-white text-[10px] md:text-sm font-semibold relative overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md" 
-                     style="background: var(--primary);">
+                     style="background: {{ $topOffer->banner_color }};">
                     <div class="container mx-auto px-4 flex items-center justify-center gap-1.5 md:gap-3 flex-wrap">
-                        @if($offer->link_url)<a href="{{ $offer->link_url }}" class="flex items-center gap-1.5 md:gap-2 hover:opacity-90 transition group">@endif
+                        @if($topOffer->link_url)<a href="{{ $topOffer->link_url }}" class="flex items-center gap-1.5 md:gap-2 hover:opacity-90 transition group">@endif
                         
-                        <span class="tracking-wide">{{ $offer->title }}</span>
-                        @if($offer->discount_text)
-                            <span class="bg-white text-indigo-600 px-1.5 py-0.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-sm whitespace-nowrap">{{ $offer->discount_text }}</span>
+                        <span class="tracking-wide">{{ $topOffer->title }}</span>
+                        @if($topOffer->discount_text)
+                            <span class="bg-white/95 text-slate-900 px-1.5 py-0.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-sm whitespace-nowrap">{{ $topOffer->discount_text }}</span>
                         @endif
                         
-                        @if($offer->link_url)
+                        @if($topOffer->link_url)
                             <i class="fas fa-arrow-right text-[8px] md:text-[10px] opacity-70 group-hover:translate-x-1 transition-transform"></i>
                             </a>
                         @endif
@@ -56,7 +56,6 @@
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
-            @endforeach
         </div>
 
     @elseif($placement === 'home_hero')
@@ -319,7 +318,7 @@
             document.addEventListener('DOMContentLoaded', function() {
                 // Check if already closed in this session
                 const popupId = 'offer_popup_{{ $popupOffer->id }}';
-                const isClosed = localStorage.getItem(popupId);
+                const isClosed = sessionStorage.getItem(popupId);
                 
                 if (!isClosed) {
                     // Show after delay
@@ -354,8 +353,8 @@
                     setTimeout(() => {
                         popup.classList.add('hidden');
                         popup.style.display = 'none';
-                        // Save to localStorage
-                        localStorage.setItem('offer_popup_' + id, 'true');
+                        // Keep it dismissed for this browser session only.
+                        sessionStorage.setItem('offer_popup_' + id, 'true');
                     }, 300);
                 }
             }

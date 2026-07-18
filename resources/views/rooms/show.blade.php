@@ -526,6 +526,9 @@
                             <div class="border-t pt-3 mt-3">
                                 <p class="text-xs text-gray-500">Listed by</p>
                                 <p class="font-bold text-gray-900">{{ $room->owner?->name ?? 'Unknown' }}</p>
+                                <a href="{{ Auth::check() ? route('complaints.create', ['room' => $room->id]) : route('login') }}" class="mt-3 inline-flex items-center gap-2 text-xs font-bold text-red-600 hover:text-red-700">
+                                    <i class="fas fa-flag"></i> Report this listing
+                                </a>
                             </div>
                         </div>
                     </div>

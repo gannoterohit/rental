@@ -17,6 +17,30 @@ class BusinessSettingsController extends Controller
         return view('admin.business-settings', compact('settings'));
     }
 
+    public function maintenance()
+    {
+        return view('admin.maintenance-settings');
+    }
+
+    public function updateMaintenance(Request $request)
+    {
+        $data = $request->validate([
+            'maintenance_title' => ['required', 'string', 'max:120'],
+            'maintenance_message' => ['required', 'string', 'max:500'],
+            'maintenance_reopening_at' => ['nullable', 'date'],
+        ]);
+
+        foreach ($data as $key => $value) {
+            Setting::set($key, $value);
+        }
+
+        foreach (['maintenance_mode', 'registration_enabled', 'new_listings_enabled', 'payments_enabled', 'owner_panel_enabled', 'user_panel_enabled'] as $key) {
+            Setting::set($key, $request->boolean($key) ? '1' : '0');
+        }
+
+        return back()->with('success', 'Platform availability settings updated.');
+    }
+
     public function update(Request $request)
     {
         $data = $request->except(['_token', '_method']);
@@ -108,4 +132,3 @@ class BusinessSettingsController extends Controller
         return back()->with('error', 'Failed to notify search engines. Please try again later.');
     }
 }
-
