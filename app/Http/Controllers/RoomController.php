@@ -559,7 +559,18 @@ class RoomController extends Controller {
         
         $room->load('owner');
 
-        return view('rooms.show', compact('room', 'isUnlocked', 'isOwner', 'subscriptionRemaining'));
+        $relatedRooms = Room::query()
+            ->whereKeyNot($room->getKey())
+            ->where('city', $room->city)
+            ->where('status', 'active')
+            ->where('listing_status', 'approved')
+            ->with('owner')
+            ->orderByDesc('is_featured')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('rooms.show', compact('room', 'isUnlocked', 'isOwner', 'subscriptionRemaining', 'relatedRooms'));
     }
 
     public function edit(Room $room) {

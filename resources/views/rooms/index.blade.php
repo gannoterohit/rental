@@ -26,12 +26,12 @@
     .filter-sticky::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
     .rooms-search-shell {
-        background: #f1f5f9;
-        padding: 1.25rem 0;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        padding: 1rem 0;
     }
     .rooms-search-panel {
-        border-radius: 1rem;
-        box-shadow: 0 12px 35px rgba(15, 23, 42, .06);
+        border-radius: 1.125rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, .055);
     }
     .rooms-main {
         background: #f8fafc;
@@ -39,7 +39,8 @@
     }
     .rooms-filter-panel {
         border-color: #e2e8f0;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, .045);
+        border-radius: 1.125rem !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .045);
     }
     .rooms-results-head {
         background: #fff;
@@ -50,20 +51,69 @@
     }
     .room-listing-card {
         border-color: #e2e8f0;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, .055);
+        border-radius: 1.125rem !important;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, .05);
     }
     .room-listing-card:hover {
         border-color: color-mix(in srgb, var(--primary-color, #4f46e5) 35%, #e2e8f0);
         box-shadow: 0 18px 38px rgba(15, 23, 42, .11);
     }
     .room-listing-card .room-image {
-        height: 12rem;
+        height: 13.25rem;
     }
     .room-listing-card .room-card-body {
-        padding: 1rem;
+        padding: 1.125rem;
+    }
+    .rooms-search-shell > .container,
+    .rooms-main > .container {
+        max-width: 1320px !important;
+    }
+    .rooms-search-panel input,
+    .rooms-search-panel select {
+        min-height: 42px;
+        font-size: .8125rem !important;
+    }
+    .rooms-search-panel button[type="submit"] {
+        min-height: 42px;
+        font-size: .8125rem !important;
+    }
+    .rooms-filter-panel form > div {
+        padding-bottom: 1.15rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .rooms-filter-panel form > div:last-of-type {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .rooms-filter-panel label {
+        line-height: 1.35;
+    }
+    .rooms-results-head h2 {
+        font-size: 1.5rem !important;
+        letter-spacing: -.025em;
+    }
+    .room-listing-card h3 {
+        font-size: .9375rem !important;
+        line-height: 1.4;
+        min-height: 2.625rem;
+    }
+    .room-listing-card .room-card-body > div.flex.items-center {
+        font-size: .8125rem !important;
+    }
+    .room-listing-card .room-card-body > a,
+    .room-listing-card .room-card-body button {
+        min-height: 40px;
+        font-size: .8125rem !important;
+    }
+    .room-listing-card .room-card-body .flex.flex-wrap span {
+        font-size: .625rem !important;
+        padding: .35rem .5rem !important;
     }
     @media (max-width: 1279px) {
         .room-listing-card .room-image { height: 13rem; }
+    }
+    @media (min-width: 1024px) and (max-width: 1279px) {
+        .rooms-main > .container > div:last-child { gap: 1.25rem !important; }
     }
     @media (max-width: 767px) {
         .rooms-main { padding-top: .75rem; }
@@ -169,11 +219,11 @@
     </div>
 
     <!-- Outer container (Flexbox for robust layout) -->
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex flex-col lg:flex-row gap-6 xl:gap-7 items-start">
 
         <!-- ===== LEFT SIDEBAR (FILTERS) ===== -->
         <div class="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 hidden lg:block">
-            <div class="rooms-filter-panel filter-sticky bg-white border rounded-2xl p-5 space-y-6">
+            <div class="rooms-filter-panel filter-sticky bg-white border rounded-2xl p-5 space-y-4">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-black text-slate-800 text-base">Filters</h3>
@@ -182,7 +232,7 @@
                     </a>
                 </div>
 
-                <form action="{{ route('rooms.index') }}" method="GET" class="space-y-6">
+                <form action="{{ route('rooms.index') }}" method="GET" class="space-y-4">
                     <!-- Locality Input -->
                     <div class="space-y-2">
                         <label class="text-xs font-black text-slate-700 uppercase tracking-wider block">Location</label>

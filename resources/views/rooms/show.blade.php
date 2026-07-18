@@ -10,6 +10,7 @@
 @section('canonical', route('rooms.show', $room->id))
 
 @push('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 @php
     $ld = [
         "@context" => "https://schema.org",
@@ -84,8 +85,6 @@
     }
 
     /* Leaflet Map Styling */
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <style>
         #roomMap {
             height: 350px;
             border-radius: 1rem;
@@ -99,7 +98,7 @@
 </push>
 
 @section('content')
-<div class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-4">
+<div class="room-detail-page bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-4">
     <div class="container mx-auto px-4 max-w-7xl">
         
         {{-- Compact Breadcrumb --}}
@@ -113,7 +112,7 @@
             </ol>
         </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="room-detail-grid grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {{-- LEFT COLUMN - Main Content --}}
             <div class="lg:col-span-2 space-y-4">
@@ -554,6 +553,29 @@
         </div>
     </div>
 </div>
+
+@if($relatedRooms->isNotEmpty())
+<section class="related-room-section">
+    <div class="related-room-container">
+        <div class="related-room-head"><div><span>More in {{ $room->city }}</span><h2>Similar rooms you may like</h2><p>Compare other active and approved properties in the same city.</p></div><a href="{{ route('rooms.index', ['city' => $room->city]) }}">View all rooms <i class="fas fa-arrow-right"></i></a></div>
+        <div class="related-room-grid">
+            @foreach($relatedRooms as $relatedRoom)
+            <a href="{{ route('rooms.show', $relatedRoom) }}" class="related-room-card">
+                <div class="related-room-image"><img src="{{ $relatedRoom->photo_url }}" alt="{{ $relatedRoom->title }} in {{ $relatedRoom->city }}" loading="lazy" onerror="this.src='{{ asset('storage/default-room.jpg') }}'">@if($relatedRoom->is_featured)<span>Featured</span>@endif</div>
+                <div class="related-room-copy"><div><small>{{ $relatedRoom->roomTypeLabel() }}</small><strong>&#8377;{{ number_format((float)$relatedRoom->rent) }}<em>/mo</em></strong></div><h3>{{ $relatedRoom->title }}</h3><p><i class="fas fa-location-dot"></i>{{ $relatedRoom->city }}</p><div class="related-room-meta"><span><i class="fas fa-couch"></i>{{ $relatedRoom->furnishingTypeLabel() }}</span><span><i class="fas fa-user"></i>{{ $relatedRoom->tenantTypeLabel() }}</span></div></div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<style>
+.room-detail-page{padding:22px 0 42px!important;background:#f5f7fb!important}.room-detail-page>.container{max-width:1180px!important}.room-detail-page nav{margin-bottom:14px!important}.room-detail-page nav ol{color:#64748b!important}.room-detail-grid{grid-template-columns:minmax(0,1.72fr) minmax(300px,.72fr)!important;gap:18px!important}.room-detail-page .lg\:col-span-2{min-width:0}.room-detail-page .space-y-4>:not([hidden])~:not([hidden]){margin-top:14px!important}.room-detail-page .bg-white.rounded-xl{border:1px solid #e2e8f0!important;border-radius:16px!important;box-shadow:0 4px 16px rgba(15,23,42,.045)!important}.room-detail-page #mainImage{max-height:470px}.room-detail-page .h-\[300px\].lg\:h-\[450px\]{height:440px!important}.room-detail-page .bg-white.rounded-xl>.p-4{padding:18px!important}.room-detail-page .grid.grid-cols-2.lg\:grid-cols-4>div{border:1px solid #e2e8f0!important;background:#f8fafc!important;border-radius:11px!important;text-align:left!important}.room-detail-page .grid.grid-cols-2.lg\:grid-cols-4>div>div:first-child{color:#64748b!important;font-size:10px!important;font-weight:700}.room-detail-page .grid.grid-cols-2.lg\:grid-cols-4>div>div:last-child{color:#0f172a!important;font-size:14px!important}.room-detail-page h2{color:#0f172a}.room-detail-page .sticky{top:82px!important}.room-detail-page #unlock-card-mobile{border:1px solid #dbe4f0!important;border-radius:16px!important;box-shadow:0 12px 32px rgba(15,23,42,.09)!important}.room-detail-page #unlock-card-mobile>.p-4:first-child{padding:16px 18px!important;background:#0f172a!important}.room-detail-page #unlock-card-mobile>.p-4:first-child h2{color:#fff!important;font-size:13px!important}.room-detail-page #unlock-card-mobile>.p-4:last-child{padding:18px!important}.room-detail-page [class*="shadow-xl"],.room-detail-page [class*="shadow-2xl"]{box-shadow:0 4px 16px rgba(15,23,42,.05)!important}.room-detail-page .rounded-2xl{border-radius:14px!important}.room-detail-page #roomMap{border-radius:12px!important;box-shadow:none!important;border:1px solid #e2e8f0}.related-room-section{padding:0 20px 58px;background:#f5f7fb}.related-room-container{width:min(1180px,100%);margin:auto;padding-top:28px;border-top:1px solid #dbe4f0}.related-room-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:17px}.related-room-head span{color:#2563eb;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}.related-room-head h2{margin:5px 0 4px;color:#0f172a;font-size:22px;font-weight:850;letter-spacing:-.5px}.related-room-head p{margin:0;color:#64748b;font-size:10px}.related-room-head>a{color:#2563eb;text-decoration:none;font-size:10px;font-weight:800}.related-room-head>a i{margin-left:5px}.related-room-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.related-room-card{overflow:hidden;border:1px solid #e2e8f0;border-radius:15px;background:#fff;text-decoration:none;box-shadow:0 3px 12px rgba(15,23,42,.035);transition:.2s}.related-room-card:hover{transform:translateY(-3px);border-color:#bfdbfe;box-shadow:0 12px 26px rgba(15,23,42,.08)}.related-room-image{position:relative;height:150px;background:#f1f5f9}.related-room-image img{width:100%;height:100%;object-fit:cover}.related-room-image span{position:absolute;top:9px;left:9px;padding:4px 6px;border-radius:6px;background:#2563eb;color:#fff;font-size:7px;font-weight:900;text-transform:uppercase}.related-room-copy{padding:13px}.related-room-copy>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px}.related-room-copy small{color:#64748b;font-size:8px;font-weight:700}.related-room-copy strong{color:#0f172a;font-size:14px}.related-room-copy em{color:#94a3b8;font-size:8px;font-style:normal;font-weight:500}.related-room-copy h3{margin:8px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a;font-size:11px;font-weight:850}.related-room-copy>p{margin:0;color:#64748b;font-size:9px}.related-room-copy>p i{margin-right:4px;color:#f43f5e}.related-room-meta{display:flex!important;justify-content:flex-start!important;gap:6px!important;margin-top:10px}.related-room-meta span{padding:5px 6px;border-radius:6px;background:#f8fafc;color:#64748b;font-size:7px;font-weight:700}.related-room-meta i{margin-right:3px;color:#2563eb}
+.room-detail-page .lg\:col-span-1>.sticky{display:flex!important;flex-direction:column!important;gap:14px!important}.room-detail-page .lg\:col-span-1>.sticky>*{order:3;margin-top:0!important}.room-detail-page .lg\:col-span-1>.sticky>#unlock-card-mobile{order:1}.room-detail-page .lg\:col-span-1>.sticky>div:first-child{order:2}
+.room-detail-grid>.lg\:col-span-2,.room-detail-grid>.lg\:col-span-1{grid-column:span 1/span 1!important;min-width:0}
+@media(max-width:1023px){.related-room-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:767px){.room-detail-grid{grid-template-columns:1fr!important}.room-detail-page .sticky{position:static!important}}@media(max-width:640px){.room-detail-page{padding-top:10px!important}.room-detail-page>.container{padding-left:12px!important;padding-right:12px!important}.room-detail-page .h-\[300px\].lg\:h-\[450px\]{height:300px!important}.room-detail-page #mainImage{height:300px}.related-room-section{padding:0 12px 42px}.related-room-head{align-items:flex-start;flex-direction:column}.related-room-grid{grid-template-columns:1fr 1fr;gap:9px}.related-room-image{height:118px}.related-room-copy{padding:10px}.related-room-meta{display:none!important}}
+</style>
 
 {{-- Payment Selection Modal --}}
 <div id="paymentSelectionModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">

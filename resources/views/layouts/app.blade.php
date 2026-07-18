@@ -247,8 +247,42 @@
             justify-self: center;
         }
 
+        .desktop-navbar-menu a {
+            font-size: 0.875rem !important;
+            line-height: 1.25rem;
+        }
+
         .desktop-navbar-actions {
             justify-self: end;
+        }
+
+        .desktop-navbar-actions a {
+            font-size: 0.875rem;
+        }
+
+        .site-footer > .container > .grid p,
+        .site-footer > .container > .grid ul {
+            font-size: 0.875rem !important;
+            line-height: 1.5rem;
+        }
+
+        .site-footer > .container > .grid h4 {
+            font-size: 0.9375rem !important;
+        }
+
+        .site-footer > .container > .grid ul {
+            font-weight: 600;
+        }
+
+        .site-footer > .container > .grid .fa-brands,
+        .site-footer > .container > .grid .fas,
+        .site-footer > .container > .grid .far {
+            font-size: 0.8125rem;
+        }
+
+        .site-footer > .container > .border-t p,
+        .site-footer > .container > .border-t span {
+            font-size: 0.8125rem !important;
         }
 
         .complaint-page-main {
