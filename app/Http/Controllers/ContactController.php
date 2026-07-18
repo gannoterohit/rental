@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\BrandedMessageMail;
 
 class ContactController extends Controller
 {
@@ -30,10 +31,11 @@ class ContactController extends Controller
         try {
             $adminEmail = \App\Models\Setting::get('contact_email', config('mail.from.address'));
 
-            Mail::raw("New Contact Message from: {$request->name} ({$request->email})\n\nMessage:\n{$request->message}", function ($mail) use ($request, $adminEmail) {
-                $mail->to($adminEmail)
-                    ->subject($request->subject ?? 'New Website Inquiry');
-            });
+            Mail::to($adminEmail)->send(new BrandedMessageMail(
+                $request->subject ?: 'New website enquiry', 'A visitor contacted ApnaNest', $request->message,
+                'Contact enquiry', 'Open contact enquiries', route('admin.contact-messages.index'),
+                ['Name' => $request->name, 'Email' => $request->email], 'primary'
+            ));
         } catch (\Exception $e) {
             // Log error but don't stop the user
             \Log::error("Failed to send contact email: " . $e->getMessage());

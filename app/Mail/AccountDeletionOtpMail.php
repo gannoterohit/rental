@@ -32,7 +32,7 @@ class AccountDeletionOtpMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Confirm Account Deletion - OTP',
+            subject: 'Confirm your ApnaNest account deletion',
         );
     }
 

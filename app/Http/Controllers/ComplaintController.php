@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\BrandedMessageMail;
 
 class ComplaintController extends Controller
 {
@@ -48,9 +49,12 @@ class ComplaintController extends Controller
 
         try {
             $adminEmail = Setting::get('contact_email', config('mail.from.address'));
-            Mail::raw("New complaint {$complaint->ticket_number}\n\n{$complaint->subject}\n\nReview: " . route('admin.complaints.show', $complaint), function ($mail) use ($adminEmail, $complaint) {
-                $mail->to($adminEmail)->subject("New complaint {$complaint->ticket_number}");
-            });
+            Mail::to($adminEmail)->send(new BrandedMessageMail(
+                "New complaint {$complaint->ticket_number}", 'A new complaint needs review',
+                'A user has submitted a new complaint. Review the ticket and assign it to the appropriate team member.',
+                'Admin notification', 'Review complaint', route('admin.complaints.show', $complaint),
+                ['Ticket' => $complaint->ticket_number, 'Subject' => $complaint->subject], 'warning'
+            ));
         } catch (\Throwable $e) {
             report($e);
         }

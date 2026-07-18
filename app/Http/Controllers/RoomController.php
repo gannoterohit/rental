@@ -588,6 +588,7 @@ class RoomController extends Controller {
             'photos.*' => 'image|max:2048',
             'photos' => 'nullable|array|max:5',
             'video' => 'nullable|mimes:mp4,avi,mov,wmv|max:10240',
+            'video_url' => 'nullable|url|max:255',
             'furnishing_type' => ['required', Rule::in(RoomOption::validIdsFor('furnishing_type'))],
             'tenant_type' => ['required', Rule::in(RoomOption::validIdsFor('tenant_type'))],
             'room_type' => ['required', Rule::in(RoomOption::validIdsFor('room_type'))],
@@ -597,6 +598,8 @@ class RoomController extends Controller {
             'broker_fee' => 'nullable|numeric|min:0',
         ]);
 
+        $newPhotoPaths = [];
+        $oldPhotoPaths = [];
         DB::beginTransaction();
         try {
             // Convert empty latitude/longitude strings to null
@@ -609,13 +612,6 @@ class RoomController extends Controller {
             
             // Handle multiple photos with Compression
             if ($req->hasFile('photos')) {
-                // Delete old photos
-                if ($room->photos) {
-                    foreach ($room->photos as $oldPhoto) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPhoto);
-                    }
-                }
-                
                 $photos = [];
                 foreach ($req->file('photos') as $photo) {
                     $filename = uniqid('room_') . '.jpg';
@@ -628,9 +624,15 @@ class RoomController extends Controller {
                     }
 
                     // Compress and save
-                    \App\Helpers\ImageHelper::compressImage($photo->getRealPath(), $fullPath, 70);
+                    if (!\App\Helpers\ImageHelper::compressImage($photo->getRealPath(), $fullPath, 70)) {
+                        throw new \RuntimeException('One of the selected images could not be processed. Please use JPG, PNG or WebP files.');
+                    }
                     $photos[] = $path;
+                    $newPhotoPaths[] = $path;
                 }
+                $oldPhotoPaths = collect($room->photos ?: [])
+                    ->filter(fn ($path) => is_string($path) && !preg_match('/^https?:\/\//i', $path))
+                    ->values()->all();
                 $data['photos'] = $photos;
                 $data['photo'] = $photos[0]; // First photo as main photo
             }
@@ -655,16 +657,26 @@ class RoomController extends Controller {
 
             DB::commit();
 
+            foreach ($oldPhotoPaths as $oldPhotoPath) {
+                Storage::disk('public')->delete($oldPhotoPath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Room updated successfully'
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            foreach ($newPhotoPaths as $newPhotoPath) {
+                Storage::disk('public')->delete($newPhotoPath);
+            }
+            report($e);
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update room: ' . $e->getMessage()
+                'message' => $e instanceof \RuntimeException
+                    ? $e->getMessage()
+                    : 'The room could not be updated. Please try again.'
             ], 500);
         }
     }

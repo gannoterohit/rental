@@ -644,7 +644,7 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view dynamic-theme-override">
-    @unless(request()->routeIs('admin.*', 'owner.*', 'dashboard', 'profile.*', 'wallet', 'referral.*', 'wishlist.*', 'complaints.*', 'plans'))
+    @unless(request()->routeIs('admin.*', 'owner.*', 'dashboard', 'profile.*', 'wallet', 'referral.*', 'wishlist.*', 'complaints.*', 'plans', 'login', 'register'))
         @include('partials.offer-banner', ['placement' => 'top_nav'])
     @endunless
     
@@ -792,7 +792,7 @@
     </main>
 
     <!-- Stay Updated Banner Section -->
-    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('complaints.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans'))
+    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('complaints.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans', 'login', 'register'))
     <div class="hidden lg:block bg-indigo-50/70 border-t border-indigo-100 py-8">
         <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4">
@@ -817,7 +817,7 @@
     @endif
 
     <!-- Redesigned Footer Section -->
-    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t" @if(Route::is('owner.*') || Route::is('complaints.*') || Route::is('rooms.create', 'rooms.edit') || Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans')) style="display:none !important" @endif>
+    <footer class="site-footer relative text-slate-400 pt-12 pb-6 hidden lg:block overflow-hidden border-t" @if(Route::is('owner.*') || Route::is('complaints.*') || Route::is('rooms.create', 'rooms.edit') || Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans', 'login', 'register')) style="display:none !important" @endif>
         <div class="container mx-auto px-6 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
                 <!-- Brand Info (Col span 3) -->

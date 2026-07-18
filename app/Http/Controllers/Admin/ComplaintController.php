@@ -7,6 +7,7 @@ use App\Models\Complaint;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\BrandedMessageMail;
 use Illuminate\Validation\Rule;
 
 class ComplaintController extends Controller
@@ -54,9 +55,14 @@ class ComplaintController extends Controller
         $complaint->update($data);
         $complaint->activities()->create(['actor_id' => $request->user()->id, 'type' => 'status', 'status_from' => $oldStatus, 'status_to' => $complaint->status, 'description' => 'Ticket management details updated.', 'is_internal' => false]);
         try {
-            Mail::raw("Your complaint {$complaint->ticket_number} is now " . (Complaint::STATUSES[$complaint->status] ?? $complaint->status) . ".\n\n" . ($complaint->resolution ?: 'Log in to view ticket details.') . "\n\n" . route('complaints.show', $complaint), function ($mail) use ($complaint) {
-                $mail->to($complaint->user->email)->subject("Complaint update: {$complaint->ticket_number}");
-            });
+            $statusLabel = Complaint::STATUSES[$complaint->status] ?? ucfirst(str_replace('_', ' ', $complaint->status));
+            Mail::to($complaint->user->email)->send(new BrandedMessageMail(
+                "Complaint update: {$complaint->ticket_number}", 'Your complaint has been updated',
+                $complaint->resolution ?: 'Our support team has updated your complaint. Open the ticket to see the latest information.',
+                'Support update', 'View complaint', route('complaints.show', $complaint),
+                ['Ticket' => $complaint->ticket_number, 'Status' => $statusLabel],
+                in_array($complaint->status, ['resolved','closed'], true) ? 'success' : 'primary'
+            ));
         } catch (\Throwable $e) {
             report($e);
         }
@@ -91,9 +97,11 @@ class ComplaintController extends Controller
         }
         if (!$data['is_internal']) {
             try {
-                Mail::raw("ApnaNest Support replied to complaint {$complaint->ticket_number}.\n\n{$data['message']}\n\n" . route('complaints.show', $complaint), function ($mail) use ($complaint) {
-                    $mail->to($complaint->user->email)->subject("Reply to {$complaint->ticket_number}");
-                });
+                Mail::to($complaint->user->email)->send(new BrandedMessageMail(
+                    "New reply to {$complaint->ticket_number}", 'ApnaNest Support replied', $data['message'],
+                    'Support reply', 'Open complaint', route('complaints.show', $complaint),
+                    ['Ticket' => $complaint->ticket_number], 'primary'
+                ));
             } catch (\Throwable $e) {
                 report($e);
             }

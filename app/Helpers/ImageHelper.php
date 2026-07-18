@@ -15,6 +15,9 @@ class ImageHelper
     public static function compressImage($source, $destination, $quality = 75)
     {
         $info = getimagesize($source);
+        if (!$info || empty($info['mime'])) {
+            return false;
+        }
 
         if ($info['mime'] == 'image/jpeg') {
             $image = imagecreatefromjpeg($source);
@@ -26,14 +29,20 @@ class ImageHelper
             imagepalettetotruecolor($image);
             imagealphablending($image, true);
             imagesavealpha($image, true);
+        } elseif ($info['mime'] == 'image/webp' && function_exists('imagecreatefromwebp')) {
+            $image = imagecreatefromwebp($source);
         } else {
             return false;
         }
 
+        if (!$image) {
+            return false;
+        }
+
         // Save the image
-        imagejpeg($image, $destination, $quality);
+        $saved = imagejpeg($image, $destination, $quality);
         imagedestroy($image);
 
-        return true;
+        return $saved;
     }
 }

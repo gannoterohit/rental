@@ -10,7 +10,7 @@
     .toast-warning { background-color: #f89406 !important; }
 </style>
 
-<div class="owner-workspace min-h-screen bg-slate-50">
+<div class="owner-workspace room-editor min-h-screen bg-slate-50">
     <!-- Mobile App Header -->
     <div class="lg:hidden bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 border-b">
         <div class="flex items-center gap-3">
@@ -38,7 +38,7 @@
             </div>
 
             <!-- Form Content -->
-            <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-12 lg:pb-16">
+            <div class="room-editor-content max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-12 lg:pb-16">
                 <!-- Listing Information Alert -->
                 <div class="bg-amber-50 border border-amber-200 rounded-[2rem] p-6 mb-8 flex items-start gap-4">
                     <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
@@ -291,6 +291,7 @@
     </div>
 </div>
 
+@include('rooms.partials.owner-editor-styles')
 @push('scripts')
 <script>
 const ROOM_PRIMARY_COLOR = '{{ \App\Models\Setting::get("primary_color", "#4F46E5") }}';

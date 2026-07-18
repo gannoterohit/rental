@@ -6,7 +6,7 @@
   @php
                     $logo = \App\Models\Setting::get('website_logo');
                 @endphp
-<div class="owner-workspace min-h-screen bg-slate-50">
+<div class="owner-workspace room-editor min-h-screen bg-slate-50">
     <!-- Mobile App Header -->
     <div class="lg:hidden bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-40 border-b">
         <div class="flex items-center gap-3">
@@ -33,7 +33,7 @@
                 </div>
             </div>
 
-            <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-12 lg:pb-16">
+            <div class="room-editor-content max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-12 lg:pb-16">
                 <!-- Status Alert -->
                 <div class="bg-indigo-50 border border-indigo-100 rounded-[2rem] p-6 mb-8 flex items-start gap-4">
                     <div class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
@@ -145,11 +145,12 @@
                                     <label class="block text-xs font-black text-gray-500 uppercase tracking-wider mb-3 ml-1">Property Photos (Up to 5)</label>
                                     
                                     <!-- Current Photos -->
-                                    @if($room->photos && count($room->photos) > 0)
-                                    <div class="flex gap-2 overflow-x-auto pb-4 mb-4">
-                                        @foreach($room->photos as $photo)
-                                            <div class="relative min-w-[100px] aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm">
-                                                <img src="{{ asset('storage/'.$photo) }}" class="w-full h-full object-cover">
+                                    @if(count($room->photo_urls) > 0)
+                                    <div class="current-photo-grid mb-4">
+                                        @foreach($room->photo_urls as $photoUrl)
+                                            <div class="current-photo-item">
+                                                <img src="{{ $photoUrl }}" alt="Current photo of {{ $room->title }}" class="w-full h-full object-cover" onerror="this.closest('.current-photo-item').style.display='none'">
+                                                @if($loop->first)<span>Cover photo</span>@endif
                                             </div>
                                         @endforeach
                                     </div>
@@ -160,7 +161,8 @@
                                         <label for="photosInput" class="flex flex-col items-center justify-center w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl cursor-pointer hover:bg-gray-100 transition-all group">
                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                                 <i class="fas fa-plus text-2xl text-gray-300 group-hover:text-indigo-400 transition-colors mb-2"></i>
-                                                <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Replace Photos</p>
+                                                <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Choose new photos</p>
+                                                <small class="mt-1 text-[10px] font-medium normal-case tracking-normal text-gray-400">Selecting files will replace all current photos</small>
                                             </div>
                                         </label>
                                     </div>
@@ -308,6 +310,7 @@
     </div>
 </div>
 
+@include('rooms.partials.owner-editor-styles')
 
 <!-- Location Instructions Modal -->
 <div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 hidden">
@@ -771,7 +774,7 @@ document.getElementById('editRoomForm').addEventListener('submit', async functio
         if (data.success) {
             toastr.success(data.message || 'Room updated successfully!');
             setTimeout(() => {
-                window.location.href = '{{ url("/rooms") }}';
+                window.location.href = '{{ route("owner.rooms") }}';
             }, 1500);
         } else {
             toastr.error(data.message || 'Failed to update room');

@@ -1,102 +1,11 @@
 @extends('layouts.app')
-
-@section('title', 'My Wishlist | ' . \App\Models\Setting::get('website_name', 'RoomRental'))
-
+@section('title','My Wishlist | ApnaNest')
 @section('content')
-<div class="user-workspace min-h-screen bg-slate-50 flex">
-    @include('user.partials.sidebar', ['active' => 'wishlist'])
-    <main class="flex-1 min-w-0 bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-    <div class="container mx-auto px-4 max-w-6xl">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-black text-gray-900 flex items-center gap-3">
-                    <i class="fas fa-heart text-red-500"></i> My Wishlist
-                </h1>
-                <p class="text-gray-600">You have <span class="font-bold text-indigo-600">{{ $wishlists->count() }}</span> rooms saved for later.</p>
-            </div>
-            <a href="{{ route('rooms.index') }}" class="mt-4 md:mt-0 inline-flex items-center text-indigo-600 font-bold hover:underline">
-                <i class="fas fa-arrow-left mr-2"></i> Browse More Rooms
-            </a>
-        </div>
-
-        @if($wishlists->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($wishlists as $wishlist)
-                    @php $room = $wishlist->room; @endphp
-                    @if($room)
-                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden group border border-gray-100 hover:border-indigo-300 transition-all duration-300" id="wishlist-item-{{ $room->id }}">
-                        <div class="relative h-48 overflow-hidden">
-                            <img src="{{ $room->photo_url }}" 
-                                 alt="{{ $room->title }}" 
-                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            <button onclick="removeFromWishlist({{ $room->id }})" 
-                                    class="absolute top-3 right-3 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all shadow-lg active:scale-90">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <div class="absolute bottom-3 left-3 text-white">
-                                <p class="text-xl font-black italic">₹{{ number_format($room->rent) }}<span class="text-xs font-normal not-italic"> /mo</span></p>
-                            </div>
-                        </div>
-                        <div class="p-5">
-                            <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{{ $room->title }}</h3>
-                            <p class="text-gray-500 text-sm mb-4 flex items-center gap-1">
-                                <i class="fas fa-map-marker-alt text-red-500"></i> {{ $room->city }}
-                            </p>
-                            <div class="flex gap-2">
-                                <a href="{{ route('rooms.show', $room) }}" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-700 text-white text-center font-bold py-2.5 rounded-xl hover:shadow-lg transition">
-                                    View Details
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                @endforeach
-            </div>
-        @else
-            <div class="bg-white rounded-2xl p-12 text-center shadow-xl border-2 border-dashed border-gray-200">
-                <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="far fa-heart text-4xl text-red-300"></i>
-                </div>
-                <h2 class="text-2xl font-black text-gray-900 mb-2">Your wishlist is empty</h2>
-                <p class="text-gray-500 mb-8 max-w-sm mx-auto">Save your favorite rooms here to easily find them later and compare.</p>
-                <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition shadow-lg">
-                    Discover Rooms
-                </a>
-            </div>
-        @endif
-    </div>
-</div>
-    </main>
-</div>
-
-<script>
-async function removeFromWishlist(roomId) {
-    if(!confirm('Remove this room from your wishlist?')) return;
-
-    try {
-        const response = await fetch(`{{ url('/wishlist/toggle') }}/${roomId}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const item = document.getElementById(`wishlist-item-${roomId}`);
-            item.style.opacity = '0';
-            item.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                item.remove();
-                if (document.querySelectorAll('[id^="wishlist-item-"]').length === 0) {
-                    location.reload();
-                }
-            }, 300);
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-</script>
+<div class="user-workspace min-h-screen">@include('user.partials.sidebar',['active'=>'wishlist'])<main class="account-main"><header class="account-header"><div class="account-container"><div><span class="account-eyebrow">Your shortlist</span><h1>Saved Rooms</h1><p><strong id="wishlist-count">{{ $wishlists->filter(fn($item)=>$item->room)->count() }}</strong> {{ Str::plural('property',$wishlists->filter(fn($item)=>$item->room)->count()) }} saved for comparison.</p></div><a href="{{ route('rooms.index') }}" class="account-action"><i class="fas fa-magnifying-glass"></i> Browse rooms</a></div></header>
+<div class="account-container account-body"><div id="wishlist-status" class="account-flash success hidden" role="status"></div>
+@if($wishlists->contains(fn($item)=>$item->room))<section id="wishlist-grid" class="wishlist-grid">@foreach($wishlists as $wishlist) @if($room=$wishlist->room)<article class="saved-card" id="wishlist-item-{{ $room->id }}"><div class="saved-image"><img src="{{ $room->photo_url }}" alt="{{ $room->title }}" onerror="this.src='{{ asset('storage/default-room.jpg') }}'">@if($room->is_featured)<span class="featured-tag">Featured</span>@endif<button type="button" onclick="removeFromWishlist({{ $room->id }},this)" aria-label="Remove {{ $room->title }} from saved rooms"><i class="fas fa-heart"></i></button></div><div class="saved-copy"><div class="saved-price"><strong>&#8377;{{ number_format((float)$room->rent) }}</strong><span>/ month</span></div><h2>{{ $room->title }}</h2><p><i class="fas fa-location-dot"></i>{{ $room->city ?: $room->address }}</p><div class="saved-meta"><span><i class="fas fa-house"></i>{{ $room->type ?: 'Room' }}</span>@if($room->availability_from)<span><i class="far fa-calendar"></i>{{ \Carbon\Carbon::parse($room->availability_from)->format('d M') }}</span>@endif</div><a href="{{ route('rooms.show',$room) }}">View property <i class="fas fa-arrow-right"></i></a></div></article>@endif @endforeach</section>@else <div id="wishlist-empty" class="account-card account-empty"><span><i class="far fa-heart"></i></span><h2>Your saved list is empty</h2><p>Save rooms while browsing to build a shortlist and compare rent, location and availability later.</p><a href="{{ route('rooms.index') }}" class="account-action">Explore verified rooms</a></div>@endif
+</div></main></div>
+@include('user.partials.page-styles')
+<style>.wishlist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}.saved-card{overflow:hidden;background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 3px 14px rgba(15,23,42,.035);transition:.22s}.saved-card:hover{transform:translateY(-3px);border-color:#bfdbfe;box-shadow:0 12px 28px rgba(15,23,42,.08)}.saved-image{position:relative;height:180px;background:#f1f5f9}.saved-image img{width:100%;height:100%;object-fit:cover}.saved-image:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(15,23,42,.35));pointer-events:none}.saved-image button{position:absolute;z-index:2;right:12px;top:12px;width:38px;height:38px;border:1px solid rgba(255,255,255,.65);border-radius:11px;background:rgba(255,255,255,.92);color:#e11d48;cursor:pointer;box-shadow:0 5px 15px rgba(15,23,42,.15)}.featured-tag{position:absolute;z-index:2;left:12px;top:12px;padding:5px 7px;border-radius:7px;background:#2563eb;color:#fff;font-size:8px;font-weight:800;text-transform:uppercase}.saved-copy{padding:17px}.saved-price{display:flex;align-items:baseline;gap:4px}.saved-price strong{color:#0f172a;font-size:19px}.saved-price span{color:#94a3b8;font-size:9px}.saved-copy h2{margin:8px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a;font-size:13px;font-weight:850}.saved-copy>p{margin:0;color:#64748b;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saved-copy>p i{color:#f43f5e;margin-right:5px}.saved-meta{display:flex;gap:7px;margin:13px 0}.saved-meta span{padding:6px 8px;border-radius:7px;background:#f8fafc;color:#64748b;font-size:8px;font-weight:700}.saved-meta i{margin-right:4px}.saved-copy>a{display:flex;justify-content:space-between;align-items:center;padding:10px 11px;border-radius:9px;background:#eff6ff;color:#1d4ed8;text-decoration:none;font-size:10px;font-weight:800}.saved-card.removing{opacity:0;transform:scale(.94)}@media(max-width:950px){.wishlist-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.wishlist-grid{grid-template-columns:1fr}.saved-image{height:210px}}</style>
+<script>async function removeFromWishlist(roomId,button){let approved=true;if(window.Swal){const result=await Swal.fire({title:'Remove saved room?',text:'You can save this room again later.',icon:'question',showCancelButton:true,confirmButtonText:'Remove',confirmButtonColor:'#dc2626'});approved=result.isConfirmed}else approved=confirm('Remove this room from your saved list?');if(!approved)return;button.disabled=true;try{const response=await fetch(`{{ url('/wishlist/toggle') }}/${roomId}`,{method:'POST',headers:{'X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'}});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'Request failed');const item=document.getElementById(`wishlist-item-${roomId}`);item.classList.add('removing');setTimeout(()=>{item.remove();const count=document.querySelectorAll('[id^="wishlist-item-"]').length;document.getElementById('wishlist-count').textContent=count;if(!count)location.reload()},220);const status=document.getElementById('wishlist-status');status.textContent='Room removed from your saved list.';status.classList.remove('hidden')}catch(error){button.disabled=false;if(window.Swal)Swal.fire('Could not remove room',error.message,'error');else alert(error.message)}}</script>
 @endsection

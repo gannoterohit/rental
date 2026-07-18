@@ -1,32 +1,8 @@
-@extends('emails.layout', ['title' => 'Listing Approved'])
-
+@extends('emails.layout', ['title' => 'Listing approved', 'preheader' => 'Your property listing is now live on ApnaNest.'])
 @section('content')
-    <div style="text-align: center; margin-bottom: 30px;">
-        <span class="badge badge-success">Live Now</span>
-    </div>
-
-    <h2>बधाई हो, {{ $ownerName }}!</h2>
-    <p>हमें यह बताते हुए खुशी हो रही है कि आपकी रूम लिस्टिंग <strong>"{{ $roomTitle }}"</strong> को हमारे एडमिन द्वारा अप्रूव कर दिया गया है।</p>
-    
-    <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; margin: 30px 0; border: 1px solid #e2e8f0;">
-        <table width="100%">
-            <tr>
-                <td width="100%">
-                    <h4 style="margin: 0; color: #1e3a8a;">{{ $roomTitle }}</h4>
-                    <p style="margin: 5px 0; font-size: 14px;">{{ $roomAddress }}</p>
-                    <p style="margin: 5px 0; font-weight: 700; color: #059669;">₹{{ number_format($roomPrice) }} / Month</p>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <p>आपका रूम अब यूज़र्स के लिए सर्च में उपलब्ध है। आपको जल्द ही इंक्वायरी मिलने शुरू हो सकती हैं।</p>
-    
-    <div style="text-align: center;">
-        <a href="{{ config('app.url') }}/owner/rooms" class="btn">View My Listings</a>
-    </div>
-
-    <p style="font-size: 14px; color: #718096; margin-top: 40px; text-align: center;">
-        Good luck with your rental! Team RoomRental.
-    </p>
+<span class="badge badge-success">Approved & live</span><h2 style="margin-top:16px;">Great news, {{ $ownerName }}!</h2>
+<p>Your listing <strong>{{ $roomTitle }}</strong> has passed our review and is now visible to people searching on ApnaNest.</p>
+<table role="presentation" width="100%" style="margin:22px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;"><tr><td style="padding:18px;"><strong style="color:#0f172a;">{{ $roomTitle }}</strong><br><span style="color:#64748b;">{{ $roomAddress }}</span><br><span style="color:#15803d;font-size:18px;font-weight:700;">&#8377;{{ number_format((float)$roomPrice) }} / month</span></td></tr></table>
+<p>Keep the listing details and availability up to date so interested users receive accurate information.</p>
+<a href="{{ url('/owner/rooms') }}" class="btn">Manage my listings</a>
 @endsection

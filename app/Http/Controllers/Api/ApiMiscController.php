@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Mail\BrandedMessageMail;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BlogResource;
 use App\Models\Blog;
@@ -145,17 +146,12 @@ class ApiMiscController extends BaseApiController
 
         if ($adminEmail) {
             try {
-                Mail::raw(
-                    "New Contact Form Submission (Mobile App)\n\n" .
-                    "Name: {$request->name}\n" .
-                    "Email: {$request->email}\n" .
-                    "Phone: {$request->phone}\n\n" .
-                    "Message:\n{$request->message}",
-                    function ($mail) use ($adminEmail, $request) {
-                        $mail->to($adminEmail)
-                             ->subject('New Mobile App Enquiry from ' . $request->name);
-                    }
-                );
+                Mail::to($adminEmail)->send(new BrandedMessageMail(
+                    'New mobile app enquiry from '.$request->name,
+                    'A mobile app user contacted ApnaNest', $request->message,
+                    'Mobile enquiry', 'Open contact enquiries', route('admin.contact-messages.index'),
+                    array_filter(['Name'=>$request->name, 'Email'=>$request->email, 'Phone'=>$request->phone]), 'primary'
+                ));
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Contact form mail failed: ' . $e->getMessage());
                 // We still return success because it's saved in the DB
