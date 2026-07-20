@@ -25,8 +25,14 @@
     
     <!-- 5. Account -->
     @auth
-        <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center w-full h-full space-y-1 {{ Route::is('dashboard') ? 'text-red-600' : 'text-gray-400' }}">
-            <i class="{{ Route::is('dashboard') ? 'fas' : 'far' }} fa-user-circle text-lg"></i>
+        @php
+            $accountRoute = Auth::user()->role === 'owner' 
+                ? route('owner.dashboard') 
+                : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('profile.edit'));
+            $isAccountActive = Route::is('dashboard') || (Auth::user()->role === 'user' && Route::is('profile.edit'));
+        @endphp
+        <a href="{{ $accountRoute }}" class="flex flex-col items-center justify-center w-full h-full space-y-1 {{ $isAccountActive ? 'text-red-600' : 'text-gray-400' }}">
+            <i class="{{ $isAccountActive ? 'fas' : 'far' }} fa-user-circle text-lg"></i>
             <span class="text-[10px] font-medium">Account</span>
         </a>
     @else

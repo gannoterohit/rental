@@ -237,6 +237,7 @@
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
             height: 4rem;
+            overflow: visible;
         }
 
         .desktop-navbar-logo {
@@ -254,6 +255,7 @@
 
         .desktop-navbar-actions {
             justify-self: end;
+            overflow: visible;
         }
 
         .desktop-navbar-actions a {
@@ -743,29 +745,97 @@
                     <a href="{{ route('rooms.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Browse Rooms</a>
                     <a href="{{ route('pages.how-it-works') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">How It Works</a>
                     <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register', ['role' => 'owner']) }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">For Owners</a>
-                    <a href="{{ route('plans') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Pricing</a>
                     <a href="{{ route('blogs.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Blog</a>
                 </div>
                 
                 <!-- Right Side Actions -->
-                <div class="desktop-navbar-actions flex items-center justify-end gap-3 h-10">
+                <div class="desktop-navbar-actions flex items-center justify-end gap-3" style="overflow: visible;">
                     <!-- Wishlist Icon (Heart) -->
                     <a href="{{ route('wishlist.index') }}" class="h-10 w-10 shrink-0 inline-flex items-center justify-center text-slate-600 hover:text-red-500 transition-colors relative" title="My Wishlist">
                         <i class="far fa-heart text-lg"></i>
                     </a>
                     
                     @auth
-                        <!-- Compact account link; account actions live in the role sidebar. -->
+                        <!-- Account Dropdown - Fixed position via JS to avoid clipping -->
                         @php
+                            $isRenter = Auth::user()->role === 'user';
                             $accountHome = Auth::user()->role === 'owner'
                                 ? route('owner.dashboard')
-                                : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('dashboard'));
+                                : (Auth::user()->role === 'admin' ? route('admin.dashboard') : route('home'));
                         @endphp
-                        <a href="{{ $accountHome }}" class="h-10 flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 rounded-xl border border-slate-200/60 whitespace-nowrap" title="Open dashboard">
-                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('assets/images/default-avatar.svg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'" alt="{{ Auth::user()->name }} profile" class="w-7 h-7 rounded-full object-cover border border-slate-200 bg-indigo-50">
+
+                        <div x-data="{
+                                open: false,
+                                top: 0,
+                                right: 0,
+                                toggle() {
+                                    if (!this.open) {
+                                        const r = this.$refs.trigger.getBoundingClientRect();
+                                        this.top = r.bottom + 8;
+                                        this.right = window.innerWidth - r.right;
+                                    }
+                                    this.open = !this.open;
+                                }
+                             }"
+                             @click.outside="open = false">
+                            <!-- Trigger button -->
+                            <button x-ref="trigger"
+                                    @click="toggle()"
+                                    class="h-10 flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors duration-200 bg-slate-50 hover:bg-slate-100 px-3 rounded-xl border border-slate-200/60 whitespace-nowrap">
+                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : asset('assets/images/default-avatar.svg') }}"
+                                     onerror="this.onerror=null;this.src='{{ asset('assets/images/default-avatar.svg') }}'"
+                                     alt="{{ Auth::user()->name }}"
+                                     class="w-7 h-7 rounded-full object-cover border border-slate-200 bg-indigo-50">
                                 <span class="hidden xl:inline text-xs font-semibold">{{ Str::limit(Auth::user()->name, 12) }}</span>
-                                <i class="fas fa-arrow-right text-[9px] text-slate-400"></i>
-                        </a>
+                                <i class="fas fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                            </button>
+
+                            <!-- Dropdown menu — position: fixed, calculated from button rect -->
+                            <div x-show="open"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 :style="'position:fixed; top:' + top + 'px; right:' + right + 'px; z-index:9999;'"
+                                 class="w-56 rounded-xl bg-white border border-slate-100 shadow-xl py-2"
+                                 style="display:none;">
+                                @if($isRenter)
+                                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-user-circle text-indigo-400 w-4 text-sm"></i> My Profile
+                                    </a>
+                                    <a href="{{ route('wallet') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-wallet text-indigo-400 w-4 text-sm"></i> My Wallet
+                                    </a>
+                                    <a href="{{ route('plans') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-crown text-amber-400 w-4 text-sm"></i> View Plans
+                                    </a>
+                                    <a href="{{ route('referral.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-gift text-emerald-400 w-4 text-sm"></i> Refer & Earn
+                                    </a>
+                                    <a href="{{ route('complaints.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-headset text-blue-400 w-4 text-sm"></i> Support Tickets
+                                    </a>
+                                @else
+                                    <a href="{{ $accountHome }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-tachometer-alt text-indigo-400 w-4 text-sm"></i> Dashboard
+                                    </a>
+                                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                        <i class="fas fa-user-circle text-indigo-400 w-4 text-sm"></i> Profile
+                                    </a>
+                                @endif
+
+                                <div class="h-px bg-slate-100 my-1 mx-3"></div>
+
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition">
+                                        <i class="fas fa-sign-out-alt text-red-400 w-4 text-sm"></i> Log Out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                         
                         <!-- Post Property Button for Logged In -->
                         @if(Auth::user()->role === 'owner')

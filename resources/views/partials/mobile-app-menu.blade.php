@@ -67,9 +67,18 @@
                     <i class="fas fa-newspaper w-5 text-indigo-500"></i> Blog
                 </a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-600' : '' }}">
-                        <i class="fas fa-tachometer-alt w-5 text-indigo-500"></i> Dashboard
-                    </a>
+                    @if(Auth::user()->role === 'admin' || Auth::user()->role === 'owner')
+                        <a href="{{ route('dashboard') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                            <i class="fas fa-tachometer-alt w-5 text-indigo-500"></i> Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold {{ request()->routeIs('profile.edit') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                            <i class="fas fa-user-circle w-5 text-indigo-500"></i> My Profile
+                        </a>
+                        <a href="{{ route('wallet') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold {{ request()->routeIs('wallet') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                            <i class="fas fa-wallet w-5 text-indigo-500"></i> My Wallet
+                        </a>
+                    @endif
                     <a href="{{ route('wishlist.index') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold {{ request()->routeIs('wishlist.index') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                         <i class="fas fa-heart w-5 text-red-500"></i> My Wishlist
                     </a>

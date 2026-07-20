@@ -5,7 +5,7 @@
 
 @section('content')
 <!-- App-like Blog Header -->
-<div class="bg-white border-b border-gray-100 sticky top-0 z-40 lg:relative">
+<div class="bg-white border-b border-gray-100 sticky top-0 z-30 lg:relative">
     <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="w-full md:w-auto text-center md:text-left">
              <h1 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight leading-none mb-1">The Rental Journal</h1>

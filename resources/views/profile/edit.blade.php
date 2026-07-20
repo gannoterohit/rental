@@ -22,11 +22,9 @@
 @endpush
 
 @section('content')
-<div class="{{ $user->role === 'owner' ? 'owner-workspace' : 'user-workspace' }} profile-page min-h-screen flex">
+<div class="{{ $user->role === 'owner' ? 'owner-workspace' : '' }} profile-page min-h-screen {{ $user->role === 'owner' ? 'flex' : '' }}">
     @if($user->role === 'owner')
         @include('owner.partials.sidebar', ['active' => 'profile'])
-    @else
-        @include('user.partials.sidebar', ['active' => 'profile'])
     @endif
 
     <main class="profile-main flex-1 pb-20 lg:pb-0">

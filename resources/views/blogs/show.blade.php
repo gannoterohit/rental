@@ -9,7 +9,7 @@
 <div id="progress-bar" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 z-50 w-0 transition-all duration-200" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 
 <!-- Mobile Back Navigation -->
-<div class="lg:hidden bg-white/80 backdrop-blur-md border-b border-gray-100 py-3 px-4 sticky top-0 z-40 flex items-center gap-4">
+<div class="lg:hidden bg-white/80 backdrop-blur-md border-b border-gray-100 py-3 px-4 sticky top-0 z-30 flex items-center gap-4">
     <a href="{{ route('blogs.index') }}" class="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-700 active:scale-90 transition-transform" aria-label="Back to articles">
         <i class="fas fa-arrow-left text-sm"></i>
     </a>

@@ -40,21 +40,7 @@ Route::get('/dashboard', function () {
     } elseif ($user->role === 'owner') {
         return redirect()->route('owner.dashboard');
     } else {
-        $recentUnlocks = \App\Models\Enquiry::where('user_id', $user->id)
-            ->where('unlocked', true)->with('room')->latest()->take(4)->get();
-        $wishlistItems = \App\Models\Wishlist::where('user_id', $user->id)
-            ->with('room')->latest()->take(4)->get();
-        $cityAlerts = \App\Models\CityAlert::where('user_id', $user->id)->latest()->take(5)->get();
-        $openComplaints = \App\Models\Complaint::where('user_id', $user->id)
-            ->whereNotIn('status', ['resolved', 'rejected', 'closed'])->count();
-        $recommendedRooms = \App\Models\Room::where('status', 'approved')
-            ->where(function ($query) {
-                $query->whereNull('listing_status')->orWhere('listing_status', 'active');
-            })
-            ->when($cityAlerts->isNotEmpty(), fn ($query) => $query->whereIn('city', $cityAlerts->pluck('city')))
-            ->latest()->take(4)->get();
-
-        return view('dashboard', compact('recentUnlocks', 'wishlistItems', 'cityAlerts', 'openComplaints', 'recommendedRooms'));
+        return redirect()->route('home');
     }
 })->middleware(['auth', 'verified'])->name('dashboard');
 

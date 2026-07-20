@@ -13,11 +13,9 @@
     $remainingCredits = $activeLimit === -1 ? 'Unlimited' : max(0, (int) $activeLimit - $usedCredits);
 @endphp
 
-<div class="{{ $isOwner ? 'owner-workspace' : 'user-workspace' }} min-h-screen flex bg-slate-50">
+<div class="{{ $isOwner ? 'owner-workspace flex' : '' }} min-h-screen bg-slate-50">
     @if($isOwner)
         @include('owner.partials.sidebar', ['active' => 'plans'])
-    @else
-        @include('user.partials.sidebar', ['active' => 'plans'])
     @endif
 
     <main class="flex-1 min-w-0 pb-24 lg:pb-12">
