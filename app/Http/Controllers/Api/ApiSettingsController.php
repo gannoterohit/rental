@@ -30,7 +30,20 @@ class ApiSettingsController extends BaseApiController
                 'unlock_fee' => (float) Setting::get('unlock_fee', 49),
                 'listing_fee' => (float) Setting::get('listing_fee', 199),
                 'featured_fee' => (float) Setting::get('featured_fee', 99),
-            ]
+            ],
+            'module_availability' => [
+                'maintenance_mode' => filter_var(Setting::get('maintenance_mode', '0'), FILTER_VALIDATE_BOOLEAN),
+                'registration_enabled' => filter_var(Setting::get('registration_enabled', '1'), FILTER_VALIDATE_BOOLEAN),
+                'new_listings_enabled' => filter_var(Setting::get('new_listings_enabled', '1'), FILTER_VALIDATE_BOOLEAN),
+                'payments_enabled' => filter_var(Setting::get('payments_enabled', '1'), FILTER_VALIDATE_BOOLEAN),
+                'owner_panel_enabled' => filter_var(Setting::get('owner_panel_enabled', '1'), FILTER_VALIDATE_BOOLEAN),
+                'user_panel_enabled' => filter_var(Setting::get('user_panel_enabled', '1'), FILTER_VALIDATE_BOOLEAN),
+            ],
+            'maintenance' => [
+                'title' => Setting::get('maintenance_title', 'Website is currently under maintenance'),
+                'message' => Setting::get('maintenance_message', 'We are improving your experience and will be back soon.'),
+                'reopening_at' => Setting::get('maintenance_reopening_at'),
+            ],
         ];
 
         return $this->sendSuccess($settings);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Room;
+use App\Models\Enquiry;
 use App\Models\Payment;
 use App\Models\RoomOption;
 use App\Models\Setting;
@@ -76,7 +77,7 @@ class ApiRoomController extends BaseApiController
                   ->orderBy('created_at', 'desc');
         }
 
-        $rooms = $query->paginate($request->get('limit', 10));
+        $rooms = $query->paginate(max(1, min(50, $request->integer('limit', 10))));
 
         // Log the search
         if ($request->filled('city') || $request->filled('min_rent') || $request->filled('max_rent') || $request->filled('search')) {
@@ -106,18 +107,24 @@ class ApiRoomController extends BaseApiController
     /**
      * Get single room details
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $room = Room::with('owner')->find($id);
+        $room = Room::with('owner')
+            ->where('status', 'active')
+            ->where('listing_status', 'approved')
+            ->where('listing_fee_paid', true)
+            ->where(fn ($query) => $query->where('id', $id)->orWhere('slug', $id))
+            ->first();
 
         if (!$room) {
             return $this->sendError('Room not found');
         }
 
+        $viewer = $request->user('sanctum');
         $isUnlocked = false;
-        if (Auth::check()) {
-            $isUnlocked = (Auth::id() === $room->user_id) || 
-                          Enquiry::where('user_id', Auth::id())->where('room_id', $room->id)->where('unlocked', true)->exists();
+        if ($viewer) {
+            $isUnlocked = ($viewer->id === $room->user_id) ||
+                          Enquiry::where('user_id', $viewer->id)->where('room_id', $room->id)->where('unlocked', true)->exists();
         }
 
         if ($room->listing_type === 'broker') $isUnlocked = true;
@@ -125,7 +132,11 @@ class ApiRoomController extends BaseApiController
         $resource = new RoomResource($room);
         return $this->sendSuccess([
             'room' => $resource,
-            'is_unlocked' => $isUnlocked
+            'is_unlocked' => $isUnlocked,
+            'owner_contact' => $isUnlocked ? [
+                'phone' => $room->owner?->phone,
+                'email' => $room->owner?->email,
+            ] : null,
         ]);
     }
     
@@ -141,6 +152,7 @@ class ApiRoomController extends BaseApiController
             ->where('city', $room->city)
             ->where('status', 'active')
             ->where('listing_fee_paid', true)
+            ->where('listing_status', 'approved')
             ->limit(4)
             ->get();
             
@@ -403,6 +415,15 @@ class ApiRoomController extends BaseApiController
         \Illuminate\Support\Facades\Cache::forget('public_cities_list');
 
         return $this->sendSuccess(new RoomResource($room), 'Room updated successfully');
+    }
+
+    public function ownerShow(Request $request, $id)
+    {
+        $room = Room::where('user_id', $request->user()->id)
+            ->with('owner')
+            ->findOrFail($id);
+
+        return $this->sendSuccess(new RoomResource($room), 'Owner room fetched successfully');
     }
 
     /**

@@ -6,8 +6,11 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AdminRoomController;
 use App\Http\Controllers\Api\Admin\AdminFinanceController;
 use App\Http\Controllers\Api\Admin\AdminContentController;
+use App\Http\Controllers\Api\Admin\AdminSupportController;
+use App\Http\Controllers\Api\Admin\AdminAccessController;
+use App\Http\Controllers\Api\Admin\AdminSystemController;
 
-Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin', 'admin.permission', 'admin.activity'])->prefix('admin')->group(function () {
 
     // ── Dashboard & Analytics ────────────────
     Route::get('/dashboard',        [AdminDashboardController::class, 'index']);
@@ -69,4 +72,41 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::delete('/subscribers/{id}',      [AdminContentController::class, 'destroySubscriber']);
     
     Route::put('/pages/{slug}',             [AdminContentController::class, 'updatePage']);
+    Route::get('/pages/{slug}',             [AdminContentController::class, 'page']);
+    Route::get('/room-options',             [AdminContentController::class, 'roomOptions']);
+    Route::post('/room-options',            [AdminContentController::class, 'storeRoomOption']);
+    Route::put('/room-options/{option}',     [AdminContentController::class, 'updateRoomOption']);
+    Route::post('/room-options/{option}/toggle', [AdminContentController::class, 'toggleRoomOption']);
+    Route::delete('/room-options/{option}',  [AdminContentController::class, 'destroyRoomOption']);
+
+    // Support operations
+    Route::get('/complaint-options',                 [AdminSupportController::class, 'complaintOptions']);
+    Route::get('/complaints',                        [AdminSupportController::class, 'complaints']);
+    Route::get('/complaints/{complaint}',            [AdminSupportController::class, 'complaintShow']);
+    Route::put('/complaints/{complaint}',            [AdminSupportController::class, 'complaintUpdate']);
+    Route::post('/complaints/{complaint}/reply',     [AdminSupportController::class, 'complaintReply']);
+    Route::post('/complaints/{complaint}/reopen',    [AdminSupportController::class, 'complaintReopen']);
+    Route::get('/contact-messages',                  [AdminSupportController::class, 'contactMessages']);
+    Route::post('/contact-messages/{message}/read',  [AdminSupportController::class, 'markContactRead']);
+    Route::delete('/contact-messages/{message}',     [AdminSupportController::class, 'deleteContact']);
+
+    // Staff access control and audit
+    Route::get('/permission-catalog',           [AdminAccessController::class, 'catalog']);
+    Route::get('/staff',                        [AdminAccessController::class, 'staff']);
+    Route::post('/staff',                       [AdminAccessController::class, 'staffStore']);
+    Route::put('/staff/{staff}',                [AdminAccessController::class, 'staffUpdate']);
+    Route::post('/staff/{staff}/toggle',        [AdminAccessController::class, 'staffToggle']);
+    Route::get('/roles',                        [AdminAccessController::class, 'roles']);
+    Route::post('/roles',                       [AdminAccessController::class, 'roleStore']);
+    Route::put('/roles/{role}',                 [AdminAccessController::class, 'roleUpdate']);
+    Route::get('/activity-logs',                [AdminAccessController::class, 'activityLogs']);
+    Route::put('/owners/{owner}/verification',  [AdminAccessController::class, 'ownerVerification']);
+
+    // Platform operations and reporting
+    Route::get('/maintenance',                  [AdminSystemController::class, 'maintenance']);
+    Route::put('/maintenance',                  [AdminSystemController::class, 'updateMaintenance']);
+    Route::get('/reports/overview',             [AdminSystemController::class, 'reports']);
+    Route::post('/rooms/bulk-action',           [AdminSystemController::class, 'bulkRooms']);
+    Route::delete('/search-logs/{searchLog}',   [AdminSystemController::class, 'deleteSearchLog']);
+    Route::delete('/search-logs',               [AdminSystemController::class, 'deleteSearchLogs']);
 });

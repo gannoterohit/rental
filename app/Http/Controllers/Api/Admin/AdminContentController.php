@@ -8,6 +8,7 @@ use App\Models\Offer;
 use App\Models\Setting;
 use App\Models\Subscriber;
 use App\Models\CityAlert;
+use App\Models\RoomOption;
 use App\Http\Resources\BlogResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -115,9 +116,32 @@ class AdminContentController extends BaseApiController
      * Pages
      */
     public function updatePage(Request $request, $slug) {
-        $keyMap = ['terms-and-conditions' => 'terms_content', 'privacy-policy' => 'privacy_content', 'condition-policy' => 'condition_content', 'contact-us' => 'contact_content', 'faq' => 'faq_content'];
-        if (!isset($keyMap[$slug])) return $this->sendError('Invalid slug');
-        Setting::set($keyMap[$slug], $request->content);
+        $keyMap = ['about-us'=>'about_content','careers'=>'careers_content','how-it-works'=>'how_it_works_content','safety-tips'=>'safety_tips_content','owner-guidelines'=>'owner_guidelines_content','user-guidelines'=>'user_guidelines_content','terms-and-conditions'=>'terms_content','privacy-policy'=>'privacy_content','condition-policy'=>'condition_content','contact-us'=>'contact_content','faq'=>'faq_content'];
+        if (!isset($keyMap[$slug])) return $this->sendError('Invalid slug', [], 422);
+        $data=$request->validate(['content'=>'required']);
+        Setting::set($keyMap[$slug], is_array($data['content']) ? json_encode($data['content']) : $data['content']);
         return $this->sendSuccess([], 'Page updated');
     }
+
+    public function page($slug) {
+        $keyMap = ['about-us'=>'about_content','careers'=>'careers_content','how-it-works'=>'how_it_works_content','safety-tips'=>'safety_tips_content','owner-guidelines'=>'owner_guidelines_content','user-guidelines'=>'user_guidelines_content','terms-and-conditions'=>'terms_content','privacy-policy'=>'privacy_content','condition-policy'=>'condition_content','contact-us'=>'contact_content','faq'=>'faq_content'];
+        if (!isset($keyMap[$slug])) return $this->sendError('Invalid slug', [], 422);
+        return $this->sendSuccess(['slug'=>$slug,'key'=>$keyMap[$slug],'content'=>Setting::get($keyMap[$slug], '')]);
+    }
+
+    public function roomOptions(Request $request) {
+        $query=RoomOption::query();
+        if($request->filled('group'))$query->where('group',$request->group);
+        return $this->sendSuccess($query->orderBy('group')->orderBy('sort_order')->get());
+    }
+    public function storeRoomOption(Request $request) {
+        $data=$request->validate(['group'=>'required|in:room_type,furnishing_type,tenant_type,amenity','key'=>'required|string|max:80','label'=>'required|string|max:100','icon'=>'nullable|string|max:100','sort_order'=>'nullable|integer|min:0','is_active'=>'nullable|boolean']);
+        $data['is_active']=$request->boolean('is_active',true);
+        return $this->sendSuccess(RoomOption::create($data),'Room option created',201);
+    }
+    public function updateRoomOption(Request $request, RoomOption $option) {
+        $data=$request->validate(['label'=>'required|string|max:100','icon'=>'nullable|string|max:100','sort_order'=>'nullable|integer|min:0','is_active'=>'nullable|boolean']);$option->update($data);return $this->sendSuccess($option->fresh(),'Room option updated');
+    }
+    public function toggleRoomOption(RoomOption $option) {$option->update(['is_active'=>!$option->is_active]);return $this->sendSuccess($option,'Room option status updated');}
+    public function destroyRoomOption(RoomOption $option) {$option->delete();return $this->sendSuccess([],'Room option deleted');}
 }

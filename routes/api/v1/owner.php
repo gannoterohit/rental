@@ -12,6 +12,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
 
     // ── Room Management ────────────────────
     Route::get('/rooms',                        [ApiRoomController::class, 'myRooms']);
+    Route::get('/rooms/{room}',                 [ApiRoomController::class, 'ownerShow']);
     Route::post('/rooms',                       [ApiRoomController::class, 'store']);
     Route::put('/rooms/{room}',                 [ApiRoomController::class, 'update']);
     Route::post('/rooms/{room}',                [ApiRoomController::class, 'update']); // Multipart photo/video edits

@@ -22,6 +22,19 @@ class AdminPermission
     {
         $route = (string) $request->route()?->getName();
         $write = !in_array($request->method(), ['GET', 'HEAD'], true);
+        if ($request->is('api/v1/admin/*')) {
+            $path = ltrim((string) $request->path(), '/');
+            if (str_contains($path, '/staff') || str_contains($path, '/roles') || str_contains($path, '/permission-catalog')) return 'staff.manage';
+            if (str_contains($path, '/activity-logs')) return 'activity.view';
+            if (str_contains($path, '/rooms') || str_contains($path, '/rejection-reasons')) return $write ? 'listings.manage' : 'listings.view';
+            if (str_contains($path, '/users') || str_contains($path, '/owners')) return $write ? 'people.manage' : 'people.view';
+            if (str_contains($path, '/complaints') || str_contains($path, '/contact-messages') || str_contains($path, '/city-alerts') || str_contains($path, '/subscribers')) return $write ? 'support.manage' : 'support.view';
+            if (str_contains($path, '/payments') || str_contains($path, '/payouts') || str_contains($path, '/plans')) return $write ? 'finance.manage' : 'finance.view';
+            if (str_contains($path, '/blogs') || str_contains($path, '/offers') || str_contains($path, '/pages')) return $write ? 'content.manage' : 'content.view';
+            if (str_contains($path, '/reports') || str_contains($path, '/analytics') || str_contains($path, '/search-logs')) return 'reports.view';
+            if (str_contains($path, '/settings') || str_contains($path, '/maintenance')) return 'settings.manage';
+            if (str_ends_with($path, '/dashboard')) return 'dashboard.view';
+        }
         if ($route === 'admin.dashboard') return 'dashboard.view';
         if (str_starts_with($route, 'admin.staff') || str_starts_with($route, 'admin.roles')) return 'staff.manage';
         if (str_starts_with($route, 'admin.activity')) return 'activity.view';

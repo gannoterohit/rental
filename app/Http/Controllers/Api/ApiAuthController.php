@@ -89,6 +89,9 @@ class ApiAuthController extends BaseApiController
         if ($user->is_blocked) {
             return $this->sendError('Your account is blocked.', [], 403);
         }
+        if ($user->role === 'admin' && !$user->is_staff_active) {
+            return $this->sendError('This admin account is inactive.', [], 403);
+        }
 
         $token = $user->createToken('flutter_app')->plainTextToken;
 
@@ -107,6 +110,7 @@ class ApiAuthController extends BaseApiController
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string',
+            'role' => 'nullable|in:user,owner',
             'otp' => 'required|string|min:6|max:6',
             'referral_code' => 'nullable|string'
         ]);
@@ -138,7 +142,7 @@ class ApiAuthController extends BaseApiController
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'role' => 'user',
+            'role' => $request->input('role', 'user'),
             'email_verified_at' => now(),
             'referred_by_id' => $referredBy,
             'wallet' => $initialWallet,

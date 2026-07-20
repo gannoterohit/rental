@@ -24,15 +24,18 @@ class PlatformAvailability
             return $this->unavailable($request, 'maintenance');
         }
 
-        if (!$this->enabled('registration_enabled', true) && $request->routeIs('register', 'verify.registration.otp')) {
+        if (!$this->enabled('registration_enabled', true) && ($request->routeIs('register', 'verify.registration.otp')
+            || $request->is('api/v1/auth/register'))) {
             return $this->unavailable($request, 'registration');
         }
 
-        if (!$this->enabled('new_listings_enabled', true) && $request->routeIs('rooms.create', 'rooms.store')) {
+        if (!$this->enabled('new_listings_enabled', true) && ($request->routeIs('rooms.create', 'rooms.store')
+            || ($request->is('api/v1/owner/rooms') && $request->isMethod('post')))) {
             return $this->unavailable($request, 'listings');
         }
 
-        if (!$this->enabled('payments_enabled', true) && $request->routeIs('unlock.contact', 'razorpay.createOrder', 'subscription.purchase', 'subscribe')) {
+        if (!$this->enabled('payments_enabled', true) && ($request->routeIs('unlock.contact', 'razorpay.createOrder', 'subscription.purchase', 'subscribe')
+            || $request->is('api/v1/unlock/*', 'api/v1/payments/*', 'api/v1/subscriptions/purchase'))) {
             return $this->unavailable($request, 'payments');
         }
 
@@ -68,7 +71,8 @@ class PlatformAvailability
             'rooms.destroy', 'rooms.featured', 'rooms.markBooked', 'rooms.markAvailable',
             'profile.*', 'plans', 'subscription.purchase', 'subscribe', 'wallet', 'wallet.*',
             'referral.*', 'complaints.*'
-        ) || $request->is('api/v1/owner', 'api/v1/owner/*');
+        ) || $request->is('api/v1/owner', 'api/v1/owner/*', 'api/v1/profile*', 'api/v1/wallet*',
+            'api/v1/payments*', 'api/v1/subscriptions*', 'api/v1/complaints*', 'api/v1/complaint-options');
     }
 
     private function isUserWorkspace(Request $request): bool
@@ -77,7 +81,9 @@ class PlatformAvailability
             'dashboard', 'profile.*', 'plans', 'subscription.purchase', 'subscribe',
             'wallet', 'wallet.*', 'referral.*', 'wishlist.*', 'complaints.*',
             'city-alerts.*', 'unlock.contact'
-        ) || $request->is('api/v1/user', 'api/v1/user/*');
+        ) || $request->is('api/v1/dashboard', 'api/v1/profile*', 'api/v1/wallet*', 'api/v1/wishlist*',
+            'api/v1/city-alerts*', 'api/v1/unlock*', 'api/v1/payments*', 'api/v1/subscriptions*',
+            'api/v1/referral-stats', 'api/v1/complaints*', 'api/v1/complaint-options');
     }
 
     private function unavailable(Request $request, string $reason): Response

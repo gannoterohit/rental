@@ -11,12 +11,15 @@ use App\Http\Controllers\Api\ApiWalletController;
 use App\Http\Controllers\Api\ApiWishlistController;
 use App\Http\Controllers\Api\ApiMiscController;
 use App\Http\Controllers\Api\ApiSubscriptionController;
+use App\Http\Controllers\Api\ApiComplaintController;
+use App\Http\Controllers\Api\ApiAccountController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
     // ── Auth & Profile ────────────────────────
     Route::get('/auth/me',      [ApiAuthController::class, 'user']);
     Route::post('/auth/logout', [ApiAuthController::class, 'logout']);
+    Route::get('/profile',             [ApiProfileController::class, 'show']);
     Route::post('/profile/update',      [ApiProfileController::class, 'update']);
     Route::post('/profile/delete-otp',  [ApiProfileController::class, 'sendDeleteOtp']);
     Route::delete('/profile',           [ApiProfileController::class, 'destroy']);
@@ -47,4 +50,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Subscriptions ─────────────────────────
     Route::get('/plans',                    [ApiSubscriptionController::class, 'plans']);
     Route::post('/subscriptions/purchase',  [ApiSubscriptionController::class, 'purchase']);
+    Route::get('/subscriptions',             [ApiAccountController::class, 'subscriptions']);
+    Route::get('/payments',                  [ApiAccountController::class, 'payments']);
+    Route::get('/unlocks',                   [ApiAccountController::class, 'unlocks']);
+
+    // Unified support for both renters and owners.
+    Route::get('/complaint-options',                          [ApiComplaintController::class, 'options']);
+    Route::get('/complaints',                                [ApiComplaintController::class, 'index']);
+    Route::post('/complaints',                               [ApiComplaintController::class, 'store'])->middleware('throttle:public_form');
+    Route::get('/complaints/{complaint}',                    [ApiComplaintController::class, 'show']);
+    Route::post('/complaints/{complaint}/replies',           [ApiComplaintController::class, 'reply'])->middleware('throttle:public_form');
+    Route::get('/complaints/{complaint}/evidence',           [ApiComplaintController::class, 'evidence']);
+    Route::get('/complaints/{complaint}/replies/{reply}/attachment', [ApiComplaintController::class, 'attachment']);
 });
