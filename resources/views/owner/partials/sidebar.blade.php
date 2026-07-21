@@ -6,11 +6,18 @@
         ['key' => 'create', 'label' => 'Add New Room', 'icon' => 'fa-square-plus', 'href' => route('rooms.create')],
         ['key' => 'rooms', 'label' => 'My Rooms', 'icon' => 'fa-building', 'href' => route('owner.rooms')],
         ['key' => 'plans', 'label' => 'Plans & Pricing', 'icon' => 'fa-tags', 'href' => route('plans')],
-        ['key' => 'wallet', 'label' => 'My Wallet', 'icon' => 'fa-wallet', 'href' => route('wallet')],
-        ['key' => 'referral', 'label' => 'Refer & Earn', 'icon' => 'fa-gift', 'href' => route('referral.index')],
-        ['key' => 'complaints', 'label' => 'My Complaints', 'icon' => 'fa-shield-halved', 'href' => route('complaints.index')],
-        ['key' => 'profile', 'label' => 'Profile Settings', 'icon' => 'fa-user-gear', 'href' => route('profile.edit')],
     ];
+
+    if (\App\Models\Setting::get('wallet_enabled', '1') === '1') {
+        $ownerItems[] = ['key' => 'wallet', 'label' => 'My Wallet', 'icon' => 'fa-wallet', 'href' => route('wallet')];
+    }
+
+    if (\App\Models\Setting::get('referral_enabled', '1') === '1') {
+        $ownerItems[] = ['key' => 'referral', 'label' => 'Refer & Earn', 'icon' => 'fa-gift', 'href' => route('referral.index')];
+    }
+
+    $ownerItems[] = ['key' => 'complaints', 'label' => 'My Complaints', 'icon' => 'fa-shield-halved', 'href' => route('complaints.index')];
+    $ownerItems[] = ['key' => 'profile', 'label' => 'Profile Settings', 'icon' => 'fa-user-gear', 'href' => route('profile.edit')];
     $ownerLogo = \App\Models\Setting::get('navbar_logo') ?: \App\Models\Setting::get('website_logo');
 @endphp
 

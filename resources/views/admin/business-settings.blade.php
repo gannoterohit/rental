@@ -43,7 +43,7 @@
                 ['integrations', 'fa-plug', 'Integrations'],
                 ['seo', 'fa-search', 'SEO & Analytics'],
                 ['mail', 'fa-envelope', 'Mail Server'],
-                ['referral', 'fa-share-alt', 'Referral'],
+                ['referral', 'fa-toggle-on', 'Feature Toggles'],
             ] as [$tabKey, $tabIcon, $tabLabel])
                 <button type="button" @click="activeTab = '{{ $tabKey }}'" :class="activeTab === '{{ $tabKey }}' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 text-xs font-bold transition" role="tab" :aria-selected="activeTab === '{{ $tabKey }}'">
                     <i class="fas {{ $tabIcon }} text-[11px]"></i><span>{{ $tabLabel }}</span>
@@ -354,40 +354,51 @@
                     @include('admin.partials.settings-save-button', ['tab' => 'mail'])
                 </div>
 
-                <!-- Referral Section -->
+                <!-- Referral Section (Feature Toggles) -->
                  <div x-show="activeTab === 'referral'" class="space-y-6 w-full" style="display: none;">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full">
                         <div class="flex items-center mb-6 pb-4 border-b border-gray-100">
                              <div class="h-10 w-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mr-4">
-                                <i class="fas fa-gift text-xl"></i>
+                                <i class="fas fa-toggle-on text-xl"></i>
                             </div>
                             <div>
-                                <h2 class="text-xl font-bold text-gray-800">Refer & Earn Settings</h2>
-                                <p class="text-sm text-gray-500">Configure rewards for growth</p>
+                                <h2 class="text-xl font-bold text-gray-800">Feature Toggles</h2>
+                                <p class="text-sm text-gray-500">Control active platform components</p>
                             </div>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Referrer Reward (Points)</label>
-                                <div class="relative rounded-lg shadow-sm group transition-all focus-within:ring-2 ring-indigo-500/20">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-coins text-gray-400"></i>
-                                    </div>
-                                    <input type="number" name="referral_reward" value="{{ \App\Models\Setting::get('referral_reward', 10) }}" class="block w-full pl-10 pr-3 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-medium text-gray-900">
+                        <div class="space-y-5">
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Referral System</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Allow renters to refer friends and get 1 Free Contact Unlock per join</p>
                                 </div>
-                                <p class="mt-2 text-xs text-gray-500">Points given to the user who refers a friend</p>
+                                <select name="referral_enabled" class="rounded-lg border-slate-200 text-xs font-bold text-slate-700 bg-white">
+                                    <option value="1" @selected(\App\Models\Setting::get('referral_enabled', '1') === '1')>Active (ON)</option>
+                                    <option value="0" @selected(\App\Models\Setting::get('referral_enabled', '1') === '0')>Inactive (OFF)</option>
+                                </select>
                             </div>
-                            
-                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Join Reward (Points)</label>
-                                <div class="relative rounded-lg shadow-sm group transition-all focus-within:ring-2 ring-indigo-500/20">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-user-plus text-gray-400"></i>
-                                    </div>
-                                    <input type="number" name="join_reward" value="{{ \App\Models\Setting::get('join_reward', 5) }}" class="block w-full pl-10 pr-3 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-medium text-gray-900">
+
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Wallet System</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Allow renters to use balance and view logs</p>
                                 </div>
-                                <p class="mt-2 text-xs text-gray-500">Sign-up bonus points for the new user</p>
+                                <select name="wallet_enabled" class="rounded-lg border-slate-200 text-xs font-bold text-slate-700 bg-white">
+                                    <option value="1" @selected(\App\Models\Setting::get('wallet_enabled', '1') === '1')>Active (ON)</option>
+                                    <option value="0" @selected(\App\Models\Setting::get('wallet_enabled', '1') === '0')>Inactive (OFF)</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Promo Codes</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Allow users to enter coupons during payments</p>
+                                </div>
+                                <select name="promo_enabled" class="rounded-lg border-slate-200 text-xs font-bold text-slate-700 bg-white">
+                                    <option value="1" @selected(\App\Models\Setting::get('promo_enabled', '1') === '1')>Active (ON)</option>
+                                    <option value="0" @selected(\App\Models\Setting::get('promo_enabled', '1') === '0')>Inactive (OFF)</option>
+                                </select>
                             </div>
                         </div>
                     </div>

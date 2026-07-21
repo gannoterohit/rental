@@ -125,16 +125,16 @@ class ApiAuthController extends BaseApiController
 
         // Handle Referral
         $referredBy = null;
-        $initialWallet = 0;
+        $initialFreeUnlocks = 0;
         
-        if ($request->referral_code) {
+        if ($request->referral_code && \App\Models\Setting::get('referral_enabled', '1') === '1') {
             $referrer = User::where('referral_code', $request->referral_code)->first();
             if ($referrer) {
                 $referredBy = $referrer->id;
-                $refReward = \App\Models\Setting::get('referral_reward', 10);
-                $joinReward = \App\Models\Setting::get('join_reward', 5);
-                $initialWallet = $joinReward;
-                $referrer->increment('wallet', $refReward);
+                // Reward Referrer: +1 Free Unlock
+                $referrer->increment('free_unlocks', 1);
+                // Joining bonus for new user: +1 Free Unlock
+                $initialFreeUnlocks = 1;
             }
         }
 
@@ -145,7 +145,8 @@ class ApiAuthController extends BaseApiController
             'role' => $request->input('role', 'user'),
             'email_verified_at' => now(),
             'referred_by_id' => $referredBy,
-            'wallet' => $initialWallet,
+            'wallet' => 0,
+            'free_unlocks' => $initialFreeUnlocks,
         ]);
 
         $token = $user->createToken('flutter_app')->plainTextToken;

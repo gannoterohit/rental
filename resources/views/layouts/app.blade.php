@@ -805,15 +805,19 @@
                                     <a href="{{ route('profile.edit') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                                         <i class="fas fa-user-circle text-indigo-400 w-4 text-sm"></i> My Profile
                                     </a>
-                                    <a href="{{ route('wallet') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
-                                        <i class="fas fa-wallet text-indigo-400 w-4 text-sm"></i> My Wallet
-                                    </a>
+                                    @if(\App\Models\Setting::get('wallet_enabled', '1') === '1')
+                                        <a href="{{ route('wallet') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                            <i class="fas fa-wallet text-indigo-400 w-4 text-sm"></i> My Wallet
+                                        </a>
+                                    @endif
                                     <a href="{{ route('plans') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                                         <i class="fas fa-crown text-amber-400 w-4 text-sm"></i> View Plans
                                     </a>
-                                    <a href="{{ route('referral.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
-                                        <i class="fas fa-gift text-emerald-400 w-4 text-sm"></i> Refer & Earn
-                                    </a>
+                                    @if(\App\Models\Setting::get('referral_enabled', '1') === '1')
+                                        <a href="{{ route('referral.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                                            <i class="fas fa-gift text-emerald-400 w-4 text-sm"></i> Refer & Earn
+                                        </a>
+                                    @endif
                                     <a href="{{ route('complaints.index') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                                         <i class="fas fa-headset text-blue-400 w-4 text-sm"></i> Support Tickets
                                     </a>

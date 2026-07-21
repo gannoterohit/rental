@@ -4,13 +4,22 @@
     $userItems = [
         ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-chart-pie', 'href' => route('dashboard')],
         ['key' => 'browse', 'label' => 'Browse Rooms', 'icon' => 'fa-magnifying-glass', 'href' => route('rooms.index')],
-        ['key' => 'wallet', 'label' => 'My Wallet', 'icon' => 'fa-wallet', 'href' => route('wallet')],
-        ['key' => 'wishlist', 'label' => 'Wishlist', 'icon' => 'fa-heart', 'href' => route('wishlist.index')],
-        ['key' => 'referral', 'label' => 'Refer & Earn', 'icon' => 'fa-gift', 'href' => route('referral.index')],
-        ['key' => 'plans', 'label' => 'Plans', 'icon' => 'fa-tags', 'href' => route('plans')],
-        ['key' => 'complaints', 'label' => 'My Complaints', 'icon' => 'fa-shield-halved', 'href' => route('complaints.index')],
-        ['key' => 'profile', 'label' => 'Profile Settings', 'icon' => 'fa-user-gear', 'href' => route('profile.edit')],
     ];
+
+    if (\App\Models\Setting::get('wallet_enabled', '1') === '1') {
+        $userItems[] = ['key' => 'wallet', 'label' => 'My Wallet', 'icon' => 'fa-wallet', 'href' => route('wallet')];
+    }
+
+    $userItems[] = ['key' => 'wishlist', 'label' => 'Wishlist', 'icon' => 'fa-heart', 'href' => route('wishlist.index')];
+
+    if (\App\Models\Setting::get('referral_enabled', '1') === '1') {
+        $userItems[] = ['key' => 'referral', 'label' => 'Refer & Earn', 'icon' => 'fa-gift', 'href' => route('referral.index')];
+    }
+
+    $userItems[] = ['key' => 'plans', 'label' => 'Plans', 'icon' => 'fa-tags', 'href' => route('plans')];
+    $userItems[] = ['key' => 'complaints', 'label' => 'My Complaints', 'icon' => 'fa-shield-halved', 'href' => route('complaints.index')];
+    $userItems[] = ['key' => 'profile', 'label' => 'Profile Settings', 'icon' => 'fa-user-gear', 'href' => route('profile.edit')];
+
     $accountLogo = \App\Models\Setting::get('navbar_logo') ?: \App\Models\Setting::get('website_logo');
 @endphp
 

@@ -98,6 +98,39 @@ class UnlockController extends Controller
                 }
             }
 
+            // Check for Free Referral Unlocks Credit
+            $user = Auth::user();
+            if ($user && $user->free_unlocks > 0) {
+                $user->decrement('free_unlocks', 1);
+                
+                $payment = Payment::create([
+                    'user_id' => $user->id,
+                    'type' => 'unlock',
+                    'amount' => 0,
+                    'gateway' => 'free_credit',
+                    'reference_id' => $room->id,
+                    'status' => 'completed'
+                ]);
+                
+                Enquiry::create([
+                    'user_id' => $user->id,
+                    'room_id' => $room->id,
+                    'payment_id' => $payment->id,
+                    'unlocked' => true,
+                    'unlocked_at' => now()
+                ]);
+                
+                DB::commit();
+                
+                return response()->json([
+                    'success' => true,
+                    'already_unlocked' => true,
+                    'free_credit_used' => true,
+                    'remaining_credits' => $user->free_unlocks,
+                    'contact' => $room->owner->phone ?? $room->owner->email
+                ]);
+            }
+
             // No subscription or subscription exhausted - charge single unlock fee
             $unlockFee = Setting::get('unlock_fee', 49);
             

@@ -503,13 +503,25 @@
                                             <i class="fas fa-crown mr-1"></i> {{ $subscriptionRemaining }} contacts left
                                         </div>
                                     @endif
-                                     
-                                    <p class="text-sm text-gray-600 mb-3">Unlock for <span class="font-bold text-blue-600">₹{{ \App\Models\Setting::get('unlock_fee', 49) }}</span></p>
-                                    <button onclick="unlockContact({{ $room->id }})"
-                                            class="w-full text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg hover:opacity-90 transition text-sm"
-                                            style="background-color: var(--primary);">
-                                        <i class="fas fa-unlock mr-2"></i>Unlock Contact
-                                    </button>
+
+                                    @if(auth()->user()->free_unlocks > 0)
+                                        <div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl mb-3 text-xs text-indigo-800 flex items-center gap-2">
+                                            <i class="fas fa-gift text-indigo-600"></i>
+                                            <span>You have <strong>{{ auth()->user()->free_unlocks }}</strong> free unlock credit{{ auth()->user()->free_unlocks > 1 ? 's' : '' }}!</span>
+                                        </div>
+                                        <button onclick="unlockContact({{ $room->id }})"
+                                                class="w-full text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg hover:opacity-90 transition text-sm flex items-center justify-center gap-2"
+                                                style="background-color: #4f46e5;">
+                                            <i class="fas fa-unlock"></i> Unlock with Free Credit
+                                        </button>
+                                    @else
+                                        <p class="text-sm text-gray-600 mb-3">Unlock for <span class="font-bold text-blue-600">₹{{ \App\Models\Setting::get('unlock_fee', 49) }}</span></p>
+                                        <button onclick="unlockContact({{ $room->id }})"
+                                                class="w-full text-white font-bold py-2.5 px-4 rounded-lg hover:shadow-lg hover:opacity-90 transition text-sm"
+                                                style="background-color: var(--primary);">
+                                            <i class="fas fa-unlock mr-2"></i>Unlock Contact
+                                        </button>
+                                    @endif
                                     <a href="{{ route('plans') }}" class="block mt-2 text-center text-xs text-purple-600 hover:underline">
                                         <i class="fas fa-star mr-1"></i>View Plans
                                     </a>
@@ -877,9 +889,11 @@ async function executeUnlock(roomId, paymentMethod) {
         const data = await response.json();
         
         if (data.success) {
-            if (data.already_unlocked || data.wallet_used) {
+            if (data.already_unlocked || data.wallet_used || data.free_credit_used) {
                 if (data.subscription_used) {
                     toastr.success(`Contact unlocked using subscription! ${data.remaining_contacts} contacts remaining.`, 'Success');
+                } else if (data.free_credit_used) {
+                    toastr.success(`Contact unlocked using free credit! ${data.remaining_credits} credits remaining.`, 'Success');
                 } else if (data.wallet_used) {
                     toastr.success(`Contact unlocked using wallet! New Balance: ₹${data.new_balance}`, 'Success');
                 } else if (data.is_owner) {

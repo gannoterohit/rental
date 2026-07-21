@@ -161,26 +161,21 @@ class OtpController extends Controller
 
         // Handle Referral
         $referredBy = null;
-        $initialWallet = 0;
+        $initialFreeUnlocks = 0;
         
         // Prioritize referral code from request, fallback to session
         $referralCode = $request->referral_code ?? session('referral_code');
 
-        if ($referralCode) {
+        if ($referralCode && \App\Models\Setting::get('referral_enabled', '1') === '1') {
             $referrer = User::where('referral_code', $referralCode)->first();
             if ($referrer) {
                 $referredBy = $referrer->id;
                 
-                $refReward = \App\Models\Setting::get('referral_reward', 10);
-                $joinReward = \App\Models\Setting::get('join_reward', 5);
-
-                $initialWallet = $joinReward; // Points for new user
+                // Reward Referrer: +1 Free Unlock
+                $referrer->increment('free_unlocks', 1);
                 
-                // Reward Referrer
-                $referrer->increment('wallet', $refReward); // Points for referrer
-                
-                // Optional: Notify referrer
-                // Notification::send($referrer, new ReferralRewardNotification($user));
+                // Joining bonus for new user: +1 Free Unlock
+                $initialFreeUnlocks = 1;
             }
         }
 
@@ -192,7 +187,8 @@ class OtpController extends Controller
             'role' => $request->role ?? 'user',
             'email_verified_at' => now(),
             'referred_by_id' => $referredBy,
-            'wallet' => $initialWallet,
+            'wallet' => 0, // Points system ignored now
+            'free_unlocks' => $initialFreeUnlocks,
         ]);
 
         // Clear referral session
@@ -202,8 +198,8 @@ class OtpController extends Controller
         auth()->login($user);
         
         $msg = 'Registration successful!';
-        if ($initialWallet > 0) {
-            $msg .= " You have received {$initialWallet} Points as a joining bonus!";
+        if ($initialFreeUnlocks > 0) {
+            $msg .= " You have received {$initialFreeUnlocks} Free Contact Unlock as a joining bonus!";
         }
         
         // Flash signup success for Google Ads tracking
@@ -212,7 +208,7 @@ class OtpController extends Controller
         return response()->json([
             'success' => true,
             'message' => $msg,
-            'redirect' => route('dashboard')
+            'redirect' => route('home') // Users go to home page directly per new layout rules
         ]);
     }
 }

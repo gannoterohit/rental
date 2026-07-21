@@ -8,16 +8,13 @@ use Illuminate\Support\Facades\Auth;
 
 class ReferralController extends Controller
 {
-    /**
-     * Handle incoming referral links.
-     */
     public function track(Request $request, $code)
     {
         // Store the referral code in the session for 30 days
         session(['referral_code' => $code]);
 
         // Redirect to homepage or registration
-        return redirect()->route('home')->with('info', 'Welcome! You have been referred by a friend. Register now to get 5 Points!');
+        return redirect()->route('home')->with('info', 'Welcome! You have been referred by a friend. Register now to get 1 Free Contact Unlock!');
     }
 
     /**
@@ -25,6 +22,10 @@ class ReferralController extends Controller
      */
     public function index()
     {
+        if (\App\Models\Setting::get('referral_enabled', '1') !== '1') {
+            return redirect()->route('home')->with('error', 'Referral program is currently inactive.');
+        }
+
         $user = Auth::user();
         
         // Ensure user has a referral code for link generation
@@ -35,10 +36,7 @@ class ReferralController extends Controller
 
         $referrals = User::where('referred_by_id', $user->id)->latest()->get();
         $referralLink = route('referral.track', ['code' => $user->referral_code]);
-        
-        $refReward = \App\Models\Setting::get('referral_reward', 10);
-        $joinReward = \App\Models\Setting::get('join_reward', 5);
 
-        return view('user.referral', compact('user', 'referrals', 'referralLink', 'refReward', 'joinReward'));
+        return view('user.referral', compact('user', 'referrals', 'referralLink'));
     }
 }
