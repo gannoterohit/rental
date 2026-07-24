@@ -13,15 +13,19 @@
 window.richEditors = window.richEditors || new Map();
 window.createRichEditor = function(element) {
     if (!element || window.richEditors.has(element)) return Promise.resolve(window.richEditors.get(element));
+    if (typeof CKEDITOR === 'undefined' || !CKEDITOR.ClassicEditor) {
+        return Promise.reject(new Error('CKEditor script not available'));
+    }
 
     return CKEDITOR.ClassicEditor.create(element, {
         toolbar: {
             items: [
-                'undo', 'redo', '|', 'findAndReplace', 'sourceEditing', '|',
-                'heading', 'style', '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                'undo', 'redo', '|',
+                'heading', 'style', '|',
+                'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
                 'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
-                'alignment', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '|',
-                'link', 'insertImage', 'mediaEmbed', 'insertTable', 'blockQuote', 'horizontalLine', '|',
+                'alignment', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                'link', 'insertImage', 'insertTable', 'blockQuote', 'horizontalLine', '|',
                 'code', 'codeBlock', 'specialCharacters'
             ],
             shouldNotGroupWhenFull: false
@@ -65,6 +69,7 @@ window.createRichEditor = function(element) {
         return editor;
     }).catch(error => {
         console.error('Rich editor failed to initialize:', error);
+        return Promise.reject(error);
     });
 };
 </script>

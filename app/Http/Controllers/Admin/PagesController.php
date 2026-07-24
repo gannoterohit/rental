@@ -79,84 +79,44 @@ class PagesController extends Controller
         return $this->saveEditor($request, 'user_guidelines_content', 'User Guidelines');
     }
 
-    /**
-     * Show the form for editing the Terms page.
-     */
     public function terms()
     {
-        $setting = Setting::where('key', 'terms_content')->first();
-        $pageTitle = 'Terms & Conditions';
-        $route = route('admin.pages.terms.update');
-        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+        return $this->showEditor('terms_content', 'Terms & Conditions', 'admin.pages.terms.update');
     }
 
-    /**
-     * Update the Terms page content.
-     */
     public function updateTerms(Request $request)
     {
-        $this->updatePageContent('terms_content', $request->input('content'));
-        return back()->with('success', 'Terms page updated successfully!');
+        return $this->saveEditor($request, 'terms_content', 'Terms & Conditions');
     }
 
-    /**
-     * Show the form for editing the Condition Policy page.
-     */
     public function condition()
     {
-        $setting = Setting::where('key', 'condition_content')->first();
-        $pageTitle = 'Condition Policy';
-        $route = route('admin.pages.condition.update');
-        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+        return $this->showEditor('condition_content', 'Condition Policy', 'admin.pages.condition.update');
     }
 
-    /**
-     * Update the Condition Policy page content.
-     */
     public function updateCondition(Request $request)
     {
-        $this->updatePageContent('condition_content', $request->input('content'));
-        return back()->with('success', 'Condition Policy page updated successfully!');
+        return $this->saveEditor($request, 'condition_content', 'Condition Policy');
     }
 
-    /**
-     * Show the form for editing the Privacy Policy page.
-     */
     public function privacy()
     {
-        $setting = Setting::where('key', 'privacy_content')->first();
-        $pageTitle = 'Privacy Policy';
-        $route = route('admin.pages.privacy.update');
-        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+        return $this->showEditor('privacy_content', 'Privacy Policy', 'admin.pages.privacy.update');
     }
 
-    /**
-     * Update the Privacy Policy page content.
-     */
     public function updatePrivacy(Request $request)
     {
-        $this->updatePageContent('privacy_content', $request->input('content'));
-        return back()->with('success', 'Privacy Policy page updated successfully!');
+        return $this->saveEditor($request, 'privacy_content', 'Privacy Policy');
     }
 
-    /**
-     * Show the form for editing the Contact page.
-     */
     public function contact()
     {
-        $setting = Setting::where('key', 'contact_content')->first();
-        $pageTitle = 'Contact Us';
-        $route = route('admin.pages.contact.update');
-        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+        return $this->showEditor('contact_content', 'Contact Us', 'admin.pages.contact.update');
     }
 
-    /**
-     * Update the Contact page content.
-     */
     public function updateContact(Request $request)
     {
-        $this->updatePageContent('contact_content', $request->input('content'));
-        return back()->with('success', 'Contact page updated successfully!');
+        return $this->saveEditor($request, 'contact_content', 'Contact Us');
     }
 
     /**

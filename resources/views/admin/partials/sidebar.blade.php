@@ -93,7 +93,7 @@
             @php
                 $adminUser = Auth::user();
                 $groupItems = collect($group['items'])->filter(function ($item) use ($groupKey, $adminUser) {
-                    if (!$adminUser->admin_role_id) return true;
+                    if (!$adminUser || !$adminUser->admin_role_id) return true;
                     return match ($groupKey) {
                         'property' => $adminUser->hasAdminPermission('listings.view') || $adminUser->hasAdminPermission('listings.manage'),
                         'people' => $adminUser->hasAdminPermission('people.view') || $adminUser->hasAdminPermission('people.manage'),
