@@ -44,6 +44,10 @@ class BusinessSettingsController extends Controller
     public function update(Request $request)
     {
         $data = $request->except(['_token', '_method']);
+
+        foreach (['google_ads_enabled', 'adsense_enabled', 'meta_pixel_enabled'] as $booleanKey) {
+            $data[$booleanKey] = $request->boolean($booleanKey) ? '1' : '0';
+        }
         
         // Remove helper text inputs (suffix _text) to avoid duplicate settings
         $data = array_filter($data, function($key) {

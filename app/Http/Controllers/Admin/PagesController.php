@@ -21,7 +21,7 @@ class PagesController extends Controller
 
     public function about()
     {
-        return $this->showEditor('about_content', 'About Us', 'admin.pages.about.update');
+        return $this->showEditor('about_content', 'About Us', 'admin.pages.about.update', 'pages.about');
     }
 
     public function updateAbout(Request $request)
@@ -31,7 +31,7 @@ class PagesController extends Controller
 
     public function careers()
     {
-        return $this->showEditor('careers_content', 'Careers', 'admin.pages.careers.update');
+        return $this->showEditor('careers_content', 'Careers', 'admin.pages.careers.update', 'pages.careers');
     }
 
     public function updateCareers(Request $request)
@@ -41,7 +41,7 @@ class PagesController extends Controller
 
     public function howItWorks()
     {
-        return $this->showEditor('how_it_works_content', 'How It Works', 'admin.pages.how-it-works.update');
+        return $this->showEditor('how_it_works_content', 'How It Works', 'admin.pages.how-it-works.update', 'pages.how-it-works');
     }
 
     public function updateHowItWorks(Request $request)
@@ -51,7 +51,7 @@ class PagesController extends Controller
 
     public function safetyTips()
     {
-        return $this->showEditor('safety_tips_content', 'Safety Tips', 'admin.pages.safety-tips.update');
+        return $this->showEditor('safety_tips_content', 'Safety Tips', 'admin.pages.safety-tips.update', 'pages.safety-tips');
     }
 
     public function updateSafetyTips(Request $request)
@@ -61,7 +61,7 @@ class PagesController extends Controller
 
     public function ownerGuidelines()
     {
-        return $this->showEditor('owner_guidelines_content', 'Owner Guidelines', 'admin.pages.owner-guidelines.update');
+        return $this->showEditor('owner_guidelines_content', 'Owner Guidelines', 'admin.pages.owner-guidelines.update', 'pages.owner-guidelines');
     }
 
     public function updateOwnerGuidelines(Request $request)
@@ -71,7 +71,7 @@ class PagesController extends Controller
 
     public function userGuidelines()
     {
-        return $this->showEditor('user_guidelines_content', 'User Guidelines', 'admin.pages.user-guidelines.update');
+        return $this->showEditor('user_guidelines_content', 'User Guidelines', 'admin.pages.user-guidelines.update', 'pages.user-guidelines');
     }
 
     public function updateUserGuidelines(Request $request)
@@ -81,7 +81,7 @@ class PagesController extends Controller
 
     public function terms()
     {
-        return $this->showEditor('terms_content', 'Terms & Conditions', 'admin.pages.terms.update');
+        return $this->showEditor('terms_content', 'Terms & Conditions', 'admin.pages.terms.update', 'pages.terms');
     }
 
     public function updateTerms(Request $request)
@@ -91,17 +91,17 @@ class PagesController extends Controller
 
     public function condition()
     {
-        return $this->showEditor('condition_content', 'Condition Policy', 'admin.pages.condition.update');
+        return $this->showEditor('condition_content', 'Refund & Cancellation Policy', 'admin.pages.condition.update', 'pages.condition');
     }
 
     public function updateCondition(Request $request)
     {
-        return $this->saveEditor($request, 'condition_content', 'Condition Policy');
+        return $this->saveEditor($request, 'condition_content', 'Refund & Cancellation Policy');
     }
 
     public function privacy()
     {
-        return $this->showEditor('privacy_content', 'Privacy Policy', 'admin.pages.privacy.update');
+        return $this->showEditor('privacy_content', 'Privacy Policy', 'admin.pages.privacy.update', 'pages.privacy');
     }
 
     public function updatePrivacy(Request $request)
@@ -111,7 +111,7 @@ class PagesController extends Controller
 
     public function contact()
     {
-        return $this->showEditor('contact_content', 'Contact Us', 'admin.pages.contact.update');
+        return $this->showEditor('contact_content', 'Contact Us', 'admin.pages.contact.update', 'pages.contact');
     }
 
     public function updateContact(Request $request)
@@ -130,7 +130,8 @@ class PagesController extends Controller
         $setting = Setting::where('key', 'faq_content')->first();
         $pageTitle = 'Frequently Asked Questions (FAQ)';
         $route = route('admin.pages.faq.update');
-        return view('admin.pages.faq', compact('setting', 'pageTitle', 'route'));
+        $previewUrl = route('pages.faq');
+        return view('admin.pages.faq', compact('setting', 'pageTitle', 'route', 'previewUrl'));
     }
 
     /**
@@ -168,15 +169,16 @@ class PagesController extends Controller
         }
     }
 
-    private function showEditor(string $key, string $pageTitle, string $routeName)
+    private function showEditor(string $key, string $pageTitle, string $routeName, ?string $previewRouteName = null)
     {
         $setting = Setting::where('key', $key)->first();
         if (!$setting) {
             $setting = new Setting(['key' => $key, 'value' => config("cms.defaults.{$key}", '')]);
         }
         $route = route($routeName);
+        $previewUrl = $previewRouteName ? route($previewRouteName) : null;
 
-        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route'));
+        return view('admin.pages.editor', compact('setting', 'pageTitle', 'route', 'previewUrl'));
     }
 
     private function saveEditor(Request $request, string $key, string $pageTitle)

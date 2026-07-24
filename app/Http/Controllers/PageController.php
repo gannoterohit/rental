@@ -3,87 +3,65 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\CmsPage;
 use App\Models\Setting;
 
 class PageController extends Controller
 {
     public function about()
     {
-        $content = Setting::get('about_content', config('cms.defaults.about_content'));
-        $title = 'About Us';
-
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('about-us', 'About Us', 'about_content');
     }
 
     public function careers()
     {
-        $content = Setting::get('careers_content', '<p>Join us in building a simpler and more trustworthy rental experience.</p><p>For current opportunities, send your profile to our contact email with the role you are interested in.</p>');
-        $title = 'Careers';
-
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('careers', 'Careers', 'careers_content');
     }
 
     public function howItWorks()
     {
-        $content = Setting::get('how_it_works_content', config('cms.defaults.how_it_works_content'));
-        $title = 'How It Works';
-
-        return view('pages.how-it-works', compact('content', 'title'));
+        return $this->render('how-it-works', 'How It Works', 'how_it_works_content', 'pages.how-it-works');
     }
 
     public function safetyTips()
     {
-        $content = Setting::get('safety_tips_content', config('cms.defaults.safety_tips_content'));
-        $title = 'Safety Tips';
-
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('safety-tips', 'Safety Tips', 'safety_tips_content');
     }
 
     public function ownerGuidelines()
     {
-        $content = Setting::get('owner_guidelines_content', config('cms.defaults.owner_guidelines_content'));
-        $title = 'Owner Guidelines';
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('owner-guidelines', 'Owner Guidelines', 'owner_guidelines_content');
     }
 
     public function userGuidelines()
     {
-        $content = Setting::get('user_guidelines_content', config('cms.defaults.user_guidelines_content'));
-        $title = 'User Guidelines';
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('user-guidelines', 'User Guidelines', 'user_guidelines_content');
     }
 
     public function terms()
     {
-        $content = Setting::get('terms_content', config('cms.defaults.terms_content'));
-        $title = 'Terms & Conditions';
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('terms-and-conditions', 'Terms & Conditions', 'terms_content');
     }
 
     public function privacy()
     {
-        $content = Setting::get('privacy_content', config('cms.defaults.privacy_content'));
-        $title = 'Privacy Policy';
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('privacy-policy', 'Privacy Policy', 'privacy_content');
     }
 
     public function condition()
     {
-        $content = Setting::get('condition_content', 'Condition Policy content not set.');
-        $title = 'Condition Policy';
-        return view('pages.show', compact('content', 'title'));
+        return $this->render('condition-policy', 'Refund & Cancellation Policy', 'condition_content');
     }
 
     public function contact()
     {
-        $content = Setting::get('contact_content', 'Contact information not set.');
-        $title = 'Contact Us';
-        return view('pages.contact', compact('content', 'title')); // Special view for contact if form needed
+        return $this->render('contact-us', 'Contact Us', 'contact_content', 'pages.contact');
     }
 
     public function faq()
     {
-        $json = Setting::get('faq_content', '[]');
+        $page = $this->page('faq');
+        $json = $page?->content ?: Setting::get('faq_content', '[]');
         // Ensure it's valid JSON, if not (legacy text), might break. 
         // Logic: Try decode. If array, good. If string, maybe legacy text?
         // But since we just switched system, assuming JSON.
@@ -93,7 +71,48 @@ class PageController extends Controller
             $faqs = []; 
         }
         
-        $title = 'Frequently Asked Questions';
+        $title = $page?->title ?: 'Frequently Asked Questions';
         return view('pages.faq', compact('faqs', 'title'));
+    }
+
+    public function show(string $slug)
+    {
+        $page = CmsPage::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        return $this->renderPage($page);
+    }
+
+    private function render(string $slug, string $fallbackTitle, string $settingKey, string $view = 'pages.show')
+    {
+        $page = $this->page($slug);
+        if ($page) {
+            return $this->renderPage($page, $view);
+        }
+
+        $content = Setting::get($settingKey, config("cms.defaults.{$settingKey}", ''));
+        $title = $fallbackTitle;
+        return view($view, compact('content', 'title'));
+    }
+
+    private function renderPage(CmsPage $page, ?string $forcedView = null)
+    {
+        if (!$page->isPublished()) abort(404);
+
+        $content = $page->content;
+        $title = $page->seo_title ?: $page->title;
+        if (($forcedView ?: $page->template) === 'contact' || $page->template === 'contact') {
+            return view('pages.contact', compact('content', 'title'));
+        }
+        if (($forcedView ?: $page->template) === 'faq' || $page->template === 'faq') {
+            $faqs = json_decode((string) $page->content, true);
+            if (!is_array($faqs)) $faqs = [];
+            return view('pages.faq', compact('faqs', 'title'));
+        }
+        $view = $forcedView ?: 'pages.show';
+        return view($view, compact('content', 'title'));
+    }
+
+    private function page(string $slug): ?CmsPage
+    {
+        return CmsPage::where('slug', $slug)->first();
     }
 }

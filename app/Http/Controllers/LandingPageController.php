@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\City;
+use App\Services\CityOperations;
 use Illuminate\Cache\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache as FacadesCache;
@@ -11,6 +13,15 @@ use Illuminate\Support\Facades\Http;
 
 class LandingPageController extends Controller
 {
+    public function city(string $citySlug, Request $request)
+    {
+        $city = City::where('slug', $citySlug)->firstOrFail();
+        session(['user_city' => $city->name]);
+        $request->merge(['city' => $city->name]);
+
+        return $this->index($request);
+    }
+
     public function index(Request $request)
     {
         $query = Room::query()
@@ -25,7 +36,6 @@ class LandingPageController extends Controller
         $lng = $request->lng ?: ($request->filled('city') ? null : session('user_lng'));
 
         if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
             session(['user_city' => $request->city]);
             session()->forget('no_auto');
 
@@ -38,8 +48,6 @@ class LandingPageController extends Controller
                 $lat = $lng = null;
                 session()->forget(['user_lat', 'user_lng', 'location_verified']);
             }
-        } elseif ($userCity) {
-            $query->where('city', 'like', '%' . $userCity . '%');
         } else {
             // Server-side IP-based city auto-detection fallback
             if (!session('no_auto') && !$request->filled('city')) {
@@ -56,7 +64,6 @@ class LandingPageController extends Controller
                                 $lat = $geo['lat'];
                                 $lng = $geo['lon'];
                                 $locationVerified = true;
-                                $query->where('city', 'like', '%' . $detectedCity . '%');
                             }
                         }
                     }
@@ -66,7 +73,10 @@ class LandingPageController extends Controller
             }
         }
 
-        if ($lat && $lng && $locationVerified && !$request->filled('city')) {
+        $cityContext = CityOperations::resolve($request->input('city'), session('user_city'));
+        CityOperations::applyRoomCity($query, $cityContext);
+
+        if ($lat && $lng && $locationVerified && !$request->filled('city') && !$cityContext['isFallback']) {
             $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$lat, $lng, $lat])
                   ->orderBy('distance', 'asc');
         }
@@ -88,50 +98,31 @@ class LandingPageController extends Controller
             ]);
         }
 
-        $popularCities = FacadesCache::remember('popular_cities_web_v2', 86400, function () {
-            return Room::select('city', \DB::raw('count(*) as total'))
-                ->where('status', 'active')
-                ->where('listing_status', 'approved')
-                ->groupBy('city')
-                ->orderByDesc('total')
-                ->take(8)
-                ->get()
-                ->map(function ($cityRow) {
-                    // Fetch one real room photo from this city
-                    $room = Room::where('city', $cityRow->city)
-                        ->where('status', 'active')
-                        ->where('listing_status', 'approved')
-                        ->whereNotNull('photo')
-                        ->first();
-                    $cityRow->photo = $room ? $room->photo_url : null;
-                    return $cityRow;
-                });
-        });
+        $popularCities = CityOperations::selectorCities();
 
         // Room categories with dynamic counts from DB
-        $roomCategories = FacadesCache::remember('room_categories_web', 3600, function () {
-            return Room::select('room_type_option_id', \DB::raw('count(*) as total'))
-                ->where('status', 'active')
-                ->where('listing_status', 'approved')
-                ->whereNotNull('room_type_option_id')
-                ->groupBy('room_type_option_id')
-                ->orderByDesc('total')
-                ->get()
-                ->map(function ($item) {
-                    $option = \App\Models\RoomOption::find($item->room_type_option_id);
-                    $item->room_type_option_id = $item->room_type_option_id;
-                    $item->label = $option ? $option->label : 'Room';
-                    $item->icon  = 'fas fa-home';
-                    return $item;
-                });
-        });
+        $roomCategories = Room::select('room_type_option_id', \DB::raw('count(*) as total'))
+            ->where('status', 'active')
+            ->where('listing_status', 'approved')
+            ->when($cityContext['activeCityName'], fn ($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
+            ->whereNotNull('room_type_option_id')
+            ->groupBy('room_type_option_id')
+            ->orderByDesc('total')
+            ->get()
+            ->map(function ($item) {
+                $option = \App\Models\RoomOption::find($item->room_type_option_id);
+                $item->room_type_option_id = $item->room_type_option_id;
+                $item->label = $option ? $option->label : 'Room';
+                $item->icon  = 'fas fa-home';
+                return $item;
+            });
 
         $latestBlogs = \App\Models\Blog::where('is_published', true)->orderBy('created_at', 'desc')->take(3)->get();
 
         // Hero room — cheapest featured/active room in current city
         $heroRoom = Room::where('status', 'active')
             ->where('listing_status', 'approved')
-            ->when($userCity, fn($q) => $q->where('city', 'like', '%' . $userCity . '%'))
+            ->when($cityContext['activeCityName'], fn($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
             ->orderByDesc('is_featured')
             ->orderBy('rent', 'asc')
             ->first();
@@ -140,10 +131,10 @@ class LandingPageController extends Controller
         $totalRooms  = Room::where('status', 'active')->where('listing_status', 'approved')->count();
         $totalOwners = Room::where('status', 'active')->where('listing_status', 'approved')->distinct('user_id')->count('user_id');
         $totalAreas  = Room::where('status', 'active')->where('listing_status', 'approved')
-            ->when($userCity, fn($q) => $q->where('city', 'like', '%' . $userCity . '%'))
+            ->when($cityContext['activeCityName'], fn($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
             ->distinct('city')->count('city');
         // Popular city areas — dynamically extracted from address field of active city
-        $homeCity = $userCity ?: 'Bhopal';
+        $homeCity = $cityContext['activeCityName'] ?: 'Bhopal';
         $popularAreas = FacadesCache::remember('popular_areas_' . $homeCity . '_v2', 3600, function () use ($homeCity) {
             return Room::where('status', 'active')
                 ->where('listing_status', 'approved')
@@ -193,7 +184,8 @@ class LandingPageController extends Controller
 
         return view('home-marketplace', compact(
             'rooms', 'popularCities', 'roomCategories', 'latestBlogs',
-            'heroRoom', 'totalRooms', 'totalOwners', 'totalAreas', 'popularAreas'
+            'heroRoom', 'totalRooms', 'totalOwners', 'totalAreas', 'popularAreas',
+            'cityContext'
         ));
     }
 }

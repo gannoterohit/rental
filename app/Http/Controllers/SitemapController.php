@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\CmsPage;
 use Illuminate\Http\Request;
 
 class SitemapController extends Controller
@@ -19,10 +20,10 @@ class SitemapController extends Controller
             'priority' => '1.0'
         ];
 
-        foreach (['pages.about', 'pages.how-it-works', 'pages.owner-guidelines', 'pages.user-guidelines', 'pages.safety-tips', 'pages.terms', 'pages.privacy', 'pages.contact', 'pages.faq'] as $routeName) {
+        foreach (CmsPage::where('status', 'published')->orderBy('sort_order')->get() as $page) {
             $urls[] = [
-                'loc' => route($routeName),
-                'lastmod' => now()->toAtomString(),
+                'loc' => $page->public_url,
+                'lastmod' => optional($page->updated_at)->toAtomString() ?? now()->toAtomString(),
                 'changefreq' => 'monthly',
                 'priority' => '0.5',
             ];
@@ -62,7 +63,6 @@ class SitemapController extends Controller
         return response($content)->header('Content-Type', 'text/plain');
     }
 }
-
 
 
 

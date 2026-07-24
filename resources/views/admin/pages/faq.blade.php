@@ -4,10 +4,18 @@
 <div class="flex min-h-0">
     <div class="flex-1 min-w-0 flex flex-col">
         <div class="container-fluid px-4 py-6">
-            <h1 class="text-2xl font-bold text-slate-800 mb-6">{{ $pageTitle }}</h1>
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h1 class="text-2xl font-bold text-slate-800">{{ $pageTitle }}</h1>
+                @if(!empty($previewUrl))
+                    <a href="{{ $previewUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-600 hover:text-white">
+                        <i class="fas fa-eye"></i>
+                        Preview
+                    </a>
+                @endif
+            </div>
 
             <div class="bg-white rounded-lg shadow-md p-6 overflow-y-auto max-h-[calc(100vh-150px)]">
-                <form action="{{ $route }}" method="POST">
+                <form id="faqEditorForm" action="{{ url()->current() }}" method="POST">
                     @csrf
                     @method('PUT')
                     
@@ -70,24 +78,18 @@
         const container = document.getElementById('faq-container');
         const addBtn = document.getElementById('add-faq-btn');
         let faqCount = {{ count($faqs) > 0 ? count($faqs) : 1 }};
-        
-        // Store editor instances to destroy them properly if needed (though for simple admin usage, might not be strict)
-        const editors = {};
 
-        // Helper to init editor
-        function initEditor(element) {
-            createRichEditor(element)
-                .then(editor => {
-                    editors[element.name] = editor;
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+        function initAnswerEditor(element) {
+            if (!element) return;
+            if (typeof createRichEditor !== 'function') return;
+            createRichEditor(element).catch(function(error) {
+                console.error('FAQ editor init failed:', error);
+                element.classList.remove('hidden');
+            });
         }
 
-        // Init existing editors
         document.querySelectorAll('textarea[name^="faqs"]').forEach(textarea => {
-            initEditor(textarea);
+            initAnswerEditor(textarea);
         });
 
         addBtn.addEventListener('click', function() {
@@ -106,14 +108,15 @@
                     </div>
                 </div>
             `;
-            // Insert HTML
             container.insertAdjacentHTML('beforeend', template);
-            
-            // Find the new textarea and init editor
             const newTextarea = container.lastElementChild.querySelector('textarea');
-            initEditor(newTextarea);
+            initAnswerEditor(newTextarea);
 
             faqCount++;
+        });
+
+        document.getElementById('faqEditorForm')?.addEventListener('submit', function() {
+            window.syncRichEditors?.();
         });
 
         container.addEventListener('click', function(e) {

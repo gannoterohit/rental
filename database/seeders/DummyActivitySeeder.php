@@ -81,9 +81,14 @@ class DummyActivitySeeder extends Seeder
 
         // 3. Contact Unlocks (Enquiries)
         $unlockFee = Setting::get('unlock_fee', 49);
-        for ($i = 0; $i < 60; $i++) {
-            $user = $users->random();
-            $room = $rooms->random();
+        $enquiryPairs = collect();
+        foreach ($users as $user) {
+            foreach ($rooms as $room) {
+                $enquiryPairs->push([$user, $room]);
+            }
+        }
+
+        foreach ($enquiryPairs->shuffle()->take(min(60, $enquiryPairs->count())) as [$user, $room]) {
             $date = Carbon::now()->subDays(rand(1, 90));
 
             $payment = Payment::create([

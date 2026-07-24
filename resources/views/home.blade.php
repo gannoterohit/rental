@@ -827,7 +827,8 @@
                 
                 <div class="space-y-3">
                     <?php
-                        $faqs = json_decode(\App\Models\Setting::get('faq_content', '[]'), true);
+                        $faqPage = \App\Models\CmsPage::where('slug', 'faq')->where('status', 'published')->first();
+                        $faqs = json_decode($faqPage?->content ?: \App\Models\Setting::get('faq_content', '[]'), true);
                         if (!is_array($faqs) || count($faqs) === 0) $faqs = [
                             ['q' => 'How do I contact a room owner?', 'a' => 'Open a room, review its details and unlock the owner contact using a contact credit or single unlock. You can then call or message the owner directly.'],
                             ['q' => 'Is there any brokerage charge?', 'a' => 'No! ApnaNest connects owners and tenants directly. There are no brokerage charges or hidden fees involved.'],

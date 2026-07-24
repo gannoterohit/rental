@@ -4,6 +4,12 @@
 @section('description', (request('city') ? 'Find the best verified rooms, apartments, and PG in ' . request('city') . '. Browse listings with photos, rents, and owner contacts.' : 'Browse verified room listings in your city. Find apartments, houses, and rooms for rent with verified owners.'))
 @section('keywords', (request('city') ? 'pg in ' . request('city') . ', room for rent in ' . request('city') . ', ' : '') . 'browse rooms, room listings, ' . \App\Models\Setting::get('seo_meta_keywords', 'apartment, house, property'))
 
+@php
+    $cityContext = $cityContext ?? ['isFallback' => false, 'activeCityName' => request('city') ?? session('user_city'), 'launchingSoonCityName' => null];
+    $displayCity = $cityContext['launchingSoonCityName'] ?? $cityContext['activeCityName'] ?? request('city') ?? session('user_city');
+    $hasMetaSearchIntent = request()->hasAny(['city', 'min_rent', 'max_rent', 'room_type', 'tenant_type', 'furnishing_type', 'available_now', 'availability_from']);
+@endphp
+
 @push('styles')
 @include('partials.listings-ld')
 <style>
@@ -109,6 +115,7 @@
         font-size: .625rem !important;
         padding: .35rem .5rem !important;
     }
+    .city-fallback-banner { border: 1px solid #fed7aa; background: #fff7ed; color: #9a3412; border-radius: 1rem; padding: .95rem 1rem; }
     @media (max-width: 1279px) {
         .room-listing-card .room-image { height: 13rem; }
     }
@@ -142,7 +149,7 @@
                     <div class="relative">
                         <i class="fas fa-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <input type="text" name="city" id="hero-city-input"
-                               value="{{ request('city') ?? session('user_city') }}"
+                               value="{{ $displayCity }}"
                                placeholder="City or area..."
                                class="w-full py-2 pl-8 pr-7 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none transition-all">
                         @if(request('city') || session('user_city'))
@@ -211,11 +218,21 @@
 <!-- ===== MAIN CONTAINER ===== -->
 <div class="rooms-main">
 <div class="container mx-auto px-4 sm:px-6 py-6">
+    @if($cityContext['isFallback'])
+        <div class="city-fallback-banner mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <strong class="block text-sm">Launching soon in {{ $cityContext['launchingSoonCityName'] }}</strong>
+                <span class="text-xs">We're currently active in {{ $cityContext['activeCityName'] }}. Showing verified {{ $cityContext['activeCityName'] }} properties for now.</span>
+            </div>
+            <a href="{{ route('rooms.index', ['city' => $cityContext['activeCityName']]) }}" class="text-xs font-black text-indigo-700">View {{ $cityContext['activeCityName'] }}</a>
+        </div>
+    @endif
+
     <!-- Breadcrumb -->
     <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-4 font-semibold">
         <a href="{{ url('/') }}" class="hover:text-indigo-600 transition-colors">Home</a>
         <i class="fas fa-chevron-right text-[8px]"></i>
-        <span class="text-slate-600">Rooms in {{ request('city') ?? session('user_city') ?? 'India' }}</span>
+        <span class="text-slate-600">Rooms in {{ $displayCity ?? 'India' }}</span>
     </div>
 
     <!-- Outer container (Flexbox for robust layout) -->
@@ -244,8 +261,8 @@
                                 class="w-full py-2 px-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none transition-all">
                             <option value="">Select City</option>
                             @foreach($popularCities as $pCity)
-                                <option value="{{ $pCity->city }}" {{ request('city') === $pCity->city ? 'selected' : '' }}>
-                                    {{ $pCity->city }} ({{ $pCity->total }})
+                                <option value="{{ $pCity->name }}" {{ $displayCity === $pCity->name ? 'selected' : '' }}>
+                                    {{ $pCity->name }} {{ $pCity->is_active ? '' : '(Coming Soon)' }}
                                 </option>
                             @endforeach
                         </select>
@@ -422,7 +439,7 @@
             <div class="rooms-results-head flex items-center justify-between mb-5 flex-wrap gap-3">
                 <div>
                     <h2 class="text-2xl font-black text-slate-900 font-heading">
-                        All Rooms in {{ request('city') ?? session('user_city') ?? 'India' }}
+                        All Rooms in {{ $cityContext['activeCityName'] ?? $displayCity ?? 'India' }}
                     </h2>
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">
                         {{ $rooms->total() }}+ Rooms Found
@@ -710,6 +727,18 @@
 </div>
 
 @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const hasSearchIntent = @json($hasMetaSearchIntent);
+    if (hasSearchIntent) {
+        window.trackRoomNestEvent?.('Search', {
+            search_string: @json(request('city') ?? session('user_city') ?? ''),
+            city: @json($displayCity ?? ''),
+            content_type: 'room'
+        });
+    }
+});
+</script>
 @auth
     @if(Auth::user()->role === 'owner')
         @push('sweetalert')

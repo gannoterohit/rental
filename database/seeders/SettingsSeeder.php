@@ -199,6 +199,20 @@ class SettingsSeeder extends Seeder
                 'description' => 'Google Analytics 4 Measurement ID (G-XXXXXXXXXX)'
             ],
             [
+                'key' => 'meta_pixel_enabled',
+                'value' => '0',
+                'type' => 'boolean',
+                'group' => 'seo',
+                'description' => 'Enable Meta Pixel tracking'
+            ],
+            [
+                'key' => 'meta_pixel_id',
+                'value' => '',
+                'type' => 'text',
+                'group' => 'seo',
+                'description' => 'Meta Pixel ID from Meta Business Manager'
+            ],
+            [
                 'key' => 'adsense_enabled',
                 'value' => '0',
                 'type' => 'boolean',
@@ -251,4 +265,3 @@ class SettingsSeeder extends Seeder
         }
     }
 }
-

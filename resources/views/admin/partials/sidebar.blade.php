@@ -26,13 +26,15 @@
         'content' => ['label' => 'Content Management', 'icon' => 'fa-pen-to-square', 'items' => [
             ['route' => 'admin.home-page.index', 'match' => 'admin.home-page*', 'icon' => 'fa-home', 'label' => 'Home Page'],
             ['route' => 'admin.blogs.index', 'match' => 'admin.blogs*', 'icon' => 'fa-newspaper', 'label' => 'Blogs'],
-        ], 'has_pages' => true],
+            ['route' => 'admin.cms-pages.index', 'match' => 'admin.cms-pages*', 'icon' => 'fa-file-lines', 'label' => 'CMS Pages'],
+        ]],
         'reports' => ['label' => 'Reports & Analytics', 'icon' => 'fa-chart-line', 'items' => [
             ['route' => 'admin.reports', 'match' => 'admin.reports', 'icon' => 'fa-chart-pie', 'label' => 'Reports'],
-            ['route' => 'admin.analytics', 'match' => 'admin.analytics', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Search Analytics'],
+            ['route' => 'admin.analytics', 'match' => 'admin.analytics', 'icon' => 'fa-chart-simple', 'label' => 'Analytics'],
         ]],
         'settings' => ['label' => 'Settings', 'icon' => 'fa-gear', 'items' => [
             ['route' => 'admin.settings', 'match' => 'admin.settings*', 'icon' => 'fa-cog', 'label' => 'Business Settings'],
+            ['route' => 'admin.cities.index', 'match' => 'admin.cities*', 'icon' => 'fa-map-location-dot', 'label' => 'Operational Cities'],
             ['route' => 'admin.maintenance', 'match' => 'admin.maintenance*', 'icon' => 'fa-screwdriver-wrench', 'label' => 'Maintenance'],
         ]],
         'administration' => ['label' => 'Administration', 'icon' => 'fa-user-shield', 'items' => [
@@ -41,20 +43,7 @@
             ['route' => 'admin.activity.index', 'match' => 'admin.activity*', 'icon' => 'fa-clock-rotate-left', 'label' => 'Activity Logs'],
         ]],
     ];
-    $pageItems = [
-            ['route' => 'admin.pages.about', 'match' => 'admin.pages.about*', 'icon' => 'fa-info-circle', 'label' => 'About Us'],
-            ['route' => 'admin.pages.careers', 'match' => 'admin.pages.careers*', 'icon' => 'fa-briefcase', 'label' => 'Careers'],
-            ['route' => 'admin.pages.how-it-works', 'match' => 'admin.pages.how-it-works*', 'icon' => 'fa-route', 'label' => 'How It Works'],
-            ['route' => 'admin.pages.safety-tips', 'match' => 'admin.pages.safety-tips*', 'icon' => 'fa-shield-alt', 'label' => 'Safety Tips'],
-            ['route' => 'admin.pages.owner-guidelines', 'match' => 'admin.pages.owner-guidelines*', 'icon' => 'fa-house-user', 'label' => 'Owner Guidelines'],
-            ['route' => 'admin.pages.user-guidelines', 'match' => 'admin.pages.user-guidelines*', 'icon' => 'fa-person-circle-check', 'label' => 'User Guidelines'],
-            ['route' => 'admin.pages.terms', 'match' => 'admin.pages.terms*', 'icon' => 'fa-file-contract', 'label' => 'Terms'],
-            ['route' => 'admin.pages.privacy', 'match' => 'admin.pages.privacy*', 'icon' => 'fa-user-shield', 'label' => 'Privacy Policy'],
-            ['route' => 'admin.pages.condition', 'match' => 'admin.pages.condition*', 'icon' => 'fa-clipboard-check', 'label' => 'Condition Policy'],
-            ['route' => 'admin.pages.contact', 'match' => 'admin.pages.contact*', 'icon' => 'fa-address-book', 'label' => 'Contact Us'],
-            ['route' => 'admin.pages.faq', 'match' => 'admin.pages.faq*', 'icon' => 'fa-question-circle', 'label' => 'FAQ'],
-    ];
-    $pagesOpen = request()->routeIs('admin.pages*');
+    $pagesOpen = false;
 @endphp
 
 <button id="adminSidebarOpen" class="lg:hidden fixed top-3 left-3 z-[70] w-10 h-10 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200" aria-label="Open admin menu"><i class="fas fa-bars"></i></button>
@@ -113,7 +102,7 @@
                 $groupActive = $groupItems->contains(fn ($item) => request()->routeIs($item['match'])) || (!empty($group['has_pages']) && $pagesOpen);
                 $groupOpen = $groupActive;
             @endphp
-            @continue($groupItems->isEmpty() && (empty($group['has_pages']) || !$pagesOpen))
+            @continue($groupItems->isEmpty())
             <section class="admin-nav-group" data-group="{{ $groupKey }}">
                 <button type="button" class="admin-nav-group-toggle group flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-[13px] font-bold transition {{ $groupActive ? 'border-indigo-100 bg-indigo-50 text-indigo-700' : 'border-transparent bg-white text-slate-700 hover:bg-slate-50' }}" aria-expanded="{{ $groupOpen ? 'true' : 'false' }}">
                     <span class="flex min-w-0 items-center gap-2.5"><span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $groupActive ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' }}"><i class="fas {{ $group['icon'] }} text-[12px]"></i></span><span class="whitespace-nowrap text-[12px]">{{ $group['label'] }}</span></span>
@@ -126,17 +115,6 @@
                             <i class="fas {{ $item['icon'] }} w-4 text-center text-[11px] {{ $itemActive ? 'text-indigo-600' : 'text-slate-400' }}"></i><span>{{ $item['label'] }}</span>
                         </a>
                     @endforeach
-
-                    @if(!empty($group['has_pages']))
-                        <button type="button" id="websitePagesToggle" class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[12px] transition {{ $pagesOpen ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-slate-600 font-semibold hover:bg-slate-50 hover:text-slate-900' }}">
-                            <span class="flex items-center gap-2.5"><i class="fas fa-file-lines w-4 text-center text-[11px] {{ $pagesOpen ? 'text-indigo-600' : 'text-slate-400' }}"></i><span>CMS Pages</span></span><i id="websitePagesChevron" class="fas fa-chevron-down text-[9px] text-slate-400 transition-transform {{ $pagesOpen ? 'rotate-180' : '' }}"></i>
-                        </button>
-                        <div id="websitePagesMenu" class="{{ $pagesOpen ? '' : 'hidden' }} ml-4 mt-1 space-y-1 border-l border-indigo-100 pl-3">
-                            @foreach($pageItems as $item)
-                                <a href="{{ route($item['route']) }}" class="relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[12px] transition {{ request()->routeIs($item['match']) ? 'bg-white text-indigo-700 font-extrabold shadow-sm ring-1 ring-indigo-100 before:absolute before:-left-[14px] before:h-5 before:w-[3px] before:rounded-full before:bg-indigo-600' : 'text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900' }}"><i class="fas {{ $item['icon'] }} w-4 text-center text-[10px]"></i><span>{{ $item['label'] }}</span></a>
-                            @endforeach
-                        </div>
-                    @endif
                 </div>
             </section>
         @endforeach
@@ -152,6 +130,7 @@
         </div>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
+            <input type="hidden" name="admin_login" value="1">
             <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:border-red-600 hover:text-white text-[11px] font-bold transition">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
@@ -184,11 +163,6 @@
             button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         });
     });
-    document.getElementById('websitePagesToggle')?.addEventListener('click', () => {
-        document.getElementById('websitePagesMenu')?.classList.toggle('hidden');
-        document.getElementById('websitePagesChevron')?.classList.toggle('rotate-180');
-    });
-
     const menuSearch = document.getElementById('adminMenuSearch');
     const menuSearchClear = document.getElementById('adminMenuSearchClear');
     const menuSearchEmpty = document.getElementById('adminMenuSearchEmpty');
@@ -223,8 +197,6 @@
                 menu?.classList.remove('hidden');
                 toggleButton?.setAttribute('aria-expanded', 'true');
                 section.querySelector('.admin-nav-chevron')?.classList.add('rotate-180');
-                const pagesMenu = section.querySelector('#websitePagesMenu');
-                if (pagesMenu && [...pagesMenu.querySelectorAll('a')].some(link => !link.classList.contains('hidden'))) pagesMenu.classList.remove('hidden');
             }
         });
         separators.forEach(separator => separator.classList.toggle('hidden', !!term));

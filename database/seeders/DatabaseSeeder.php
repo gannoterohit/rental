@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
         // Seed Settings
         $this->call(SettingsSeeder::class);
 
+        // Seed operational cities
+        $this->call(CitySeeder::class);
+
         // Seed Room Options
         $this->call(RoomOptionSeeder::class);
 

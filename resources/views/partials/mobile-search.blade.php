@@ -99,7 +99,7 @@
             
             @if(isset($popularCities) && $popularCities->count() > 0)
                 @foreach($popularCities as $city)
-                    <a href="{{ route('rooms.index', ['city' => $city->city]) }}" class="flex flex-col items-center gap-1 min-w-[60px] group">
+                    <a href="{{ route('rooms.index', ['city' => $city->name]) }}" class="flex flex-col items-center gap-1 min-w-[60px] group">
                         <div class="w-12 h-12 bg-gray-200 rounded-2xl overflow-hidden relative shadow-md group-active:scale-95 transition-transform border border-gray-300">
                              {{-- Dynamic Gradient based on City Name Length/Hash for variety --}}
                              @php
@@ -110,13 +110,13 @@
                                     'from-slate-700 to-slate-900',
                                     'from-indigo-500 to-purple-600',
                                 ];
-                                $colorClass = $colors[crc32($city->city) % count($colors)];
+                                $colorClass = $colors[crc32($city->name) % count($colors)];
                              @endphp
                              <div class="absolute inset-0 bg-gradient-to-br {{ $colorClass }} flex items-center justify-center text-white font-black text-xs uppercase shadow-inner" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-                                {{ substr($city->city, 0, 3) }}
+                                {{ substr($city->name, 0, 3) }}
                              </div>
                         </div>
-                        <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">{{ $city->city }}</span>
+                        <span class="text-[10px] font-medium text-gray-600 truncate max-w-[60px]">{{ $city->name }}{{ $city->is_active ? '' : ' Soon' }}</span>
                     </a>
                 @endforeach
             @endif

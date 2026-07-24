@@ -39,6 +39,12 @@ class OtpController extends Controller
                 'message' => 'Your account has been blocked.'
             ], 403);
         }
+        if ($existingUser && $existingUser->role === 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin and staff accounts must use the admin login page.'
+            ], 403);
+        }
 
         $code = Otp::generate($email);
         
@@ -90,6 +96,15 @@ class OtpController extends Controller
         $email = $request->email;
         $otp = $request->otp;
 
+        $user = User::where('email', $email)->first();
+
+        if ($user && $user->role === 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin and staff accounts must use the admin login page.'
+            ], 403);
+        }
+
         if (!Otp::verify($email, $otp)) {
             return response()->json([
                 'success' => false,
@@ -98,8 +113,6 @@ class OtpController extends Controller
         }
 
         // Check if user exists
-        $user = User::where('email', $email)->first();
-        
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -117,9 +130,6 @@ class OtpController extends Controller
 
         // Log in the user
         auth()->login($user);
-        if ($user->role === 'admin') {
-            $user->forceFill(['last_admin_login_at' => now()])->save();
-        }
         
         return response()->json([
             'success' => true,

@@ -53,7 +53,7 @@ class DummyDataSeeder extends Seeder
         }
 
         // Create Sample Rooms
-        $cities = ['Mumbai', 'Delhi', 'Bangalore', 'Pune', 'Hyderabad'];
+        $cities = ['Indore'];
         $roomTypes = ['1BHK', '2BHK', '3BHK', 'Studio', 'PG'];
         
         foreach ($owners as $index => $owner) {
@@ -62,9 +62,16 @@ class DummyDataSeeder extends Seeder
                 $type = $roomTypes[array_rand($roomTypes)];
                 $rent = rand(5000, 50000);
                 
-                Room::create([
+                $title = "Beautiful {$type} in {$city}";
+
+                $room = Room::firstOrNew([
                     'user_id' => $owner->id,
-                    'title' => "Beautiful {$type} in {$city}",
+                    'title' => $title,
+                ]);
+
+                $room->fill([
+                    'user_id' => $owner->id,
+                    'title' => $title,
                     'description' => "Spacious {$type} apartment in prime location. Fully furnished with modern amenities. Close to metro, schools, and shopping malls. Available for immediate possession.",
                     'rent' => $rent,
                     'deposit' => $rent * 2,
@@ -72,9 +79,16 @@ class DummyDataSeeder extends Seeder
                     'address' => "Street {$j}, Area {$index}, {$city}",
                     'photo' => 'rooms/sample-room.jpg', // You can add actual images later
                     'status' => 'active',
+                    'listing_status' => 'approved',
                     'listing_fee_paid' => true,
                     'is_featured' => $j === 1, // First room of each owner is featured
                 ]);
+
+                if (!$room->exists && !$room->slug) {
+                    $room->slug = Room::generateUniqueSlug($title . '-' . $owner->id . '-' . $j);
+                }
+
+                $room->save();
             }
         }
 
@@ -119,4 +133,3 @@ class DummyDataSeeder extends Seeder
         $this->command->info('Users: user1@test.com to user10@test.com / password');
     }
 }
-

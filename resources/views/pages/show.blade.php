@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $title)
+@section('description', $metaDescription ?? '')
 
 @section('content')
 <div class="py-12 bg-gray-50 min-h-screen">

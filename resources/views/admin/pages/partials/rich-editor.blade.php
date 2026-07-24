@@ -1,75 +1,71 @@
 @once
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <style>
-    .ck-editor__editable_inline { min-height: 420px; }
-    .faq-item .ck-editor__editable_inline { min-height: 150px; }
-    .ck.ck-toolbar { border-color:#dbe1ea !important; border-radius:10px 10px 0 0 !important; padding:6px !important; }
-    .ck.ck-editor__main > .ck-editor__editable { border-color:#dbe1ea !important; border-radius:0 0 10px 10px !important; }
-    .ck.ck-editor__editable.ck-focused { border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(var(--primary-rgb),.1) !important; }
+    .cms-rich-editor .ql-toolbar { border-color:#dbe1ea; border-radius:10px 10px 0 0; background:#f8fafc; }
+    .cms-rich-editor .ql-container { min-height:420px; border-color:#dbe1ea; border-radius:0 0 10px 10px; font-size:15px; }
+    .cms-rich-editor .ql-editor { min-height:420px; line-height:1.7; }
+    .faq-item .cms-rich-editor .ql-container,
+    .faq-item .cms-rich-editor .ql-editor { min-height:150px; }
     .page-editor-fullscreen { position:fixed !important; inset:0 !important; z-index:99999 !important; background:#fff !important; padding:16px !important; overflow:auto !important; }
-    .page-editor-fullscreen .ck-editor__editable_inline { min-height:calc(100vh - 145px) !important; }
+    .page-editor-fullscreen .cms-rich-editor .ql-container,
+    .page-editor-fullscreen .cms-rich-editor .ql-editor { min-height:calc(100vh - 150px) !important; }
 </style>
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/super-build/ckeditor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
 window.richEditors = window.richEditors || new Map();
-window.createRichEditor = function(element) {
-    if (!element || window.richEditors.has(element)) return Promise.resolve(window.richEditors.get(element));
-    if (typeof CKEDITOR === 'undefined' || !CKEDITOR.ClassicEditor) {
-        return Promise.reject(new Error('CKEditor script not available'));
-    }
 
-    return CKEDITOR.ClassicEditor.create(element, {
-        toolbar: {
-            items: [
-                'undo', 'redo', '|',
-                'heading', 'style', '|',
-                'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-                'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
-                'alignment', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-                'link', 'insertImage', 'insertTable', 'blockQuote', 'horizontalLine', '|',
-                'code', 'codeBlock', 'specialCharacters'
-            ],
-            shouldNotGroupWhenFull: false
-        },
-        heading: {
-            options: [
-                { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-                { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' }
+window.createRichEditor = function(textarea) {
+    if (!textarea) return Promise.reject(new Error('Editor target missing'));
+    if (window.richEditors.has(textarea)) return Promise.resolve(window.richEditors.get(textarea));
+    if (typeof Quill === 'undefined') return Promise.reject(new Error('Quill script not loaded'));
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cms-rich-editor';
+    const editorElement = document.createElement('div');
+    wrapper.appendChild(editorElement);
+    textarea.classList.add('hidden');
+    textarea.insertAdjacentElement('afterend', wrapper);
+    editorElement.innerHTML = textarea.value || '';
+
+    const quill = new Quill(editorElement, {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, 3, 4, false] }],
+                [{ size: ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+                [{ indent: '-1' }, { indent: '+1' }],
+                [{ align: [] }, { direction: 'rtl' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image', 'video'],
+                ['clean']
             ]
+        }
+    });
+
+    const editor = {
+        sourceElement: textarea,
+        instance: quill,
+        getData() {
+            return quill.root.innerHTML;
         },
-        fontSize: { options: [9, 11, 13, 'default', 17, 19, 21, 27, 35], supportAllValues: true },
-        fontFamily: { supportAllValues: true },
-        htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] },
-        link: {
-            decorators: {
-                openInNewTab: { mode: 'manual', label: 'Open in a new tab', attributes: { target: '_blank', rel: 'noopener noreferrer' } }
-            }
-        },
-        image: {
-            toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'linkImage']
-        },
-        simpleUpload: {
-            uploadUrl: @json(route('admin.pages.upload-image')),
-            headers: { 'X-CSRF-TOKEN': @json(csrf_token()) }
-        },
-        table: {
-            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
-        },
-        removePlugins: [
-            'AIAssistant', 'CKBox', 'CKBoxImageEdit', 'CKFinder', 'EasyImage',
-            'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges', 'RealTimeCollaborativeRevisionHistory',
-            'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData', 'RevisionHistory',
-            'Pagination', 'WProofreader', 'MathType', 'SlashCommand', 'Template',
-            'DocumentOutline', 'FormatPainter', 'TableOfContents'
-        ]
-    }).then(editor => {
-        window.richEditors.set(element, editor);
-        return editor;
-    }).catch(error => {
-        console.error('Rich editor failed to initialize:', error);
-        return Promise.reject(error);
+        sync() {
+            textarea.value = quill.root.innerHTML;
+        }
+    };
+
+    quill.on('text-change', () => editor.sync());
+    editor.sync();
+    window.richEditors.set(textarea, editor);
+    return Promise.resolve(editor);
+};
+
+window.syncRichEditors = function() {
+    window.richEditors?.forEach(editor => {
+        if (editor && typeof editor.sync === 'function') editor.sync();
     });
 };
 </script>

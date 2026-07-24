@@ -10,10 +10,13 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\RazorpayController;
 use App\Http\Controllers\UnlockController;
+use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\Admin\BusinessSettingsController;
+use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\RejectionReasonController;
 use App\Http\Controllers\Admin\RoomOptionController;
+use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\WalletController;
@@ -21,11 +24,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/admin-login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'adminAccess'])
     ->name('admin.login-access');
+Route::post('/admin-login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'adminAuthenticate'])
+    ->middleware('throttle:strict_login')
+    ->name('admin.login.submit');
 
 Route::get('/', [LandingPageController::class,'index'])->name('home');
 Route::get('/set-city', [RoomController::class, 'setCity'])->name('set-city');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::post('/analytics/events', [AnalyticsEventController::class, 'store'])
+    ->middleware('throttle:60,1')
+    ->name('analytics.events.store');
 
 // Referral Tracking
 Route::get('/ref/{code}', [\App\Http\Controllers\ReferralController::class, 'track'])->name('referral.track');
@@ -148,11 +157,15 @@ Route::middleware(['auth','role:admin','admin.permission','admin.activity'])->pr
     Route::get('/settings', [BusinessSettingsController::class, 'index'])->name('settings');
     Route::get('/maintenance', [BusinessSettingsController::class, 'maintenance'])->name('maintenance');
     Route::post('/maintenance', [BusinessSettingsController::class, 'updateMaintenance'])->name('maintenance.update');
+    Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
+    Route::post('/cities', [CityController::class, 'store'])->name('cities.store');
+    Route::put('/cities/{city}', [CityController::class, 'update'])->name('cities.update');
     Route::get('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'index'])->name('home-page.index');
     Route::put('/home-page', [\App\Http\Controllers\Admin\HomePageController::class, 'update'])->name('home-page.update');
     Route::post('/settings', [BusinessSettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/store', [BusinessSettingsController::class, 'store'])->name('settings.store');
     Route::post('/settings/ping', [BusinessSettingsController::class, 'pingSearchEngines'])->name('settings.ping');
+    Route::resource('cms-pages', CmsPageController::class)->except(['show']);
     Route::resource('room-options', RoomOptionController::class)->except(['show']);
     Route::patch('room-options/{roomOption}/toggle-status', [RoomOptionController::class, 'toggleStatus'])->name('room-options.toggle-status');
     Route::resource('plans', PlanController::class);
@@ -232,34 +245,10 @@ Route::delete('rooms/{room}', [AdminController::class, 'deleteRoom'])->name('roo
 
 Route::controller(PagesController::class)->group(function () {
     Route::post('/pages/upload-image', 'uploadImage')->name('pages.upload-image');
-    Route::get('/pages/about', 'about')->name('pages.about');
-    Route::put('/pages/about', 'updateAbout')->name('pages.about.update');
-    Route::get('/pages/careers', 'careers')->name('pages.careers');
-    Route::put('/pages/careers', 'updateCareers')->name('pages.careers.update');
-    Route::get('/pages/how-it-works', 'howItWorks')->name('pages.how-it-works');
-    Route::put('/pages/how-it-works', 'updateHowItWorks')->name('pages.how-it-works.update');
-    Route::get('/pages/safety-tips', 'safetyTips')->name('pages.safety-tips');
-    Route::put('/pages/safety-tips', 'updateSafetyTips')->name('pages.safety-tips.update');
-    Route::get('/pages/owner-guidelines', 'ownerGuidelines')->name('pages.owner-guidelines');
-    Route::put('/pages/owner-guidelines', 'updateOwnerGuidelines')->name('pages.owner-guidelines.update');
-    Route::get('/pages/user-guidelines', 'userGuidelines')->name('pages.user-guidelines');
-    Route::put('/pages/user-guidelines', 'updateUserGuidelines')->name('pages.user-guidelines.update');
-
-    Route::get('/pages/terms', 'terms')->name('pages.terms');
-    Route::put('/pages/terms', 'updateTerms')->name('pages.terms.update');
-
-    Route::get('/pages/condition', 'condition')->name('pages.condition');
-    Route::put('/pages/condition', 'updateCondition')->name('pages.condition.update');
-
-    Route::get('/pages/privacy', 'privacy')->name('pages.privacy');
-    Route::put('/pages/privacy', 'updatePrivacy')->name('pages.privacy.update');
-
-    Route::get('/pages/contact', 'contact')->name('pages.contact');
-    Route::put('/pages/contact', 'updateContact')->name('pages.contact.update');
-
-    Route::get('/pages/faq', 'faq')->name('pages.faq');
-    Route::put('/pages/faq', 'updateFaq')->name('pages.faq.update');
 });
+Route::get('/pages/{key}', [CmsPageController::class, 'legacy'])
+    ->where('key', 'about|careers|how-it-works|safety-tips|owner-guidelines|user-guidelines|terms|condition|privacy|contact|faq')
+    ->name('pages.legacy');
 });
 
 Route::middleware(['auth', 'role:owner'])->prefix('owner')->group(function () {
@@ -289,3 +278,11 @@ Route::get('/youtube-proxy/{videoId}', function ($videoId) {
         abort(404, 'YouTube thumbnail not found');
     }
 })->name('youtube.proxy');
+
+Route::get('/{cmsPageSlug}', [\App\Http\Controllers\PageController::class, 'show'])
+    ->where('cmsPageSlug', '^(?!(bhopal|indore|pune|mumbai|delhi|bangalore|hyderabad|admin|owner|api|rooms|blog|login|register|dashboard|profile|complaints|plans|wallet|wishlist|sitemap\.xml|robots\.txt|youtube-proxy)$)[A-Za-z0-9-]+$')
+    ->name('cms-pages.show');
+
+Route::get('/{citySlug}', [LandingPageController::class, 'city'])
+    ->where('citySlug', 'bhopal|indore|pune|mumbai|delhi|bangalore|hyderabad')
+    ->name('cities.show');

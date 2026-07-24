@@ -7,6 +7,7 @@ use App\Models\Enquiry;
 use App\Models\RoomOption;
 use App\Models\Setting;
 use App\Models\SubscriptionUsage;
+use App\Services\CityOperations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,9 @@ class RoomController extends Controller {
         $query = Room::query();
     
         // Check if owner wants to see their OWN rooms (management view)
-        if (Auth::check() && Auth::user()->role === 'owner' && $request->get('view') === 'mine') {
+        $isOwnerManagementView = Auth::check() && Auth::user()->role === 'owner' && $request->get('view') === 'mine';
+
+        if ($isOwnerManagementView) {
             $query->where('user_id', Auth::id());
         } 
         // Public/Explore view (default)
@@ -45,7 +48,6 @@ class RoomController extends Controller {
     $lng = $request->lng ?: ($request->filled('city') ? null : session('user_lng'));
 
     if ($request->filled('city')) {
-        $query->where('city', 'like', '%' . $request->city . '%');
         session(['user_city' => $request->city]);
         session()->forget('no_auto');
 
@@ -56,8 +58,6 @@ class RoomController extends Controller {
             $lat = $lng = null;
             session()->forget(['user_lat', 'user_lng', 'location_verified']);
         }
-    } elseif ($userCity) {
-        $query->where('city', 'like', '%' . $userCity . '%');
     } else {
         // Server-side IP-based city auto-detection fallback
         // Runs only if no session city, no request city, and user hasn't opted out
@@ -76,7 +76,6 @@ class RoomController extends Controller {
                             $lat = $geo['lat'];
                             $lng = $geo['lon'];
                             $locationVerified = true;
-                            $query->where('city', 'like', '%' . $detectedCity . '%');
                         }
                     }
                 }
@@ -86,7 +85,12 @@ class RoomController extends Controller {
         }
     }
 
-    if ($lat && $lng && $locationVerified) {
+    $cityContext = CityOperations::resolve($request->input('city'), session('user_city'));
+    if (!$isOwnerManagementView) {
+        CityOperations::applyRoomCity($query, $cityContext);
+    }
+
+    if ($lat && $lng && $locationVerified && !$cityContext['isFallback']) {
         // SORT BY DISTANCE
         $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$lat, $lng, $lat])
               ->orderBy('distance', 'asc');
@@ -136,7 +140,7 @@ class RoomController extends Controller {
     $sortBy = $request->get('sort_by', 'newest');
     $query->orderBy('is_featured', 'desc');
 
-    if ($lat && $lng && $locationVerified) {
+    if ($lat && $lng && $locationVerified && !$cityContext['isFallback']) {
         $query->orderBy('distance', 'asc');
     }
 
@@ -164,16 +168,7 @@ class RoomController extends Controller {
         ]);
     }
 
-    // Get Popular Cities dynamically based on active room count (Cached for performance)
-    $popularCities = \Illuminate\Support\Facades\Cache::remember('popular_cities_web', 86400, function() {
-        return Room::select('city', DB::raw('count(*) as total'))
-            ->where('status', 'active')
-            ->where('listing_status', 'approved')
-            ->groupBy('city')
-            ->orderByDesc('total')
-            ->take(10)
-            ->get();
-    });
+    $popularCities = CityOperations::selectorCities();
 
     // Log the search or visit if city is detected
     if ($request->filled('city') || $request->filled('min_rent') || $request->filled('max_rent') || isset($userCity)) {
@@ -198,6 +193,7 @@ class RoomController extends Controller {
     $roomTypeCounts = Room::select('room_type_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
+        ->when($cityContext['activeCityName'], fn ($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
         ->whereNotNull('room_type_option_id')
         ->groupBy('room_type_option_id')
         ->pluck('total', 'room_type_option_id')
@@ -216,6 +212,7 @@ class RoomController extends Controller {
     // Dynamic rent bounds from actual DB data
     $rentBounds = Room::where('status', 'active')
         ->where('listing_status', 'approved')
+        ->when($cityContext['activeCityName'], fn ($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
         ->selectRaw('MIN(rent) as min_rent, MAX(rent) as max_rent')
         ->first();
 
@@ -223,6 +220,7 @@ class RoomController extends Controller {
     $tenantTypeCounts = Room::select('tenant_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
+        ->when($cityContext['activeCityName'], fn ($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
         ->whereNotNull('tenant_option_id')
         ->groupBy('tenant_option_id')
         ->pluck('total', 'tenant_option_id')
@@ -233,6 +231,7 @@ class RoomController extends Controller {
     $furnishingCounts = Room::select('furnishing_option_id', DB::raw('count(*) as total'))
         ->where('status', 'active')
         ->where('listing_status', 'approved')
+        ->when($cityContext['activeCityName'], fn ($q) => $q->where('city', 'like', '%' . $cityContext['activeCityName'] . '%'))
         ->whereNotNull('furnishing_option_id')
         ->groupBy('furnishing_option_id')
         ->pluck('total', 'furnishing_option_id')
@@ -241,7 +240,7 @@ class RoomController extends Controller {
 
     return view('rooms.index', compact(
         'rooms', 'popularCities', 'roomTypeCounts', 'roomTypeOptions',
-        'rentBounds', 'tenantTypeCounts', 'furnishingCounts'
+        'rentBounds', 'tenantTypeCounts', 'furnishingCounts', 'cityContext'
     ));
     }
     

@@ -539,6 +539,32 @@
                                 <p class="mt-1 text-xs text-gray-500">Label for room detail page views</p>
                             </div>
 
+                            <div class="space-y-6 pt-6 border-t border-gray-100">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="fab fa-meta text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900">Meta Pixel</h3>
+                                        <p class="text-xs text-gray-500">Collect visitor, room-view, search and unlock conversion data for future ads.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <input type="checkbox" name="meta_pixel_enabled" value="1" id="meta_pixel_enabled" {{ \App\Models\Setting::get('meta_pixel_enabled', '0') == '1' ? 'checked' : '' }} class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500">
+                                    <label for="meta_pixel_enabled" class="text-sm font-semibold text-gray-700 cursor-pointer">
+                                        Enable Meta Pixel Tracking
+                                        <span class="text-xs text-gray-500 block font-normal mt-1">Paste your Pixel ID below after creating it in Meta Business Manager.</span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Meta Pixel ID</label>
+                                    <input type="text" name="meta_pixel_id" value="{{ \App\Models\Setting::get('meta_pixel_id') }}" class="block w-full px-4 py-3 border-gray-200 rounded-lg focus:ring-0 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white sm:text-sm font-mono" placeholder="123456789012345">
+                                    <p class="mt-1 text-xs text-gray-500">Events used: PageView, Search, ViewContent, InitiateCheckout and Purchase.</p>
+                                </div>
+                            </div>
+
                             <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <p class="text-xs text-blue-800 flex items-start gap-2">
                                     <i class="fas fa-info-circle mt-0.5"></i>

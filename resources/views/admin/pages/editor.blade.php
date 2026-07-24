@@ -4,8 +4,14 @@
 <div class="flex min-h-0">
     <div class="flex-1 min-w-0 flex flex-col">
         <div class="container-fluid px-4 py-6">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h1 class="text-2xl font-bold text-slate-800">{{ $pageTitle }}</h1>
+                @if(!empty($previewUrl))
+                    <a href="{{ $previewUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-600 hover:text-white">
+                        <i class="fas fa-eye"></i>
+                        Preview
+                    </a>
+                @endif
             </div>
 
             @if(session('success'))
@@ -17,7 +23,7 @@
             @endif
 
             <div id="pageEditorCard" class="bg-white rounded-lg shadow-md p-6">
-                <form id="pageEditorForm" action="{{ $route }}" method="POST">
+                <form id="pageEditorForm" action="{{ url()->current() }}" method="POST">
                     @csrf
                     @method('PUT')
                     
@@ -47,59 +53,28 @@
 <script>
 (function() {
     'use strict';
-    
-    function syncEditors() {
-        if (window.richEditors && typeof window.richEditors.forEach === 'function') {
-            window.richEditors.forEach(function(editor) {
-                if (editor && typeof editor.getData === 'function' && editor.sourceElement) {
-                    editor.sourceElement.value = editor.getData();
-                }
-            });
-        }
-    }
-    
-    function restoreTextarea(textarea) {
-        if (!textarea || !textarea.parentNode) return;
-        var clone = document.createElement('textarea');
-        clone.id = textarea.id;
-        clone.name = textarea.name;
-        clone.rows = textarea.rows || 20;
-        clone.className = textarea.className;
-        clone.value = textarea.value || '';
-        textarea.parentNode.replaceChild(clone, textarea);
-    }
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         var form = document.getElementById('pageEditorForm');
         var contentEl = document.getElementById('content');
         var fallbackNote = document.getElementById('editorFallbackNote');
-        var isEditorReady = false;
-        
-        if (typeof createRichEditor === 'function' && contentEl) {
-            try {
-                createRichEditor(contentEl).then(function() {
-                    isEditorReady = true;
-                }).catch(function(err) {
-                    console.error('CKEditor init failed:', err);
-                    restoreTextarea(contentEl);
-                    if (fallbackNote) fallbackNote.classList.remove('hidden');
-                });
-            } catch (err) {
-                console.error('CKEditor init threw:', err);
-                restoreTextarea(contentEl);
+
+        if (contentEl && typeof createRichEditor === 'function') {
+            createRichEditor(contentEl).catch(function(error) {
+                console.error('Rich editor init failed:', error);
+                contentEl.classList.remove('hidden');
                 if (fallbackNote) fallbackNote.classList.remove('hidden');
-            }
-        } else if (contentEl && typeof CKEDITOR === 'undefined') {
-            console.warn('CKEditor script not loaded. Using plain textarea fallback.');
-            if (fallbackNote) fallbackNote.classList.remove('hidden');
+            });
+        } else if (contentEl && fallbackNote) {
+            fallbackNote.classList.remove('hidden');
         }
-        
+
         if (form) {
             form.addEventListener('submit', function() {
-                syncEditors();
+                window.syncRichEditors?.();
             });
         }
-        
+
         document.getElementById('toggleEditorFullscreen')?.addEventListener('click', function() {
             var card = document.getElementById('pageEditorCard');
             card.classList.toggle('page-editor-fullscreen');

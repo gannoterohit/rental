@@ -665,6 +665,18 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+    window.trackRoomNestEvent?.('ViewContent', {
+        content_type: 'room',
+        content_ids: [@json((string) $room->id)],
+        content_name: @json($room->title),
+        city: @json($room->city),
+        value: {{ (float) $room->rent }},
+        currency: 'INR'
+    });
+});
+</script>
+<script>
     let currentLightboxIndex = 0;
     const lightboxImages = {!! json_encode($room->photo_urls) !!};
 
@@ -967,6 +979,14 @@ async function executeFeature(roomId, paymentMethod) {
 
 async function initiatePayment(paymentId, amount, type, referenceId) {
     try {
+        if (type === 'unlock') {
+            window.trackRoomNestEvent?.('InitiateCheckout', {
+                content_type: 'room',
+                content_ids: [String(referenceId)],
+                value: Number(amount || 0),
+                currency: 'INR'
+            });
+        }
         // Lazy load Razorpay SDK
         await loadRazorpaySDK();
         
@@ -1039,6 +1059,15 @@ async function initiatePayment(paymentId, amount, type, referenceId) {
                     const verifyData = await verifyResponse.json();
                     
                     if (verifyData.status === 'success') {
+                        if (type === 'unlock') {
+                            const conversion = verifyData.conversion_data || {};
+                            window.trackRoomNestEvent?.('Purchase', {
+                                content_type: 'room',
+                                content_ids: [String(referenceId)],
+                                value: Number(conversion.amount || amount || 0),
+                                currency: 'INR'
+                            });
+                        }
                         toastr.success('Payment successful! Contact details unlocked.', 'Success');
                         setTimeout(() => {
                             location.reload();
