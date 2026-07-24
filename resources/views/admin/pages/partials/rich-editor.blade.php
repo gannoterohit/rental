@@ -4,8 +4,9 @@
     .cms-rich-editor .ql-toolbar { border-color:#dbe1ea; border-radius:10px 10px 0 0; background:#f8fafc; }
     .cms-rich-editor .ql-container { min-height:420px; border-color:#dbe1ea; border-radius:0 0 10px 10px; font-size:15px; }
     .cms-rich-editor .ql-editor { min-height:420px; line-height:1.7; }
-    .faq-item .cms-rich-editor .ql-container,
-    .faq-item .cms-rich-editor .ql-editor { min-height:150px; }
+    .cms-rich-editor.cms-rich-editor-compact .ql-toolbar { padding:4px !important; }
+    .cms-rich-editor.cms-rich-editor-compact .ql-container { min-height:0 !important; height:120px !important; }
+    .cms-rich-editor.cms-rich-editor-compact .ql-editor { min-height:0 !important; height:120px !important; max-height:120px !important; overflow-y:auto !important; padding:10px 12px !important; }
     .page-editor-fullscreen { position:fixed !important; inset:0 !important; z-index:99999 !important; background:#fff !important; padding:16px !important; overflow:auto !important; }
     .page-editor-fullscreen .cms-rich-editor .ql-container,
     .page-editor-fullscreen .cms-rich-editor .ql-editor { min-height:calc(100vh - 150px) !important; }
@@ -20,7 +21,8 @@ window.createRichEditor = function(textarea) {
     if (typeof Quill === 'undefined') return Promise.reject(new Error('Quill script not loaded'));
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'cms-rich-editor';
+    const compact = textarea.classList.contains('faq-answer');
+    wrapper.className = compact ? 'cms-rich-editor cms-rich-editor-compact' : 'cms-rich-editor';
     const editorElement = document.createElement('div');
     wrapper.appendChild(editorElement);
     textarea.classList.add('hidden');
@@ -30,7 +32,11 @@ window.createRichEditor = function(textarea) {
     const quill = new Quill(editorElement, {
         theme: 'snow',
         modules: {
-            toolbar: [
+            toolbar: compact ? [
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'clean']
+            ] : [
                 [{ header: [1, 2, 3, 4, false] }],
                 [{ size: ['small', false, 'large', 'huge'] }],
                 ['bold', 'italic', 'underline', 'strike'],

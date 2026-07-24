@@ -250,7 +250,28 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'faq_content',
-                'value' => '[{"question":"Is RoomRental free?","answer":"Listing is free for basic users, but featured listings have a small fee."}]',
+                'value' => json_encode([
+                    [
+                        'question' => 'How do I contact a room owner?',
+                        'answer' => 'Open a room listing, check the rent, photos, amenities and location, then unlock the owner contact. After unlock, you can call or message the owner directly and schedule a visit.',
+                    ],
+                    [
+                        'question' => 'Does RoomNest charge brokerage?',
+                        'answer' => 'No. RoomNest is built for direct owner-to-tenant connection. You only pay the platform fee shown on the website, such as contact unlock or listing-related fees, and there is no brokerage from RoomNest.',
+                    ],
+                    [
+                        'question' => 'Should I pay token money before visiting the room?',
+                        'answer' => 'We strongly recommend visiting the property, verifying the owner identity, checking the room condition and agreeing on terms before paying any token, deposit or rent to the owner.',
+                    ],
+                    [
+                        'question' => 'What should I verify before finalizing a room?',
+                        'answer' => 'Verify the exact address, owner identity, rent, deposit, notice period, electricity/water charges, amenities, room condition and house rules. Always ask for a written rent agreement and payment receipt.',
+                    ],
+                    [
+                        'question' => 'What can I do if a listing looks fake or unavailable?',
+                        'answer' => 'Use the complaint or report option and share the room details with screenshots if possible. RoomNest can review suspicious, duplicate or unavailable listings and take action on the platform.',
+                    ],
+                ]),
                 'type' => 'textarea',
                 'group' => 'pages',
                 'description' => 'FAQ JSON Content'

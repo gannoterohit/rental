@@ -23,8 +23,10 @@
             <h1 class="mt-3 text-2xl font-extrabold">{{ $page->exists ? 'Edit CMS Page' : 'Create CMS Page' }}</h1>
             <p class="text-sm text-slate-500">Create reusable static pages with SEO and publishing controls.</p>
         </div>
-        @if($page->exists)
+        @if($page->exists && $page->isPublished())
             <a href="{{ $page->public_url }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs font-bold text-indigo-700"><i class="fas fa-eye"></i>Preview</a>
+        @elseif($page->exists)
+            <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-bold text-slate-400"><i class="fas fa-eye-slash"></i>Draft hidden</span>
         @endif
     </header>
 

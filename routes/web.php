@@ -165,6 +165,7 @@ Route::middleware(['auth','role:admin','admin.permission','admin.activity'])->pr
     Route::post('/settings', [BusinessSettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/store', [BusinessSettingsController::class, 'store'])->name('settings.store');
     Route::post('/settings/ping', [BusinessSettingsController::class, 'pingSearchEngines'])->name('settings.ping');
+    Route::patch('cms-pages/{cmsPage}/toggle-status', [CmsPageController::class, 'toggleStatus'])->name('cms-pages.toggle-status');
     Route::resource('cms-pages', CmsPageController::class)->except(['show']);
     Route::resource('room-options', RoomOptionController::class)->except(['show']);
     Route::patch('room-options/{roomOption}/toggle-status', [RoomOptionController::class, 'toggleStatus'])->name('room-options.toggle-status');

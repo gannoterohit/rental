@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class CmsPage extends Model
@@ -46,8 +47,18 @@ class CmsPage extends Model
         return url('/' . $this->slug);
     }
 
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'published');
+    }
+
     public function isPublished(): bool
     {
         return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return !$this->isPublished();
     }
 }

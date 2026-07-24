@@ -2,6 +2,47 @@
 
 @section('title', 'CMS Pages')
 
+@push('styles')
+<style>
+    .cms-publish-switch {
+        position: relative;
+        display: inline-flex;
+        height: 28px;
+        width: 52px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 3px;
+        transition: background-color .18s ease, box-shadow .18s ease;
+    }
+
+    .cms-publish-switch:focus-visible {
+        outline: 3px solid rgba(79, 70, 229, .22);
+        outline-offset: 2px;
+    }
+
+    .cms-publish-switch span {
+        height: 22px;
+        width: 22px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 5px 12px rgba(15, 23, 42, .18);
+        transition: transform .18s ease;
+    }
+
+    .cms-publish-switch.is-live {
+        background: #10b981;
+    }
+
+    .cms-publish-switch.is-live span {
+        transform: translateX(24px);
+    }
+
+    .cms-publish-switch.is-draft {
+        background: #cbd5e1;
+    }
+</style>
+@endpush
+
 @section('admin-content')
 <div class="space-y-5 p-5 lg:p-6">
     <header class="flex flex-wrap items-end justify-between gap-3">
@@ -41,9 +82,9 @@
 
     <div class="overflow-hidden rounded-2xl border bg-white">
         <div class="overflow-x-auto">
-            <table class="min-w-[900px] w-full text-left">
+            <table class="min-w-[1040px] w-full text-left">
                 <thead class="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
-                    <tr><th class="p-4">Page</th><th class="p-4">Template</th><th class="p-4">Status</th><th class="p-4">Updated</th><th class="p-4 text-right">Actions</th></tr>
+                    <tr><th class="p-4">Page</th><th class="p-4">Template</th><th class="p-4">Status</th><th class="p-4 text-center">Publish</th><th class="p-4">Updated</th><th class="p-4 text-right">Actions</th></tr>
                 </thead>
                 <tbody class="divide-y">
                     @forelse($pages as $page)
@@ -54,13 +95,33 @@
                             </td>
                             <td class="p-4"><span class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">{{ ucfirst($page->template) }}</span></td>
                             <td class="p-4">
-                                <span class="rounded-lg px-2 py-1 text-[10px] font-extrabold {{ $page->isPublished() ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($page->status) }}</span>
-                                @if($page->is_system)<span class="ml-1 rounded-lg bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">System</span>@endif
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="rounded-lg px-2.5 py-1 text-[10px] font-extrabold {{ $page->isPublished() ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ $page->isPublished() ? 'Published' : 'Draft' }}</span>
+                                    @if($page->is_system)
+                                        <span class="rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-700">System</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <form method="POST" action="{{ route('admin.cms-pages.toggle-status', $page) }}" class="inline-flex items-center justify-center">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                            class="cms-publish-switch {{ $page->isPublished() ? 'is-live' : 'is-draft' }}"
+                                            title="{{ $page->isPublished() ? 'Unpublish page' : 'Publish page' }}"
+                                            aria-label="{{ $page->isPublished() ? 'Unpublish '.$page->title : 'Publish '.$page->title }}">
+                                        <span></span>
+                                    </button>
+                                </form>
                             </td>
                             <td class="p-4 text-xs text-slate-500">{{ $page->updated_at?->format('d M Y, h:i A') }}</td>
                             <td class="p-4">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ $page->public_url }}" target="_blank" class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600"><i class="fas fa-eye"></i></a>
+                                    @if($page->isPublished())
+                                        <a href="{{ $page->public_url }}" target="_blank" class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600" title="View public page"><i class="fas fa-eye"></i></a>
+                                    @else
+                                        <span class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-300" title="Draft pages are hidden from the public website"><i class="fas fa-eye-slash"></i></span>
+                                    @endif
                                     <a href="{{ route('admin.cms-pages.edit', $page) }}" class="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"><i class="fas fa-edit mr-1"></i>Edit</a>
                                     @unless($page->is_system)
                                         <form method="POST" action="{{ route('admin.cms-pages.destroy', $page) }}" onsubmit="return confirm('Delete this page?')">@csrf @method('DELETE')<button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700"><i class="fas fa-trash"></i></button></form>
@@ -69,7 +130,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="p-12 text-center text-sm text-slate-500">No CMS pages found.</td></tr>
+                        <tr><td colspan="6" class="p-12 text-center text-sm text-slate-500">No CMS pages found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php $contactPageLive = \App\Models\CmsPage::published()->where('slug', 'contact-us')->exists(); @endphp
 <div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
     <div class="relative mb-8">
         <h1 class="text-9xl font-extrabold text-gray-100 tracking-widest select-none">404</h1>
@@ -18,9 +19,11 @@
         <a href="{{ url('/') }}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out shadow-md">
             Go Back Home
         </a>
-        <a href="{{ route('pages.contact') }}" class="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition duration-150 ease-in-out shadow-sm">
-            Contact Support
-        </a>
+        @if($contactPageLive)
+            <a href="{{ route('pages.contact') }}" class="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition duration-150 ease-in-out shadow-sm">
+                Contact Support
+            </a>
+        @endif
     </div>
 
 </div>

@@ -42,7 +42,8 @@
 </section>
 
 <section class="bg-white py-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 flex flex-col md:flex-row md:items-center gap-5"><span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><i class="fas fa-shield-halved"></i></span><div class="flex-1"><h2 class="font-bold text-slate-950">Visit and verify before finalizing</h2><p class="mt-1 text-sm leading-6 text-slate-600">ApnaNest provides listing discovery and contact access. Always visit the property, verify owner identity/documents and agree on rent, deposit and terms before paying the owner.</p></div><a href="{{ route('pages.safety-tips') }}" class="shrink-0 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white hover:bg-amber-700">Safety Tips</a></div></div>
+    @php $safetyTipsLive = \App\Models\CmsPage::published()->where('slug', 'safety-tips')->exists(); @endphp
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 flex flex-col md:flex-row md:items-center gap-5"><span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><i class="fas fa-shield-halved"></i></span><div class="flex-1"><h2 class="font-bold text-slate-950">Visit and verify before finalizing</h2><p class="mt-1 text-sm leading-6 text-slate-600">ApnaNest provides listing discovery and contact access. Always visit the property, verify owner identity/documents and agree on rent, deposit and terms before paying the owner.</p></div>@if($safetyTipsLive)<a href="{{ route('pages.safety-tips') }}" class="shrink-0 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white hover:bg-amber-700">Safety Tips</a>@endif</div></div>
 </section>
 
 @endsection

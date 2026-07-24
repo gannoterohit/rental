@@ -1,4 +1,14 @@
 <!-- Mobile App Menu Drawer -->
+@php
+    if (!isset($cmsPageLive)) {
+        try {
+            $publishedCmsSlugs = \App\Models\CmsPage::published()->pluck('slug')->flip();
+        } catch (\Throwable $exception) {
+            $publishedCmsSlugs = collect();
+        }
+        $cmsPageLive = fn (string $slug): bool => $publishedCmsSlugs->has($slug);
+    }
+@endphp
 <div id="mobile-app-menu" class="fixed top-0 left-0 bottom-0 w-[85%] max-w-[350px] bg-white z-[2000] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden h-full flex flex-col">
     <!-- Drawer Header with App Branding -->
     <div class="p-6 text-white relative flex flex-col items-center text-center" style="background-color: var(--primary);">
@@ -121,27 +131,27 @@
         <div>
             <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-3 ml-2">App Info & Support</p>
             <div class="space-y-1">
-                <a href="{{ route('pages.about') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                @if($cmsPageLive('about-us'))<a href="{{ route('pages.about') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-info-circle w-5 text-indigo-500"></i> About Us
-                </a>
-                <a href="{{ route('pages.faq') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('faq'))<a href="{{ route('pages.faq') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-question-circle w-5 text-purple-500"></i> FAQ
-                </a>
-                <a href="{{ route('pages.contact') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('contact-us'))<a href="{{ route('pages.contact') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-headset w-5 text-blue-500"></i> Support Center
-                </a>
-                <a href="{{ route('pages.owner-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('owner-guidelines'))<a href="{{ route('pages.owner-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-house-user w-5 text-indigo-500"></i> Owner Guidelines
-                </a>
-                <a href="{{ route('pages.user-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('user-guidelines'))<a href="{{ route('pages.user-guidelines') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-person-circle-check w-5 text-indigo-500"></i> User Guidelines
-                </a>
-                <a href="{{ route('pages.privacy') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('privacy-policy'))<a href="{{ route('pages.privacy') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-shield-alt w-5 text-teal-500"></i> Privacy Policy
-                </a>
-                <a href="{{ route('pages.terms') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
+                </a>@endif
+                @if($cmsPageLive('terms-and-conditions'))<a href="{{ route('pages.terms') }}" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 transition text-gray-700 font-bold">
                     <i class="fas fa-file-contract w-5 text-amber-500"></i> Terms of Service
-                </a>
+                </a>@endif
             </div>
         </div>
     </div>

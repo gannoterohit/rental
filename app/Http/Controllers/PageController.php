@@ -61,6 +61,10 @@ class PageController extends Controller
     public function faq()
     {
         $page = $this->page('faq');
+        if ($page && !$page->isPublished()) {
+            abort(404);
+        }
+
         $json = $page?->content ?: Setting::get('faq_content', '[]');
         // Ensure it's valid JSON, if not (legacy text), might break. 
         // Logic: Try decode. If array, good. If string, maybe legacy text?
@@ -77,7 +81,7 @@ class PageController extends Controller
 
     public function show(string $slug)
     {
-        $page = CmsPage::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        $page = CmsPage::where('slug', $slug)->published()->firstOrFail();
         return $this->renderPage($page);
     }
 
@@ -90,7 +94,10 @@ class PageController extends Controller
 
         $content = Setting::get($settingKey, config("cms.defaults.{$settingKey}", ''));
         $title = $fallbackTitle;
-        return view($view, compact('content', 'title'));
+        $pageTitle = $fallbackTitle;
+        $metaDescription = '';
+        $updatedAt = null;
+        return view($view, compact('content', 'title', 'pageTitle', 'metaDescription', 'updatedAt'));
     }
 
     private function renderPage(CmsPage $page, ?string $forcedView = null)
@@ -99,16 +106,19 @@ class PageController extends Controller
 
         $content = $page->content;
         $title = $page->seo_title ?: $page->title;
+        $pageTitle = $page->title;
+        $metaDescription = $page->meta_description ?: '';
+        $updatedAt = $page->updated_at;
         if (($forcedView ?: $page->template) === 'contact' || $page->template === 'contact') {
-            return view('pages.contact', compact('content', 'title'));
+            return view('pages.contact', compact('content', 'title', 'pageTitle', 'metaDescription', 'updatedAt'));
         }
         if (($forcedView ?: $page->template) === 'faq' || $page->template === 'faq') {
             $faqs = json_decode((string) $page->content, true);
             if (!is_array($faqs)) $faqs = [];
-            return view('pages.faq', compact('faqs', 'title'));
+            return view('pages.faq', compact('faqs', 'title', 'pageTitle', 'metaDescription', 'updatedAt'));
         }
         $view = $forcedView ?: 'pages.show';
-        return view($view, compact('content', 'title'));
+        return view($view, compact('content', 'title', 'pageTitle', 'metaDescription', 'updatedAt'));
     }
 
     private function page(string $slug): ?CmsPage

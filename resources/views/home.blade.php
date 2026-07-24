@@ -819,6 +819,11 @@
             </div>
             
             <!-- Right Side: Frequently Asked Questions (Col span 5) -->
+            @php
+                $homeFaqCmsPage = \App\Models\CmsPage::where('slug', 'faq')->first();
+                $showHomeFaq = !$homeFaqCmsPage || $homeFaqCmsPage->isPublished();
+            @endphp
+            @if($showHomeFaq)
             <div class="lg:col-span-5 space-y-6">
                 <div class="border-b border-slate-200/80 pb-4">
                     <h3 class="text-2xl font-black text-slate-900 font-heading">{{ $homeText('home_faq_title', 'Frequently Asked Questions') }}</h3>
@@ -827,7 +832,7 @@
                 
                 <div class="space-y-3">
                     <?php
-                        $faqPage = \App\Models\CmsPage::where('slug', 'faq')->where('status', 'published')->first();
+                        $faqPage = \App\Models\CmsPage::where('slug', 'faq')->published()->first();
                         $faqs = json_decode($faqPage?->content ?: \App\Models\Setting::get('faq_content', '[]'), true);
                         if (!is_array($faqs) || count($faqs) === 0) $faqs = [
                             ['q' => 'How do I contact a room owner?', 'a' => 'Open a room, review its details and unlock the owner contact using a contact credit or single unlock. You can then call or message the owner directly.'],
@@ -850,6 +855,7 @@
                     @endforeach
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </section>

@@ -3,6 +3,15 @@
 @section('description', 'Create an ApnaNest account to find a room or list your property and connect directly.')
 
 @section('content')
+@php
+    try {
+        $publishedCmsSlugs = \App\Models\CmsPage::published()->pluck('slug')->flip();
+    } catch (\Throwable $exception) {
+        $publishedCmsSlugs = collect();
+    }
+    $termsLive = $publishedCmsSlugs->has('terms-and-conditions');
+    $privacyLive = $publishedCmsSlugs->has('privacy-policy');
+@endphp
 <section class="auth-page">
     <div class="auth-shell auth-shell-register">
         <aside class="auth-story">
@@ -33,7 +42,15 @@
                         <label class="role-card"><input type="radio" name="role" value="owner" {{ request('role') === 'owner' ? 'checked' : '' }}><span><i class="fas fa-building"></i><span><b>List a property</b><small>Manage rooms and enquiries</small></span></span></label>
                     </div></div>
                     <div class="auth-field-group"><label class="auth-label" for="referral_code_input">Referral code <span style="font-weight:500;color:#94a3b8">(optional)</span></label><input class="auth-field" type="text" id="referral_code_input" name="referral_code" autocomplete="off" value="{{ old('referral_code', session('referral_code')) }}" placeholder="Enter referral code"></div>
-                    <label class="terms-row"><input type="checkbox" id="terms_checkbox" required><span>I agree to the <a href="{{ route('pages.terms') }}" target="_blank">Terms and Conditions</a> and acknowledge the <a href="{{ route('pages.privacy') }}" target="_blank">Privacy Policy</a>.</span></label>
+                    <label class="terms-row">
+                        <input type="checkbox" id="terms_checkbox" required>
+                        <span>
+                            I agree to the
+                            @if($termsLive)<a href="{{ route('pages.terms') }}" target="_blank">Terms and Conditions</a>@else<span>Terms and Conditions</span>@endif
+                            and acknowledge the
+                            @if($privacyLive)<a href="{{ route('pages.privacy') }}" target="_blank">Privacy Policy</a>@else<span>Privacy Policy</span>@endif.
+                        </span>
+                    </label>
                     <button type="submit" id="send-otp-btn" class="auth-primary"><span>Continue to email verification</span><i class="fas fa-arrow-right"></i></button>
                 </form>
             </div>

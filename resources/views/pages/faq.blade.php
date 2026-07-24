@@ -1,38 +1,49 @@
 @extends('layouts.app')
 
 @section('title', $title)
+@section('description', $metaDescription ?? 'Answers to common RoomNest questions about owner contact, brokerage, payments and safety.')
 
 @section('content')
-<div class="py-12 bg-gray-50 min-h-screen">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ $title }}</h1>
-            <p class="text-lg text-gray-600">Find answers to common questions about RoomRental.</p>
+<div class="bg-slate-50 py-8 md:py-10">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 text-center">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-600">Help center</p>
+            <h1 class="mt-2 text-2xl font-black text-slate-950 md:text-3xl">{{ $pageTitle ?? $title }}</h1>
+            <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Quick answers about contact unlocks, brokerage, visits and listing safety.</p>
+            @if(!empty($updatedAt))
+                <p class="mt-2 text-[11px] font-semibold text-slate-400">Last updated {{ $updatedAt->format('d M Y') }}</p>
+            @endif
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-3">
             @forelse($faqs as $index => $faq)
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none transition-colors duration-200 hover:bg-gray-50" 
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <button class="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors duration-200 hover:bg-slate-50 focus:outline-none"
                             onclick="toggleFaq('faq-{{ $index }}')">
-                        <span class="text-lg font-medium text-gray-900">{{ $faq['question'] }}</span>
-                        <i id="icon-faq-{{ $index }}" class="fas fa-chevron-down text-gray-400 transition-transform duration-200"></i>
+                        <span class="text-sm font-extrabold text-slate-900">{{ $faq['question'] }}</span>
+                        <i id="icon-faq-{{ $index }}" class="fas fa-chevron-down shrink-0 text-xs text-slate-400 transition-transform duration-200"></i>
                     </button>
-                    <div id="faq-{{ $index }}" class="hidden px-6 pb-4 pt-0 text-gray-600 leading-relaxed border-t border-transparent transition-all duration-300">
-                        <div class="pt-4 border-t border-gray-100">
+                    <div id="faq-{{ $index }}" class="hidden px-4 pb-4 text-sm leading-6 text-slate-600 transition-all duration-300">
+                        <div class="border-t border-slate-100 pt-3">
                             {!! $faq['answer'] !!}
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="text-center bg-white rounded-lg shadow-sm p-8">
-                    <div class="text-gray-400 mb-4">
-                        <i class="fas fa-question-circle text-5xl"></i>
-                    </div>
-                    <h3 class="text-xl font-medium text-gray-900 mb-2">No FAQs yet</h3>
-                    <p class="text-gray-500">Check back later for updates.</p>
+                <div class="rounded-xl border bg-white p-8 text-center shadow-sm">
+                    <i class="fas fa-question-circle text-4xl text-slate-300"></i>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900">No FAQs yet</h3>
+                    <p class="mt-1 text-sm text-slate-500">Check back later for updates.</p>
                 </div>
             @endforelse
+        </div>
+
+        <div class="mt-6 rounded-xl border border-indigo-100 bg-white px-4 py-3 text-center text-sm text-slate-600">
+            Still need help?
+            @php $contactPageLive = \App\Models\CmsPage::published()->where('slug', 'contact-us')->exists(); @endphp
+            @if($contactPageLive)
+                <a href="{{ route('pages.contact') }}" class="font-bold text-indigo-600 hover:text-indigo-700">Contact support</a>
+            @endif
         </div>
     </div>
 </div>
@@ -41,9 +52,6 @@
     function toggleFaq(id) {
         const element = document.getElementById(id);
         const icon = document.getElementById('icon-' + id);
-        
-        // Close others? Optional. Let's keep multiple openable for now.
-        
         if (element.classList.contains('hidden')) {
             element.classList.remove('hidden');
             icon.classList.add('rotate-180');

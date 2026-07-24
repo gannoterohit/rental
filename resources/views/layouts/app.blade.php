@@ -502,6 +502,10 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
         }
+
+        .cms-content-main {
+            flex: 0 0 auto !important;
+        }
     </style>
 
     <style>
@@ -747,6 +751,14 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen mobile-app-view dynamic-theme-override">
+    @php
+        try {
+            $publishedCmsSlugs = \App\Models\CmsPage::published()->pluck('slug')->flip();
+        } catch (\Throwable $exception) {
+            $publishedCmsSlugs = collect();
+        }
+        $cmsPageLive = fn (string $slug): bool => $publishedCmsSlugs->has($slug);
+    @endphp
     @unless(request()->routeIs('admin.*', 'owner.*', 'dashboard', 'profile.*', 'wallet', 'referral.*', 'wishlist.*', 'complaints.*', 'plans', 'login', 'register'))
         @include('partials.offer-banner', ['placement' => 'top_nav'])
     @endunless
@@ -810,7 +822,9 @@
                 <div class="desktop-navbar-menu hidden lg:flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-xl p-1">
                     <a href="{{ route('home') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Home</a>
                     <a href="{{ route('rooms.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Browse Rooms</a>
-                    <a href="{{ route('pages.how-it-works') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">How It Works</a>
+                    @if($cmsPageLive('how-it-works'))
+                        <a href="{{ route('pages.how-it-works') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">How It Works</a>
+                    @endif
                     <a href="{{ Auth::check() ? (Auth::user()->role === 'owner' ? route('owner.dashboard') : route('dashboard')) : route('register', ['role' => 'owner']) }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">For Owners</a>
                     <a href="{{ route('blogs.index') }}" class="px-3 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white text-xs font-bold transition">Blog</a>
                 </div>
@@ -962,12 +976,12 @@
     @endif
 
     <!-- Main Content -->
-    <main class="pt-16 md:pt-0">
+    <main class="pt-16 md:pt-0 {{ Route::is('pages.*', 'cms-pages.show') ? 'cms-content-main' : '' }}">
         @yield('content')
     </main>
 
     <!-- Stay Updated Banner Section -->
-    @if(!Route::is('home') && !Route::is('owner.*') && !Route::is('complaints.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans', 'login', 'register'))
+    @if(!Route::is('home') && !Route::is('pages.*') && !Route::is('cms-pages.show') && !Route::is('owner.*') && !Route::is('complaints.*') && !Route::is('rooms.create', 'rooms.edit') && !Route::is('dashboard', 'profile.edit', 'wallet', 'referral.index', 'plans', 'login', 'register'))
     <div class="hidden lg:block bg-indigo-50/70 border-t border-indigo-100 py-8">
         <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4">
@@ -1039,7 +1053,7 @@
                         <li><a href="{{ route('rooms.index') }}" class="text-slate-400 hover:text-white transition-all">Browse Rooms</a></li>
                         <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', 'shared_room')]]) }}" class="text-slate-400 hover:text-white transition-all">PG</a></li>
                         <li><a href="{{ route('rooms.index', ['room_type' => [\App\Models\RoomOption::idForKey('room_type', '1bhk')]]) }}" class="text-slate-400 hover:text-white transition-all">Apartments</a></li>
-                        <li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
+                        @if($cmsPageLive('how-it-works'))<li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>@endif
                         <li><a href="{{ route('plans') }}" class="text-slate-400 hover:text-white transition-all">Pricing</a></li>
                     </ul>
                 </div>
@@ -1048,13 +1062,13 @@
                 <div class="lg:col-span-2">
                     <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Company</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
-                        <li><a href="{{ route('pages.about') }}" class="text-slate-400 hover:text-white transition-all">About Us</a></li>
-                        <li><a href="{{ route('pages.careers') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>
-                        <li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white transition-all">Terms of Service</a></li>
-                        <li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white transition-all">Privacy Policy</a></li>
-                        <li><a href="{{ route('pages.owner-guidelines') }}" class="text-slate-400 hover:text-white transition-all">Owner Guidelines</a></li>
-                        <li><a href="{{ route('pages.user-guidelines') }}" class="text-slate-400 hover:text-white transition-all">User Guidelines</a></li>
-                        <li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Contact Us</a></li>
+                        @if($cmsPageLive('about-us'))<li><a href="{{ route('pages.about') }}" class="text-slate-400 hover:text-white transition-all">About Us</a></li>@endif
+                        @if($cmsPageLive('careers'))<li><a href="{{ route('pages.careers') }}" class="text-slate-400 hover:text-white transition-all">Careers</a></li>@endif
+                        @if($cmsPageLive('terms-and-conditions'))<li><a href="{{ route('pages.terms') }}" class="text-slate-400 hover:text-white transition-all">Terms of Service</a></li>@endif
+                        @if($cmsPageLive('privacy-policy'))<li><a href="{{ route('pages.privacy') }}" class="text-slate-400 hover:text-white transition-all">Privacy Policy</a></li>@endif
+                        @if($cmsPageLive('owner-guidelines'))<li><a href="{{ route('pages.owner-guidelines') }}" class="text-slate-400 hover:text-white transition-all">Owner Guidelines</a></li>@endif
+                        @if($cmsPageLive('user-guidelines'))<li><a href="{{ route('pages.user-guidelines') }}" class="text-slate-400 hover:text-white transition-all">User Guidelines</a></li>@endif
+                        @if($cmsPageLive('contact-us'))<li><a href="{{ route('pages.contact') }}" class="text-slate-400 hover:text-white transition-all">Contact Us</a></li>@endif
                     </ul>
                 </div>
 
@@ -1062,9 +1076,9 @@
                 <div class="lg:col-span-2">
                     <h4 class="text-white font-bold mb-4 text-sm uppercase tracking-wider">Support</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
-                        <li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Help Center</a></li>
-                        <li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>
-                        <li><a href="{{ route('pages.safety-tips') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>
+                        @if($cmsPageLive('faq'))<li><a href="{{ route('pages.faq') }}" class="text-slate-400 hover:text-white transition-all">Help Center</a></li>@endif
+                        @if($cmsPageLive('how-it-works'))<li><a href="{{ route('pages.how-it-works') }}" class="text-slate-400 hover:text-white transition-all">How It Works</a></li>@endif
+                        @if($cmsPageLive('safety-tips'))<li><a href="{{ route('pages.safety-tips') }}" class="text-slate-400 hover:text-white transition-all">Safety Tips</a></li>@endif
                         <li><a href="{{ Auth::check() ? route('complaints.create') : route('login') }}" class="text-slate-400 hover:text-white transition-all">Report an Issue</a></li>
                         <li><a href="{{ route('sitemap') }}" class="text-slate-400 hover:text-white transition-all">Sitemap</a></li>
                     </ul>

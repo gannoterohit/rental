@@ -58,6 +58,15 @@ class CmsPageController extends Controller
         return redirect()->route('admin.cms-pages.index')->with('success', 'CMS page deleted.');
     }
 
+    public function toggleStatus(CmsPage $cmsPage)
+    {
+        $cmsPage->update([
+            'status' => $cmsPage->isPublished() ? 'draft' : 'published',
+        ]);
+
+        return back()->with('success', "{$cmsPage->title} is now {$cmsPage->status}.");
+    }
+
     public function legacy(string $key)
     {
         $slug = [
